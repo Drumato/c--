@@ -1,7 +1,7 @@
 type Column = usize;
 type Row = usize;
 pub type Position = (Column, Row);
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Token {
     pub position: Position,
     pub kind: TokenKind,
@@ -22,7 +22,7 @@ impl Token {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
     INTEGER(i128), // 整数
     PLUS,          // +記号
