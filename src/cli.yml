@@ -1,0 +1,19 @@
+name: c--
+version: "1.0"
+author: Drumato <drumatech109@gmail.com>
+about: "C Compiler Driver From Scratch"
+args:
+    - source:
+        help: Sets the input file to use
+        required: true
+        index: 1
+        multiple: true
+    - d-source:
+        long: d-source
+        help: dump the contents of a specified file
+    - stop-c:
+        short: S
+        help: Stop when compiled
+    - stop-a:
+        short: c
+        help: Stop when assembled
