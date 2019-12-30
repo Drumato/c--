@@ -35,7 +35,7 @@ fn read_c_file(s: &str) -> Option<String> {
     if filepath.is_dir() {
         eprintln!("{} is directory.", filepath.to_str().unwrap());
     } else {
-        eprintln!("{} not found", filepath.to_str().unwrap());
+        eprintln!("not found such a file.\nusing command-line argument instead.",);
     }
     None
 }
@@ -46,6 +46,7 @@ mod src_file_tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_src_file_with_valid_file() -> Result<(), Box<dyn std::error::Error>> {
         let file_path = format!("{}/samples/add.c", std::env::var("C_ROOT").unwrap());
         let source_file = SrcFile::new(&file_path);
@@ -57,6 +58,7 @@ mod src_file_tests {
         Ok(())
     }
     #[test]
+    #[ignore]
     fn test_src_file_with_invalid_file() {
         let file_path = "not_exist.c";
         let source_file = SrcFile::new(file_path);
