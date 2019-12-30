@@ -10,6 +10,7 @@ pub struct Token {
 impl Token {
     pub fn should_ignore(&self) -> bool {
         match self.kind {
+            TokenKind::BLANK => true,
             _ => false,
         }
     }
@@ -24,5 +25,7 @@ impl Token {
 #[derive(PartialEq, Debug)]
 pub enum TokenKind {
     INTEGER(i128), // 整数
+    PLUS,          // +記号
+    BLANK,         // 空白類文字
     EOF,
 }

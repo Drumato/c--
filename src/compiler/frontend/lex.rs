@@ -20,8 +20,8 @@ struct Lexer<'a> {
 impl<'a> Lexer<'a> {
     fn new(contents: String) -> Self {
         Self {
-            row: 0,
-            column: 0,
+            row: 1,
+            column: 1,
             contents: contents,
             keywords: BTreeMap::new(), // TODO: 後々build_keywordsを渡す
         }
@@ -55,7 +55,14 @@ impl<'a> Lexer<'a> {
 
         let head_char = self.contents.as_bytes()[0] as char;
         match head_char {
+            // 数字の場合
             number if number.is_ascii_digit() => Some(self.scan_number()),
+
+            // 記号の場合
+            '+' => Some(self.scan_symbol(TokenKind::PLUS)),
+
+            // 空白類文字
+            ' ' | '\t' => Some(self.skip_whitespace()),
             _ => None,
         }
     }
@@ -76,9 +83,35 @@ impl<'a> Lexer<'a> {
 
         Token::new(cur_position, TokenKind::INTEGER(decimal_value))
     }
+
+    // 記号を切り取って,トークンを返す.
+    // TODO: <=など,二文字以上の記号もこの関数から返すように.
+    fn scan_symbol(&mut self, kind: TokenKind) -> Token {
+        // 現在のオフセットを退避
+        let cur_position = self.current_position();
+
+        // 文字列のオフセットを進める.
+        self.column += 1;
+        self.contents.drain(..1);
+
+        Token::new(cur_position, kind)
+    }
+
+    // 空白類文字を読み飛ばす.
+    fn skip_whitespace(&mut self) -> Token {
+        let ws_length = Self::count_length(&self.contents, |c| c.is_whitespace() || c == &'\t');
+
+        self.column += ws_length;
+        self.contents.drain(..ws_length);
+
+        // トークン列には追加されないのでポジションはDefaultでいい.
+        Token::new((0, 0), TokenKind::BLANK)
+    }
+
     fn count_length(input: &str, f: fn(ch: &char) -> bool) -> usize {
         input.chars().take_while(f).collect::<String>().len()
     }
+    // 現在のオフセットを取得
     fn current_position(&mut self) -> Position {
         (self.column, self.row)
     }
@@ -88,6 +121,24 @@ impl<'a> Lexer<'a> {
 #[cfg(test)]
 mod lexer_tests {
     use super::*;
+
+    #[test]
+    fn test_build_tokens() {
+        let expected_tokens = vec![
+            Token::new((1, 1), TokenKind::INTEGER(12345)),
+            Token::new((7, 1), TokenKind::PLUS),
+            Token::new((9, 1), TokenKind::INTEGER(678910)),
+            Token::new((15, 1), TokenKind::EOF),
+        ];
+        let input = "12345 + 678910".to_string();
+
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.build_tokens();
+
+        for (i, actual) in tokens.iter().enumerate() {
+            assert_eq!(&expected_tokens[i], actual);
+        }
+    }
 
     #[test]
     fn test_count_length() {
@@ -114,11 +165,11 @@ mod lexer_tests {
         let actual = lexer.scan_number();
 
         assert_eq!(TokenKind::INTEGER(12345), actual.kind);
-        assert_eq!((0, 0), actual.position);
+        assert_eq!((1, 1), actual.position);
 
         // scan_number() 内部でオフセットがちゃんと進んでいるか.
         let cur_position = lexer.current_position();
-        assert_eq!((5, 0), cur_position);
+        assert_eq!((6, 1), cur_position);
 
         // 文字列が切り取られているか.
         let cur_looking_string = lexer.contents;
@@ -127,8 +178,8 @@ mod lexer_tests {
 
     #[test]
     fn test_scan_one_token_with_single_int() {
-        let expected_int = Token::new((0, 0), TokenKind::INTEGER(12345));
-        let expected_eof = Token::new((5, 0), TokenKind::EOF);
+        let expected_int = Token::new((1, 1), TokenKind::INTEGER(12345));
+        let expected_eof = Token::new((6, 1), TokenKind::EOF);
         let input = "12345".to_string();
         let mut lexer = Lexer::new(input);
         let actual = lexer.scan_one_token();
@@ -145,5 +196,39 @@ mod lexer_tests {
         let mut lexer = Lexer::new(input);
         let actual = lexer.scan_one_token();
         assert_eq!(None, actual);
+    }
+
+    #[test]
+    fn test_scan_symbol() {
+        let expected = Token::new((1, 1), TokenKind::PLUS);
+        let input = "+  ".to_string();
+        let mut lexer = Lexer::new(input);
+        let actual = lexer.scan_symbol(TokenKind::PLUS);
+
+        assert_eq!(expected, actual);
+
+        // オフセットが進んでいるか
+        let cur_position = lexer.current_position();
+        assert_eq!((2, 1), cur_position);
+
+        // 文字列が切り取られているか.
+        let cur_looking_string = lexer.contents;
+        assert_eq!(cur_looking_string, "  ");
+    }
+
+    #[test]
+    fn test_skip_whitespace() {
+        let expected_eof = Token::new((6, 1), TokenKind::EOF);
+
+        let input = "     ".to_string();
+        let mut lexer = Lexer::new(input);
+        let whitespace = lexer.skip_whitespace();
+
+        assert!(whitespace.should_ignore());
+
+        assert_eq!(6, lexer.column);
+        let should_eof = lexer.scan_one_token();
+
+        assert_eq!(Some(expected_eof), should_eof);
     }
 }
