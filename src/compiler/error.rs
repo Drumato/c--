@@ -30,24 +30,32 @@ impl Error {
 }
 pub enum ErrorKind {
     Parse,
+    Type,
 }
 
 impl ErrorKind {
     fn string(&self) -> &str {
         match self {
             Self::Parse => "ParseError",
+            Self::Type => "TypeError",
         }
     }
 }
 
 pub enum ErrorMsg {
     MustBeInteger,
+    InvalidNodeCantHaveType,
+    MustBeSameTypeInBinaryOperation,
 }
 
 impl ErrorMsg {
     fn string(&self) -> &str {
         match self {
             Self::MustBeInteger => "must be integer",
+            Self::InvalidNodeCantHaveType => "invalid node can't have any types",
+            Self::MustBeSameTypeInBinaryOperation => {
+                "two expression must be same type in binary operation"
+            }
         }
     }
 }

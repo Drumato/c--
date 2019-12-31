@@ -1,7 +1,9 @@
 pub mod lex;
 pub mod node;
 pub mod parse;
+pub mod sema;
 pub mod token;
+pub mod types;
 
 use crate::compiler::file;
 pub struct Manager {

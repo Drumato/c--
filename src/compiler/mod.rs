@@ -12,4 +12,7 @@ pub fn compile(source_file: file::SrcFile) {
 
     // 構文解析
     manager.parse();
+
+    // 意味解析
+    manager.semantics();
 }
