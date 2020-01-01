@@ -34,7 +34,7 @@ fn linux_main(matches: &clap::ArgMatches) -> Result<(), Box<dyn std::error::Erro
     }
 
     // 後々コンパイル後の構造体を吐くように設定.
-    compiler::compile(source_file);
+    compiler::compile(matches, source_file);
 
     Ok(())
 }

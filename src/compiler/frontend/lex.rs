@@ -130,9 +130,7 @@ mod lexer_tests {
             Token::new((9, 1), TokenKind::INTEGER(678910)),
             Token::new((15, 1), TokenKind::EOF),
         ];
-        let input = "12345 + 678910".to_string();
-
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("12345 + 678910");
         let tokens = lexer.build_tokens();
 
         for (i, actual) in tokens.iter().enumerate() {
@@ -160,8 +158,7 @@ mod lexer_tests {
     fn test_scan_number() {
         // この関数に入る時点で数字であることは確定なので(パターンマッチによって)
         // 異常系のテストはいらない
-        let input = "12345".to_string();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("12345");
         let actual = lexer.scan_number();
 
         assert_eq!(TokenKind::INTEGER(12345), actual.kind);
@@ -180,8 +177,7 @@ mod lexer_tests {
     fn test_scan_one_token_with_single_int() {
         let expected_int = Token::new((1, 1), TokenKind::INTEGER(12345));
         let expected_eof = Token::new((6, 1), TokenKind::EOF);
-        let input = "12345".to_string();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("12345");
         let actual = lexer.scan_one_token();
 
         assert_eq!(Some(expected_int), actual);
@@ -192,8 +188,7 @@ mod lexer_tests {
 
     #[test]
     fn test_scan_one_token_with_invalid_symbol() {
-        let input = "@".to_string();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("@");
         let actual = lexer.scan_one_token();
         assert_eq!(None, actual);
     }
@@ -201,8 +196,7 @@ mod lexer_tests {
     #[test]
     fn test_scan_symbol() {
         let expected = Token::new((1, 1), TokenKind::PLUS);
-        let input = "+  ".to_string();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("+  ");
         let actual = lexer.scan_symbol(TokenKind::PLUS);
 
         assert_eq!(expected, actual);
@@ -220,8 +214,7 @@ mod lexer_tests {
     fn test_skip_whitespace() {
         let expected_eof = Token::new((6, 1), TokenKind::EOF);
 
-        let input = "     ".to_string();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = create_lexer("     ");
         let whitespace = lexer.skip_whitespace();
 
         assert!(whitespace.should_ignore());
@@ -230,5 +223,9 @@ mod lexer_tests {
         let should_eof = lexer.scan_one_token();
 
         assert_eq!(Some(expected_eof), should_eof);
+    }
+
+    fn create_lexer(input: &str) -> Lexer {
+        Lexer::new(input.to_string())
     }
 }

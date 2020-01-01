@@ -55,10 +55,7 @@ mod walk_tests {
     use crate::compiler::frontend::lex;
     #[test]
     fn test_walk_with_single_integer_node() {
-        let source_file = SrcFile::new("100");
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager.parse();
+        let mut manager = preprocess("100");
 
         // 意味解析前
         assert_eq!(manager.expr.ctype, Type::new_unknown());
@@ -70,10 +67,7 @@ mod walk_tests {
 
     #[test]
     fn test_walk_with_add_node() {
-        let source_file = SrcFile::new("100");
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager.parse();
+        let mut manager = preprocess("100 + 200");
 
         // 意味解析前
         assert_eq!(manager.expr.ctype, Type::new_unknown());
@@ -87,5 +81,13 @@ mod walk_tests {
             assert_eq!(left.ctype, Type::new_integer());
             assert_eq!(right.ctype, Type::new_integer());
         }
+    }
+
+    fn preprocess(input: &str) -> Manager {
+        let source_file = SrcFile::new(input);
+        let mut manager = Manager::new(source_file);
+        lex::tokenize(&mut manager);
+        manager.parse();
+        manager
     }
 }

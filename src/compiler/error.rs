@@ -31,6 +31,7 @@ impl Error {
 pub enum ErrorKind {
     Parse,
     Type,
+    GenIR,
 }
 
 impl ErrorKind {
@@ -38,6 +39,7 @@ impl ErrorKind {
         match self {
             Self::Parse => "ParseError",
             Self::Type => "TypeError",
+            Self::GenIR => "GenerateIRError",
         }
     }
 }

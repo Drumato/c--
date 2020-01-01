@@ -11,6 +11,9 @@ args:
     - d-source:
         long: d-source
         help: dump the contents of a specified file
+    - d-hir:
+        long: d-hir
+        help: dump higher-IR( three-address-code ) to stderr
     - stop-c:
         short: S
         help: Stop when compiled

@@ -70,9 +70,7 @@ mod parser_tests {
     #[test]
     fn test_parse_term() {
         let expected = Node::new((1, 1), NodeKind::INTEGER(100));
-        let source_file = SrcFile::new("100");
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
+        let mut manager = preprocess("100");
 
         // 整数ノードをパースできているか
         let actual = manager.parse_term();
@@ -86,9 +84,7 @@ mod parser_tests {
     #[test]
     fn test_parse_term_without_integer() {
         let expected = Node::new((0, 0), NodeKind::INVALID);
-        let source_file = SrcFile::new("+");
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
+        let mut manager = preprocess("+");
 
         // エラーを出せているか
         let actual = manager.parse_term();
@@ -104,12 +100,17 @@ mod parser_tests {
             NodeKind::ADD(Box::new(left_node), Box::new(right_node)),
         );
 
-        let source_file = SrcFile::new("100 + 200");
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
+        let mut manager = preprocess("100 + 200");
 
         // 加算ノードを受け取れるか.
         let actual = manager.parse_expression();
         assert_eq!(expected, actual);
+    }
+
+    fn preprocess(input: &str) -> Manager {
+        let source_file = SrcFile::new(input);
+        let mut manager = Manager::new(source_file);
+        lex::tokenize(&mut manager);
+        manager
     }
 }
