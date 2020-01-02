@@ -1,7 +1,8 @@
 use crate::compiler::error::{Error, ErrorKind, ErrorMsg};
 use crate::compiler::frontend::node::{Node, NodeKind};
-use crate::compiler::frontend::token::{Token, TokenKind};
+use crate::compiler::frontend::token;
 use crate::compiler::frontend::Manager;
+use token::{Token, TokenKind};
 
 impl Manager {
     pub fn parse(&mut self) {
@@ -49,10 +50,19 @@ impl Manager {
     }
 
     fn looking_token(&mut self) -> &Token {
+        if self.tokens.len() <= self.cur_token {
+            if self.tokens.len() <= self.cur_token {
+                return &token::GLOBAL_EOF_TOKEN;
+            }
+        }
         &self.tokens[self.cur_token]
     }
 
     fn looking_token_clone(&mut self) -> Token {
+        if self.tokens.len() <= self.cur_token {
+            let last_token_position = self.tokens.last().unwrap().position;
+            return Token::new(last_token_position, TokenKind::EOF);
+        }
         self.tokens[self.cur_token].clone()
     }
 

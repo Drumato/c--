@@ -1,5 +1,9 @@
 type Column = usize;
 type Row = usize;
+pub static GLOBAL_EOF_TOKEN: Token = Token {
+    position: (0, 0),
+    kind: TokenKind::EOF,
+};
 pub type Position = (Column, Row);
 #[derive(PartialEq, Debug, Clone)]
 pub struct Token {
