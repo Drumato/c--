@@ -1,6 +1,6 @@
 pub mod generate;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct BasicBlock {
     // TODO: CASE文やif-elseに対応するbranchを生やす
     pub label: String,
@@ -22,9 +22,9 @@ impl BasicBlock {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct ThreeAddressCode {
-    kind: TacKind,
+    pub kind: TacKind,
 }
 
 impl ThreeAddressCode {
@@ -56,13 +56,13 @@ impl ThreeAddressCode {
         }
     }
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum TacKind {
     EXPR(Operand, Operator, Operand, Operand),
     RET(Operand),
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum Operator {
     PLUS,
 }
@@ -75,7 +75,7 @@ impl Operator {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub struct Operand {
     kind: OpeKind,
     virt: usize,
@@ -109,7 +109,7 @@ impl Operand {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum OpeKind {
     INTLIT(i128),
     REG,
