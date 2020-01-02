@@ -11,8 +11,6 @@ impl Manager {
             "++++++++ {} ++++++++",
             "dump three address code".bold().green()
         );
-        for t in self.tacs.iter() {
-            eprintln!("\t{}", t.to_string());
-        }
+        self.entry_block.dump_tacs_to_stderr();
     }
 }

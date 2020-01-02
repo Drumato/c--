@@ -1,6 +1,28 @@
 pub mod generate;
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct BasicBlock {
+    // TODO: CASE文やif-elseに対応するbranchを生やす
+    pub label: String,
+    pub tacs: Vec<ThreeAddressCode>,
+}
+
+impl BasicBlock {
+    pub fn new(label: String) -> Self {
+        Self {
+            label: label,
+            tacs: Vec::new(),
+        }
+    }
+    pub fn dump_tacs_to_stderr(&self) {
+        eprintln!("{}'s IR:", self.label);
+        for t in self.tacs.iter() {
+            eprintln!("\t{}", t.to_string());
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct ThreeAddressCode {
     kind: TacKind,
 }

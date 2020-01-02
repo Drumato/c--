@@ -19,6 +19,12 @@ impl SrcFile {
             }
         }
     }
+    pub fn get_entry_or_default(&self, specified_name: Option<&str>) -> String {
+        if let Some(name) = specified_name {
+            return name.to_string();
+        }
+        String::from("main")
+    }
     pub fn dump_to_stderr(&self) {
         eprintln!("++++++++ {} ++++++++", self.abs_path.bold().green());
         eprintln!("{}", self.contents);

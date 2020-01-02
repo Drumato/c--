@@ -6,7 +6,7 @@ pub mod token;
 pub mod types;
 
 use crate::compiler::file;
-use crate::compiler::ir::three_address_code::ThreeAddressCode;
+use crate::compiler::ir::three_address_code::BasicBlock;
 pub struct Manager {
     src_file: file::SrcFile,
     tokens: Vec<token::Token>,
@@ -18,7 +18,8 @@ pub struct Manager {
     next_token: usize,
 
     // 3番地コード列
-    pub tacs: Vec<ThreeAddressCode>,
+    // TODO: Vec<IRFunction> -> BasicBlock -> Vec<ThreeAddressCode> にする
+    pub entry_block: BasicBlock,
 
     // レジスタ番号
     pub virt: usize,
@@ -27,13 +28,14 @@ pub struct Manager {
 
 impl Manager {
     pub fn new(src: file::SrcFile) -> Self {
+        let entry_function = src.get_entry_or_default(None);
         Self {
             src_file: src,
             tokens: Vec::new(),
             expr: node::Node::new((0, 0), node::NodeKind::INVALID),
             cur_token: 0,
             next_token: 1,
-            tacs: Vec::new(),
+            entry_block: BasicBlock::new(entry_function),
             virt: 0,
         }
     }

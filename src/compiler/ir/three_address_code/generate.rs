@@ -11,7 +11,9 @@ impl Manager {
         // TODO: 今はreturn文を作ってないのでこんな感じで
 
         let final_reg = self.gen_expr(n);
-        self.tacs.push(ThreeAddressCode::new_return_code(final_reg));
+        self.entry_block
+            .tacs
+            .push(ThreeAddressCode::new_return_code(final_reg));
     }
     fn gen_expr(&mut self, n: Node) -> Operand {
         match n.kind {
@@ -30,7 +32,7 @@ impl Manager {
                     left_op,
                     right_op,
                 );
-                self.tacs.push(add_code);
+                self.entry_block.tacs.push(add_code);
 
                 // 式が代入されたレジスタを上位に返す
                 variable_reg
@@ -62,7 +64,7 @@ mod generate_tac_tests {
         let return_operand = manager.gen_expr(integer_node);
 
         // 整数ノード単体では内部でコード生成されない.
-        assert_eq!(0, manager.tacs.len());
+        assert_eq!(0, manager.entry_block.tacs.len());
 
         let expected = Operand::new_int_literal(100);
 
@@ -81,7 +83,7 @@ mod generate_tac_tests {
 
         // 加算ノードの場合,まず仮想レジスタに束縛するコードが生成されるはず.
         // gen_expr()の呼び出しによってコード列にそのコード片が追加されている事を期待.
-        assert_eq!(1, manager.tacs.len());
+        assert_eq!(1, manager.entry_block.tacs.len());
         let expected = Operand::new_virtreg(0);
 
         assert_eq!(expected, return_operand);
