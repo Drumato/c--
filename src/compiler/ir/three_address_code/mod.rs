@@ -78,7 +78,7 @@ impl Operator {
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub struct Operand {
     kind: OpeKind,
-    virt: usize,
+    pub virt: usize,
     phys: usize,
 }
 impl Operand {
@@ -99,6 +99,12 @@ impl Operand {
     }
     fn new_invalid() -> Self {
         Self::new(OpeKind::INVALID)
+    }
+    pub fn is_register(&self) -> bool {
+        match self.kind {
+            OpeKind::REG => true,
+            _ => false,
+        }
     }
     fn to_string(&self) -> String {
         match self.kind {

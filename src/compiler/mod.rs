@@ -55,7 +55,16 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
         optimizer.dump_cfg_to_file();
         eprintln!("{}", "done!".bold().green());
     }
+
     // TODO: データフローグラフ構築(生存解析)
+    optimizer.append_liveness_informations_to_cfg();
+
+    // used,def集合の情報を含めたダンプ
+    if matches.is_present("d-cfg-liveness") {
+        eprintln!("dump control-flow-graph to cfg.dot...");
+        optimizer.dump_cfg_liveness_to_file();
+        eprintln!("{}", "done!".bold().green());
+    }
 
     // TODO: レジスタ割付
 

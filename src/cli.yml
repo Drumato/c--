@@ -23,3 +23,6 @@ args:
     - d-controlflow:
         long: d-controlflow
         help: dump control-flow-graph (before any process) to stderr
+    - d-cfg-liveness:
+        long: d-cfg-liveness
+        help: dump control-flow-graph with liveness-analysis's informations

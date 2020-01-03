@@ -1,8 +1,9 @@
 pub mod cfg;
+pub mod liveness;
 
 use std::collections::BTreeSet;
 
-use crate::compiler::ir::three_address_code::{BasicBlock, Operand};
+use crate::compiler::ir::three_address_code::BasicBlock;
 
 pub struct Optimizer {
     // TODO: Vec<IRFunction> に変更する.
@@ -21,12 +22,13 @@ impl Optimizer {
     }
 }
 
+type RegisterNumber = usize;
 #[allow(dead_code)]
 pub struct ControlFlowGraphInBB {
     succ: Vec<BTreeSet<usize>>,
     prev: Vec<BTreeSet<usize>>,
-    used: Vec<BTreeSet<Operand>>,
-    def: Vec<BTreeSet<Operand>>,
+    used: Vec<BTreeSet<RegisterNumber>>,
+    def: Vec<BTreeSet<RegisterNumber>>,
 }
 impl ControlFlowGraphInBB {
     fn new(len: usize) -> Self {
