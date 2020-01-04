@@ -37,10 +37,6 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
         manager.dump_tacs_to_stderr();
     }
 
-    // TODO: 正準化
-
-    // TODO: 命令選択
-
     // バックエンド部
     let entry_bb = manager.entry_block;
     let mut optimizer = Optimizer::new(entry_bb);
@@ -56,7 +52,7 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
         eprintln!("{}", "done!".bold().green());
     }
 
-    // TODO: データフローグラフ構築(生存解析)
+    // データフローグラフ構築(生存解析)
     optimizer.append_liveness_informations_to_cfg();
 
     // used,def集合の情報を含めたダンプ
@@ -64,6 +60,15 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
         eprintln!("dump control-flow-graph to cfg.dot...");
         optimizer.dump_cfg_liveness_to_file();
         eprintln!("{}", "done!".bold().green());
+    }
+
+    optimizer.liveness_analysis();
+    if matches.is_present("d-liveness-info") {
+        eprintln!(
+            "++++++++ {} ++++++++",
+            "dump liveness analysis informations".bold().green()
+        );
+        optimizer.entry_block.dump_liveness();
     }
 
     // TODO: レジスタ割付

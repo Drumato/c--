@@ -26,3 +26,6 @@ args:
     - d-cfg-liveness:
         long: d-cfg-liveness
         help: dump control-flow-graph with liveness-analysis's informations
+    - d-liveness-info:
+        long: d-liveness-info
+        help: dump the result of liveness-analysis

@@ -1,10 +1,19 @@
 pub mod generate;
 
+use std::collections::BTreeMap;
+
+type RegisterNumber = usize;
+type LiveIn = usize;
+type LiveOut = usize;
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct BasicBlock {
     // TODO: CASE文やif-elseに対応するbranchを生やす
     pub label: String,
     pub tacs: Vec<ThreeAddressCode>,
+
+    // TODO: 生存情報はIRFunctionごとに持つべき
+    pub living: BTreeMap<RegisterNumber, (LiveIn, LiveOut)>,
 }
 
 impl BasicBlock {
@@ -12,12 +21,18 @@ impl BasicBlock {
         Self {
             label: label,
             tacs: Vec::new(),
+            living: BTreeMap::new(),
         }
     }
     pub fn dump_tacs_to_stderr(&self) {
         eprintln!("{}'s IR:", self.label);
         for t in self.tacs.iter() {
             eprintln!("\t{}", t.to_string());
+        }
+    }
+    pub fn dump_liveness(&self) {
+        for (reg_number, range) in self.living.iter() {
+            eprintln!("t{} --> {}...{}", reg_number, range.0, range.1);
         }
     }
 }
@@ -75,6 +90,10 @@ impl Operator {
     }
 }
 
+// ローカル変数等にも仮想/物理レジスタ番号を持たせているのは,
+// 最適化によってローカル変数をレジスタに割り付ける可能性があるため.
+//
+// OpeKind::REG(Virtual,Physical) のようにしてしまうとやりづらい.
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub struct Operand {
     kind: OpeKind,
