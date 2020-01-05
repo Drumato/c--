@@ -12,5 +12,7 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile, target: t
 
     // バックエンド部の処理
     // TODO: 渡すのはベーシックブロックではなくModule
-    let _s = backend::backend_process(matches, manager.entry_block, &target);
+    let s = backend::backend_process(matches, manager.entry_block, &target);
+
+    println!("{}", s);
 }

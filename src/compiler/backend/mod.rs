@@ -106,7 +106,7 @@ pub fn backend_process(
 
     // アーキテクチャごとの処理に移動
     match target.arch {
-        Architecture::X86_64 => arch::x64::x64_process(high_optimizer),
+        Architecture::X86_64 => arch::x64::x64_process(matches, high_optimizer),
         _ => {
             // サポートしてないアーキテクチャはエラー
             Error::found_cant_support_architecture();

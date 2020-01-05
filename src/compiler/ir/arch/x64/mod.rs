@@ -1,7 +1,7 @@
 #[derive(Clone)]
 pub struct X64BasicBlock {
-    label: String,
-    irs: Vec<X64IR>,
+    pub label: String,
+    pub irs: Vec<X64IR>,
 }
 impl X64BasicBlock {
     pub fn new(label: String, irs: Vec<X64IR>) -> Self {
@@ -13,7 +13,7 @@ impl X64BasicBlock {
 }
 #[derive(Clone)]
 pub struct X64IR {
-    kind: X64IRKind,
+    pub kind: X64IRKind,
 }
 
 impl X64IR {
