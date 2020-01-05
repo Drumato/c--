@@ -1,9 +1,9 @@
-use crate::compiler::backend::Optimizer;
+use crate::compiler::backend::HighOptimizer;
 use crate::compiler::ir::three_address_code::TacKind;
 
 use std::collections::BTreeSet;
 
-impl Optimizer {
+impl HighOptimizer {
     pub fn append_liveness_informations_to_cfg(&mut self) {
         for (i, t) in self.entry_block.tacs.iter().enumerate() {
             match &t.kind {
@@ -145,14 +145,14 @@ mod liveness_tests {
         }
     }
 
-    fn preprocess(input: &str) -> Optimizer {
+    fn preprocess(input: &str) -> HighOptimizer {
         let source_file = SrcFile::new(input);
         let mut manager = Manager::new(source_file);
         lex::tokenize(&mut manager);
         manager.parse();
         manager.semantics();
         let entry_bb = manager.entry_block;
-        let mut optimizer = Optimizer::new(entry_bb.clone());
+        let mut optimizer = HighOptimizer::new(entry_bb.clone());
 
         optimizer.build_cfg_with_bb(entry_bb);
         optimizer

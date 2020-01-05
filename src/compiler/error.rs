@@ -27,11 +27,19 @@ impl Error {
             self.message.string(),
         );
     }
+    pub fn compile_error(&self) {
+        eprintln!(
+            "[{}] {}",
+            self.kind.string().bold().red(),
+            self.message.string(),
+        );
+    }
 }
 pub enum ErrorKind {
     Parse,
     Type,
     GenIR,
+    Compile,
 }
 
 impl ErrorKind {
@@ -40,6 +48,7 @@ impl ErrorKind {
             Self::Parse => "ParseError",
             Self::Type => "TypeError",
             Self::GenIR => "GenerateIRError",
+            Self::Compile => "CompileError",
         }
     }
 }
@@ -48,6 +57,7 @@ pub enum ErrorMsg {
     MustBeInteger,
     InvalidNodeCantHaveType,
     MustBeSameTypeInBinaryOperation,
+    CantSupportSuchAnArchitecture,
 }
 
 impl ErrorMsg {
@@ -58,6 +68,7 @@ impl ErrorMsg {
             Self::MustBeSameTypeInBinaryOperation => {
                 "two expression must be same type in binary operation"
             }
+            Self::CantSupportSuchAnArchitecture => "not supporting such an architecture yet",
         }
     }
 }

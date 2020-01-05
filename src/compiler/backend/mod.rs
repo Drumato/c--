@@ -5,14 +5,15 @@ use std::collections::BTreeSet;
 
 use crate::compiler::ir::three_address_code::BasicBlock;
 
-pub struct Optimizer {
+// 機械独立なバックエンド操作を行う
+pub struct HighOptimizer {
     // TODO: Vec<IRFunction> に変更する.
     pub entry_block: BasicBlock,
     // TODO: ControlFlowGraphに変更する.
     pub cfg_inbb: ControlFlowGraphInBB,
 }
 
-impl Optimizer {
+impl HighOptimizer {
     pub fn new(entry_bb: BasicBlock) -> Self {
         let ir_length = entry_bb.tacs.len();
         Self {

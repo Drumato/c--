@@ -96,9 +96,9 @@ impl Operator {
 // OpeKind::REG(Virtual,Physical) のようにしてしまうとやりづらい.
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub struct Operand {
-    kind: OpeKind,
+    pub kind: OpeKind,
     pub virt: usize,
-    phys: usize,
+    pub phys: usize,
 }
 impl Operand {
     fn new(kind: OpeKind) -> Self {

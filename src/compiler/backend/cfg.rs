@@ -1,7 +1,7 @@
-use crate::compiler::backend::Optimizer;
+use crate::compiler::backend::HighOptimizer;
 use crate::compiler::ir::three_address_code::{BasicBlock, TacKind};
 
-impl Optimizer {
+impl HighOptimizer {
     pub fn build_cfg_with_bb(&mut self, bb: BasicBlock) {
         for (i, t) in bb.tacs.iter().enumerate() {
             match &t.kind {
@@ -78,14 +78,14 @@ mod build_cfg_tests {
         }
     }
 
-    fn preprocess(input: &str) -> (Optimizer, BasicBlock) {
+    fn preprocess(input: &str) -> (HighOptimizer, BasicBlock) {
         let source_file = SrcFile::new(input);
         let mut manager = Manager::new(source_file);
         lex::tokenize(&mut manager);
         manager.parse();
         manager.semantics();
         let entry_bb = manager.entry_block;
-        let optimizer = Optimizer::new(entry_bb.clone());
+        let optimizer = HighOptimizer::new(entry_bb.clone());
         (optimizer, entry_bb)
     }
 }

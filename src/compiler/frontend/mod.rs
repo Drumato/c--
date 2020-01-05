@@ -40,3 +40,23 @@ impl Manager {
         }
     }
 }
+
+pub fn frontend_process(_matches: &clap::ArgMatches, source_file: file::SrcFile) -> Manager {
+    let mut manager = Manager::new(source_file);
+
+    // 字句解析
+    lex::tokenize(&mut manager);
+
+    // 構文解析
+    manager.parse();
+
+    // 意味解析
+    manager.semantics();
+
+    // TODO: 駆動レコード生成部を作る
+    // manager.alloc_frame();
+
+    // 3番地コード生成
+    manager.generate_three_address_code();
+    manager
+}
