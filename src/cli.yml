@@ -29,3 +29,6 @@ args:
     - d-liveness-info:
         long: d-liveness-info
         help: dump the result of liveness-analysis
+    - d-higher-ir-regalloced:
+        long: d-higher-ir-regalloced
+        help: dump higher-IR( three-address-code) after register-allocation to stderr

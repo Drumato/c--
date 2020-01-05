@@ -30,6 +30,12 @@ impl BasicBlock {
             eprintln!("\t{}", t.to_string());
         }
     }
+    pub fn dump_tacs_to_stderr_with_physical(&self) {
+        eprintln!("{}'s IR:", self.label);
+        for t in self.tacs.iter() {
+            eprintln!("\t{}", t.to_string_physical());
+        }
+    }
     pub fn dump_liveness(&self) {
         for (reg_number, range) in self.living.iter() {
             eprintln!("t{} --> {}...{}", reg_number, range.0, range.1);
@@ -68,6 +74,18 @@ impl ThreeAddressCode {
                 right.to_string()
             ),
             TacKind::RET(return_op) => format!("return {}", return_op.to_string()),
+        }
+    }
+    pub fn to_string_physical(&self) -> String {
+        match &self.kind {
+            TacKind::EXPR(var, op, left, right) => format!(
+                "{} <- {} {} {}",
+                var.to_string_physical(),
+                left.to_string_physical(),
+                op.to_string(),
+                right.to_string_physical()
+            ),
+            TacKind::RET(return_op) => format!("return {}", return_op.to_string_physical()),
         }
     }
 }
@@ -129,6 +147,13 @@ impl Operand {
         match self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
             OpeKind::REG => format!("t{}", self.virt),
+            OpeKind::INVALID => "invalid".to_string(),
+        }
+    }
+    fn to_string_physical(&self) -> String {
+        match self.kind {
+            OpeKind::INTLIT(val) => format!("{}", val),
+            OpeKind::REG => format!("t{}", self.phys),
             OpeKind::INVALID => "invalid".to_string(),
         }
     }

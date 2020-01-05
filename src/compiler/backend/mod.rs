@@ -1,5 +1,6 @@
 pub mod cfg;
 pub mod liveness;
+pub mod regalloc;
 
 use std::collections::BTreeSet;
 
@@ -20,6 +21,9 @@ impl HighOptimizer {
             entry_block: entry_bb,
             cfg_inbb: ControlFlowGraphInBB::new(ir_length),
         }
+    }
+    pub fn dump_tacs_to_stderr(&self) {
+        self.entry_block.dump_tacs_to_stderr_with_physical();
     }
 }
 

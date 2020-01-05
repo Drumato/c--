@@ -8,9 +8,9 @@ pub mod file;
 pub mod frontend;
 pub mod ir;
 
+use error::{Error, ErrorKind, ErrorMsg};
 pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
     use backend::HighOptimizer;
-    use error::{Error, ErrorKind, ErrorMsg};
 
     // フロントエンド部の処理
     let manager = frontend::frontend_process(matches, source_file);
@@ -59,14 +59,24 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
     }
 
     // レジスタ割付( 仮想レジスタ専用 )
-    // high_optimizer.register_allocation_for_virtual_registers();
+    let available_registers = find_available_registers_each_archs();
+
+    high_optimizer.register_allocation_for_virtual_registers(available_registers);
+    if matches.is_present("d-higher-ir-regalloced") {
+        eprintln!(
+            "++++++++ {} ++++++++",
+            "dump three address code( after register-allocation )"
+                .bold()
+                .green()
+        );
+        high_optimizer.dump_tacs_to_stderr();
+    }
 
     // アーキテクチャごとの低レベルなIRに変換
-
     if cfg!(target_arch = "x86_64") {
         // TODO: 低レベルなIRFunctionのVectorが返る方が自然
-        // use ir::x64::X64Optimizer;
-        let _x64_optimizer = HighOptimizer::translate_tacs_to_x64(high_optimizer);
+        use ir::x64::X64Optimizer;
+        let _x64_optimizer: X64Optimizer = HighOptimizer::translate_tacs_to_x64(high_optimizer);
 
     // backend::x64_process(low_irs);
     } else {
@@ -79,4 +89,19 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile) {
     }
 
     // TODO: コード生成
+}
+
+// レジスタ割付で使用可能なレジスタ数をチェック
+fn find_available_registers_each_archs() -> usize {
+    if cfg!(target_arch = "x86_64") {
+        9
+    } else {
+        let err = Error::new(
+            ErrorKind::Compile,
+            (0, 0),
+            ErrorMsg::CantSupportSuchAnArchitecture,
+        );
+        err.compile_error();
+        0
+    }
 }

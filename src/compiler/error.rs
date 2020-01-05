@@ -39,6 +39,7 @@ pub enum ErrorKind {
     Parse,
     Type,
     GenIR,
+    RegAlloc,
     Compile,
 }
 
@@ -48,6 +49,7 @@ impl ErrorKind {
             Self::Parse => "ParseError",
             Self::Type => "TypeError",
             Self::GenIR => "GenerateIRError",
+            Self::RegAlloc => "RegisterAllocationError",
             Self::Compile => "CompileError",
         }
     }
@@ -58,6 +60,7 @@ pub enum ErrorMsg {
     InvalidNodeCantHaveType,
     MustBeSameTypeInBinaryOperation,
     CantSupportSuchAnArchitecture,
+    CantUseNoMoreRegisters,
 }
 
 impl ErrorMsg {
@@ -69,6 +72,7 @@ impl ErrorMsg {
                 "two expression must be same type in binary operation"
             }
             Self::CantSupportSuchAnArchitecture => "not supporting such an architecture yet",
+            Self::CantUseNoMoreRegisters => "can't use no more registers",
         }
     }
 }
