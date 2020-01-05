@@ -1,25 +1,10 @@
-pub mod translate;
-
-// IR系定義
-#[derive(Clone)]
-pub struct X64Optimizer {
-    // TODO: Vec<X64Function>,
-    entry_bb: X64BasicBlock,
-}
-impl X64Optimizer {
-    // TODO: Vec<X64Function> | Vec<X64Module>を受け取るように
-    fn new(label: String, irs: Vec<X64IR>) -> Self {
-        let entry_bb = X64BasicBlock::new(label, irs);
-        Self { entry_bb: entry_bb }
-    }
-}
 #[derive(Clone)]
 pub struct X64BasicBlock {
     label: String,
     irs: Vec<X64IR>,
 }
 impl X64BasicBlock {
-    fn new(label: String, irs: Vec<X64IR>) -> Self {
+    pub fn new(label: String, irs: Vec<X64IR>) -> Self {
         Self {
             label: label,
             irs: irs,
@@ -58,8 +43,6 @@ pub enum X64IRKind {
     // 1つオペランドを持つ系
     RET(X64Operand),
 }
-
-// アセンブリコード系定義
 #[derive(Clone)]
 pub struct X64Operand {
     pub kind: X64OpeKind,
@@ -68,14 +51,14 @@ pub struct X64Operand {
 }
 
 impl X64Operand {
-    fn new(kind: X64OpeKind, virt: usize, phys: usize) -> Self {
+    pub fn new(kind: X64OpeKind, virt: usize, phys: usize) -> Self {
         Self {
             kind: kind,
             virt: virt,
             phys: phys,
         }
     }
-    fn new_inv() -> Self {
+    pub fn new_inv() -> Self {
         Self {
             kind: X64OpeKind::INVALID,
             virt: 0,

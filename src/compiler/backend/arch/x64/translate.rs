@@ -1,6 +1,7 @@
+use crate::compiler::backend::arch::x64::X64Optimizer;
 use crate::compiler::backend::HighOptimizer;
+use crate::compiler::ir::arch::x64::*;
 use crate::compiler::ir::three_address_code as tac;
-use crate::compiler::ir::x64::*;
 use tac::TacKind;
 
 impl HighOptimizer {
@@ -44,7 +45,7 @@ impl HighOptimizer {
         }
 
         // TODO: IRFunctionごとにまとめる必要あり
-        X64Optimizer::new(high_optimizer.entry_block.label, Vec::new())
+        X64Optimizer::new(high_optimizer.entry_block.label, low_irs)
     }
 
     fn add_ir_matching_opcode(

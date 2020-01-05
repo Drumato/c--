@@ -1,5 +1,5 @@
+pub mod arch;
 pub mod three_address_code;
-pub mod x64;
 
 use crate::compiler::frontend::Manager;
 

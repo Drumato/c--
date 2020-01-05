@@ -18,6 +18,14 @@ impl Error {
         }
     }
 
+    pub fn found_cant_support_architecture() {
+        let err = Error::new(
+            ErrorKind::Compile,
+            (0, 0),
+            ErrorMsg::CantSupportSuchAnArchitecture,
+        );
+        err.compile_error();
+    }
     pub fn found(&self) {
         eprintln!(
             "[{}] at {}:{}: {}",

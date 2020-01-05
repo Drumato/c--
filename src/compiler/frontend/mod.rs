@@ -1,3 +1,5 @@
+extern crate clap;
+
 pub mod lex;
 pub mod node;
 pub mod parse;
@@ -7,6 +9,8 @@ pub mod types;
 
 use crate::compiler::file;
 use crate::compiler::ir::three_address_code::BasicBlock;
+use crate::compiler::target::Target;
+use crate::compiler::util;
 pub struct Manager {
     src_file: file::SrcFile,
     tokens: Vec<token::Token>,
@@ -41,7 +45,11 @@ impl Manager {
     }
 }
 
-pub fn frontend_process(_matches: &clap::ArgMatches, source_file: file::SrcFile) -> Manager {
+pub fn frontend_process(
+    matches: &clap::ArgMatches,
+    source_file: file::SrcFile,
+    _target: &Target,
+) -> Manager {
     let mut manager = Manager::new(source_file);
 
     // 字句解析
@@ -58,5 +66,11 @@ pub fn frontend_process(_matches: &clap::ArgMatches, source_file: file::SrcFile)
 
     // 3番地コード生成
     manager.generate_three_address_code();
+
+    if matches.is_present("d-higher-ir") {
+        util::colored_prefix_to_stderr("dump three address code");
+        manager.dump_tacs_to_stderr();
+    }
+
     manager
 }

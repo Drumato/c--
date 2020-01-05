@@ -1,5 +1,3 @@
-pub mod generate;
-
 use std::collections::BTreeMap;
 
 type RegisterNumber = usize;
@@ -49,13 +47,13 @@ pub struct ThreeAddressCode {
 }
 
 impl ThreeAddressCode {
-    fn new(kind: TacKind) -> Self {
+    pub fn new(kind: TacKind) -> Self {
         Self { kind: kind }
     }
-    fn new_return_code(return_op: Operand) -> Self {
+    pub fn new_return_code(return_op: Operand) -> Self {
         Self::new(TacKind::RET(return_op))
     }
-    fn new_binop_code(
+    pub fn new_binop_code(
         variable_op: Operand,
         operator: Operator,
         left: Operand,
@@ -119,22 +117,22 @@ pub struct Operand {
     pub phys: usize,
 }
 impl Operand {
-    fn new(kind: OpeKind) -> Self {
+    pub fn new(kind: OpeKind) -> Self {
         Self {
             kind: kind,
             virt: 0,
             phys: 0,
         }
     }
-    fn new_int_literal(val: i128) -> Self {
+    pub fn new_int_literal(val: i128) -> Self {
         Self::new(OpeKind::INTLIT(val))
     }
-    fn new_virtreg(virt: usize) -> Self {
+    pub fn new_virtreg(virt: usize) -> Self {
         let mut base_reg = Self::new(OpeKind::REG);
         base_reg.virt = virt;
         base_reg
     }
-    fn new_invalid() -> Self {
+    pub fn new_invalid() -> Self {
         Self::new(OpeKind::INVALID)
     }
     pub fn is_register(&self) -> bool {
@@ -143,14 +141,14 @@ impl Operand {
             _ => false,
         }
     }
-    fn to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         match self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
             OpeKind::REG => format!("t{}", self.virt),
             OpeKind::INVALID => "invalid".to_string(),
         }
     }
-    fn to_string_physical(&self) -> String {
+    pub fn to_string_physical(&self) -> String {
         match self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
             OpeKind::REG => format!("t{}", self.phys),

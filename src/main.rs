@@ -5,6 +5,7 @@ use clap::App;
 
 mod compiler;
 use compiler::file::SrcFile;
+use compiler::target::Target;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let yaml = load_yaml!("cli.yml");
@@ -15,15 +16,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         panic!("{} -> C_ROOT", r);
     };
 
-    // 現状Linuxのみ対応
-    if cfg!(target_os = "linux") {
-        linux_main(&matches)
-    } else {
-        panic!("We're not support on this os...");
-    }
-}
-
-fn linux_main(matches: &clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
     let file_name = matches.value_of("source").unwrap();
 
     let source_file = SrcFile::new(file_name);
@@ -34,7 +26,7 @@ fn linux_main(matches: &clap::ArgMatches) -> Result<(), Box<dyn std::error::Erro
     }
 
     // 後々コンパイル後の構造体を吐くように設定.
-    compiler::compile(matches, source_file);
+    compiler::compile(&matches, source_file, Target::new());
 
     Ok(())
 }
