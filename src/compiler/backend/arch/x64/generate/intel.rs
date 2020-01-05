@@ -8,7 +8,6 @@ impl X64Optimizer {
         // intel記法のprefix
         output += ".intel_syntax noprefix\n";
 
-        // TODO: 本来はちゃんとエントリポイントを打つ
         output += &(format!(".global {}\n", self.entry_bb.label).as_str());
 
         // BasicBlock本体
@@ -30,10 +29,8 @@ impl X64BasicBlock {
 
 impl X64IR {
     fn to_intel_code(&self) -> String {
-        // TODO: 本来はオペランドのサイズで命令を分ける必要がある
         match &self.kind {
             X64IRKind::MOV(dst, src) => {
-                // TODO: まだ代入先がレジスタしかありえないので決め打ち
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 match src.kind {
                     X64OpeKind::REG => {
@@ -50,7 +47,6 @@ impl X64IR {
                 }
             }
             X64IRKind::ADD(dst, src) => {
-                // TODO: まだレジスタ同士の足し算しかありえないので決め打ち
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 match src.kind {
                     X64OpeKind::REG => {

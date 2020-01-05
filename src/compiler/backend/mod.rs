@@ -15,9 +15,7 @@ use crate::compiler::util;
 
 // 機械独立なバックエンド操作を行う
 pub struct HighOptimizer {
-    // TODO: Vec<IRFunction> に変更する.
     pub entry_block: BasicBlock,
-    // TODO: ControlFlowGraphに変更する.
     pub cfg_inbb: ControlFlowGraphInBB,
 }
 
@@ -53,13 +51,11 @@ impl ControlFlowGraphInBB {
     }
 }
 
-// TODO: ベーシックブロック間のCFG
 // pub strut ControlFlowGraph{
 //  BTreeMap<BasicBlockLabel, BTreeSet<usize>>
 // }
 //
 
-// TODO: 返り値はAssemblyFile構造体に
 pub fn backend_process(
     matches: &clap::ArgMatches,
     entry_bb: BasicBlock,
@@ -68,7 +64,6 @@ pub fn backend_process(
     let mut high_optimizer = HighOptimizer::new(entry_bb);
 
     // 制御フローグラフ構築
-    // TODO: ベーシックブロック間のものを作る必要あり
     let bb = high_optimizer.entry_block.clone();
     high_optimizer.build_cfg_with_bb(bb);
 

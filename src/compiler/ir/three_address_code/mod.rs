@@ -6,11 +6,9 @@ type LiveOut = usize;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct BasicBlock {
-    // TODO: CASE文やif-elseに対応するbranchを生やす
     pub label: String,
     pub tacs: Vec<ThreeAddressCode>,
 
-    // TODO: 生存情報はIRFunctionごとに持つべき
     pub living: BTreeMap<RegisterNumber, (LiveIn, LiveOut)>,
 }
 

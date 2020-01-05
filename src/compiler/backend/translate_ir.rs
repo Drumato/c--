@@ -7,8 +7,6 @@ impl Manager {
     pub fn generate_three_address_code(&mut self) {
         let n = self.expr.clone();
 
-        // TODO: 今はreturn文を作ってないのでこんな感じで
-
         let final_reg = self.gen_expr(n);
         self.entry_block
             .tacs

@@ -5,7 +5,6 @@ pub struct Node {
     pub position: Position,
     pub kind: NodeKind,
     pub ctype: Type,
-    // TODO: ASTにつける型として type_kind: Type メンバを追加
 }
 
 impl Node {

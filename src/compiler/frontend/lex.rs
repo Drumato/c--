@@ -23,7 +23,7 @@ impl<'a> Lexer<'a> {
             row: 1,
             column: 1,
             contents: contents,
-            keywords: BTreeMap::new(), // TODO: 後々build_keywordsを渡す
+            keywords: BTreeMap::new(),
         }
     }
     // Vec<Token> をLexerにもたせると,Managerにわたすとき大きなメモリコピーが走る.
@@ -85,7 +85,6 @@ impl<'a> Lexer<'a> {
     }
 
     // 記号を切り取って,トークンを返す.
-    // TODO: <=など,二文字以上の記号もこの関数から返すように.
     fn scan_symbol(&mut self, kind: TokenKind) -> Token {
         // 現在のオフセットを退避
         let cur_position = self.current_position();

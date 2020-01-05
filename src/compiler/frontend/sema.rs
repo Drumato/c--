@@ -9,7 +9,6 @@ impl Manager {
         self.walk_expression(&mut n);
         self.expr = n;
     }
-    // TODO: 所有権問題は後々解決.今はexprメンバを持っているからそれに合わせたメソッドにしておく
     fn walk_expression(&mut self, n: &mut Node) -> Type {
         match n.kind {
             NodeKind::INTEGER(_val) => {
@@ -23,7 +22,7 @@ impl Manager {
                     n.ctype = left_type;
                     return right_type;
                 }
-                // TODO: floatとintなど,暗黙的型変換が可能な組み合わせならそれを返す
+                // floatとintなど,暗黙的型変換が可能な組み合わせならそれを返す
                 // self.implicit_type_inference();
 
                 let err = Error::new(

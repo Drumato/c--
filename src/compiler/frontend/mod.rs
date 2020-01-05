@@ -14,7 +14,6 @@ use crate::compiler::util;
 pub struct Manager {
     src_file: file::SrcFile,
     tokens: Vec<token::Token>,
-    // TODO: 後々 Vec<Function> に変更
     pub expr: node::Node,
 
     // パース処理用
@@ -22,7 +21,6 @@ pub struct Manager {
     next_token: usize,
 
     // 3番地コード列
-    // TODO: Vec<IRFunction> -> BasicBlock -> Vec<ThreeAddressCode> にする
     pub entry_block: BasicBlock,
 
     // レジスタ番号
@@ -61,7 +59,7 @@ pub fn frontend_process(
     // 意味解析
     manager.semantics();
 
-    // TODO: 駆動レコード生成部を作る
+    // 駆動レコード部
     // manager.alloc_frame();
 
     // 3番地コード生成

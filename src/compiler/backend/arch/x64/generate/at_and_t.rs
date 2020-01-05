@@ -5,7 +5,6 @@ use crate::compiler::ir::arch::x64::*;
 impl X64Optimizer {
     pub fn generate_assembly_with_at_and_t_syntax(&self) -> String {
         let mut output = String::new();
-        // TODO: 本来はちゃんとエントリポイントを打つ
         output += &(format!(".global {}\n", self.entry_bb.label).as_str());
 
         // BasicBlock本体
@@ -27,10 +26,8 @@ impl X64BasicBlock {
 
 impl X64IR {
     fn to_at_and_t_code(&self) -> String {
-        // TODO: 本来はオペランドのサイズで命令を分ける必要がある
         match &self.kind {
             X64IRKind::MOV(dst, src) => {
-                // TODO: まだ代入先がレジスタしかありえないので決め打ち
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 match src.kind {
                     X64OpeKind::REG => {

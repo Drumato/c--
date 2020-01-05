@@ -6,7 +6,6 @@ use tac::TacKind;
 
 impl HighOptimizer {
     // ここでは抽象的なIRにしておく.
-    // TODO: 後で命令選択フェーズを設け,より最適な命令に変化させる.
     pub fn translate_tacs_to_x64(high_optimizer: Self) -> X64Optimizer {
         let mut low_irs: Vec<X64IR> = Vec::new();
 
@@ -44,7 +43,6 @@ impl HighOptimizer {
             }
         }
 
-        // TODO: IRFunctionごとにまとめる必要あり
         X64Optimizer::new(high_optimizer.entry_block.label, low_irs)
     }
 

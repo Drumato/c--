@@ -11,7 +11,6 @@ pub fn compile(matches: &clap::ArgMatches, source_file: file::SrcFile, target: t
     let manager = frontend::frontend_process(matches, source_file, &target);
 
     // バックエンド部の処理
-    // TODO: 渡すのはベーシックブロックではなくModule
     let s = backend::backend_process(matches, manager.entry_block, &target);
 
     println!("{}", s);

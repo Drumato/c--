@@ -10,9 +10,8 @@ impl Manager {
     }
 
     fn parse_expression(&mut self) -> Node {
-        let mut left_node: Node = self.parse_term(); // TODO: multiple_division later
+        let mut left_node: Node = self.parse_term();
         loop {
-            // TODO: 減算記号も加える
             if !self.current_token_is_in(vec![TokenKind::PLUS]) {
                 break;
             }
@@ -32,7 +31,6 @@ impl Manager {
         match cur.kind {
             TokenKind::INTEGER(val) => Node::new(cur.position, NodeKind::INTEGER(val)),
             // エラーを吐いてINVALIDを返す
-            // TODO: Manager構造体にエラーのVectorを用意して,そこに追加していくほうが良さそう
             _ => {
                 let err = Error::new(ErrorKind::Parse, cur.position, ErrorMsg::MustBeInteger);
                 err.found();
