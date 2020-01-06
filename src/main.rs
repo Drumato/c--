@@ -3,9 +3,13 @@ extern crate yaml_rust;
 extern crate clap;
 use clap::App;
 
+mod assembler;
 mod compiler;
+mod structure;
+mod target;
+
 use compiler::file::SrcFile;
-use compiler::target::Target;
+use target::Target;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let yaml = load_yaml!("cli.yml");
@@ -25,11 +29,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         source_file.dump_to_stderr();
     }
 
-    // 後々コンパイル後の構造体を吐くように設定.
-    compiler::compile(&matches, source_file, Target::new());
+    // compile phase
+    let assembly_file = compiler::compile(&matches, source_file, Target::new());
 
     if matches.is_present("stop-compile") {
+        // 取り敢えず標準出力.
+        // 後々ファイルダンプを考える
+        println!("{}", assembly_file.code);
         return Ok(());
     }
+
+    // assemble phase
+    assembler::assemble(&matches, assembly_file);
     Ok(())
 }

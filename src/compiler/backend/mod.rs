@@ -10,8 +10,8 @@ use std::collections::BTreeSet;
 
 use crate::compiler::error::Error;
 use crate::compiler::ir::three_address_code::BasicBlock;
-use crate::compiler::target::{Architecture, Target};
 use crate::compiler::util;
+use crate::target::*;
 
 // 機械独立なバックエンド操作を行う
 pub struct HighOptimizer {

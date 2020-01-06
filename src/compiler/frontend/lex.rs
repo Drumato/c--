@@ -78,8 +78,7 @@ impl<'a> Lexer<'a> {
         let cur_position = self.current_position();
 
         // 文字列のオフセットを進める
-        self.column += number_length;
-        self.contents.drain(..number_length);
+        self.skip_offset(number_length);
 
         Token::new(cur_position, TokenKind::INTEGER(decimal_value))
     }
@@ -90,8 +89,7 @@ impl<'a> Lexer<'a> {
         let cur_position = self.current_position();
 
         // 文字列のオフセットを進める.
-        self.column += 1;
-        self.contents.drain(..1);
+        self.skip_offset(1);
 
         Token::new(cur_position, kind)
     }
@@ -100,16 +98,25 @@ impl<'a> Lexer<'a> {
     fn skip_whitespace(&mut self) -> Token {
         let ws_length = Self::count_length(&self.contents, |c| c.is_whitespace() || c == &'\t');
 
-        self.column += ws_length;
-        self.contents.drain(..ws_length);
+        self.skip_offset(ws_length);
 
         // トークン列には追加されないのでポジションはDefaultでいい.
         Token::new((0, 0), TokenKind::BLANK)
     }
 
-    fn count_length(input: &str, f: fn(ch: &char) -> bool) -> usize {
-        input.chars().take_while(f).collect::<String>().len()
+    fn skip_offset(&mut self, len: usize) {
+        self.column += len;
+        self.contents.drain(..len);
     }
+
+    fn take_conditional_string(input: &str, f: fn(ch: &char) -> bool) -> String {
+        input.chars().take_while(f).collect::<String>()
+    }
+
+    fn count_length(input: &str, f: fn(ch: &char) -> bool) -> usize {
+        Self::take_conditional_string(input, f).len()
+    }
+
     // 現在のオフセットを取得
     fn current_position(&mut self) -> Position {
         (self.column, self.row)
