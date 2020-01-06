@@ -14,7 +14,7 @@ pub struct Token {
 impl Token {
     pub fn should_ignore(&self) -> bool {
         match self.kind {
-            TokenKind::BLANK => true,
+            TokenKind::BLANK | TokenKind::NEWLINE => true,
             _ => false,
         }
     }
@@ -31,5 +31,6 @@ pub enum TokenKind {
     INTEGER(i128), // 整数
     PLUS,          // +記号
     BLANK,         // 空白類文字
+    NEWLINE,       // 改行
     EOF,
 }

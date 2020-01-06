@@ -63,6 +63,12 @@ impl<'a> Lexer<'a> {
 
             // 空白類文字
             ' ' | '\t' => Some(self.skip_whitespace()),
+            '\n' => {
+                self.column = 1;
+                self.row += 1;
+                self.contents.drain(..1);
+                Some(Token::new((0, 0), TokenKind::NEWLINE))
+            }
             _ => None,
         }
     }
