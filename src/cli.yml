@@ -35,4 +35,6 @@ args:
     - at-and-t-syntax:
         long: at-and-t-syntax
         help: emit assembly-code with at-and-t-syntax
-        help: dump higher-IR( three-address-code) after register-allocation to stderr
+    - stop-compile:
+        short: C
+        long: stop-compile

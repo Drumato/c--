@@ -28,5 +28,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 後々コンパイル後の構造体を吐くように設定.
     compiler::compile(&matches, source_file, Target::new());
 
+    if matches.is_present("stop-compile") {
+        return Ok(());
+    }
     Ok(())
 }
