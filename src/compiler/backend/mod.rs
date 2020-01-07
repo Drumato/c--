@@ -8,9 +8,9 @@ pub mod translate_ir;
 
 use std::collections::BTreeSet;
 
-use crate::compiler::error::Error;
 use crate::compiler::ir::three_address_code::BasicBlock;
 use crate::compiler::util;
+use crate::error::Error;
 use crate::target::*;
 
 // 機械独立なバックエンド操作を行う

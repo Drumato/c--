@@ -1,5 +1,4 @@
 pub mod backend;
-pub mod error;
 pub mod file;
 pub mod frontend;
 pub mod ir;

@@ -1,7 +1,7 @@
-use crate::compiler::error::{Error, ErrorKind, ErrorMsg};
 use crate::compiler::frontend::node::{Node, NodeKind};
 use crate::compiler::frontend::token;
 use crate::compiler::frontend::Manager;
+use crate::error::{Error, ErrorKind, ErrorMsg};
 use token::{Token, TokenKind};
 
 impl Manager {

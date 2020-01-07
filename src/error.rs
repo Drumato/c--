@@ -44,11 +44,15 @@ impl Error {
     }
 }
 pub enum ErrorKind {
+    // コンパイラのエラー
     Parse,
     Type,
     GenIR,
     RegAlloc,
     Compile,
+
+    // アセンブラのエラー
+    AsmParse,
 }
 
 impl ErrorKind {
@@ -59,21 +63,28 @@ impl ErrorKind {
             Self::GenIR => "GenerateIRError",
             Self::RegAlloc => "RegisterAllocationError",
             Self::Compile => "CompileError",
+            Self::AsmParse => "AssemblyParseError",
         }
     }
 }
 
 pub enum ErrorMsg {
-    MustBeInteger,
-    InvalidNodeCantHaveType,
-    MustBeSameTypeInBinaryOperation,
-    CantSupportSuchAnArchitecture,
-    CantUseNoMoreRegisters,
+    // コンパイラのエラー
+    MustBeInteger, // パーサが整数を期待する場所で整数ではなかった.後々使わなくなるかも.
+    InvalidNodeCantHaveType, // 意味解析器がInvalidなASTノードを確認した
+    MustBeSameTypeInBinaryOperation, // 二項演算時,暗黙の型変換が適用されない組み合わせだった
+    CantSupportSuchAnArchitecture, // 意図しないアーキテクチャ上でコンパイラが実行された
+    CantUseNoMoreRegisters, // レジスタ割付時エラー
+
+    // アセンブラのエラー
+    InvalidOperand,                         // 意図しないオペランドを受け取った
+    MustSpecifySymbolNameInGlobalDirective, // .global <name> においてnameが見つからない
 }
 
 impl ErrorMsg {
     fn string(&self) -> &str {
         match self {
+            // コンパイラのエラー
             Self::MustBeInteger => "must be integer",
             Self::InvalidNodeCantHaveType => "invalid node can't have any types",
             Self::MustBeSameTypeInBinaryOperation => {
@@ -81,6 +92,12 @@ impl ErrorMsg {
             }
             Self::CantSupportSuchAnArchitecture => "not supporting such an architecture yet",
             Self::CantUseNoMoreRegisters => "can't use no more registers",
+
+            // アセンブラのエラー
+            Self::InvalidOperand => "invalid operand",
+            Self::MustSpecifySymbolNameInGlobalDirective => {
+                "must specify symbol name in global directive"
+            }
         }
     }
 }

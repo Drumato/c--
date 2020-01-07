@@ -5,6 +5,7 @@ use clap::App;
 
 mod assembler;
 mod compiler;
+mod error;
 mod structure;
 mod target;
 
@@ -30,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // compile phase
-    let assembly_file = compiler::compile(&matches, source_file, Target::new());
+    let mut assembly_file = compiler::compile(&matches, source_file, Target::new());
 
     if matches.is_present("stop-compile") {
         // 取り敢えず標準出力.
@@ -40,6 +41,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // assemble phase
+    if matches.is_present("at-and-t-syntax") {
+        assembly_file.syntax = structure::Syntax::ATANDT;
+    }
     assembler::assemble(&matches, assembly_file);
     Ok(())
 }

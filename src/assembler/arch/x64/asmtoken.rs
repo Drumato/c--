@@ -1,10 +1,6 @@
 type Column = usize;
 type Row = usize;
 
-pub static GLOBAL_EOF_TOKEN: AsmToken = AsmToken {
-    position: (0, 0),
-    kind: AsmTokenKind::EOF,
-};
 pub type Position = (Column, Row);
 
 #[derive(PartialEq, Debug, Clone)]

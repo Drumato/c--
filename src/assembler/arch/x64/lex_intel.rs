@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 pub fn lexing_intel_syntax(assembler: &mut X64Assembler) {
     // ソースコードのメモリコピーをするのは,後ほどエラーメッセージでソースコード本体を表示するため.
     // 本体の変更はしたくない.
-    let mut lexer = AsmLexer::new(assembler.src_file.code.to_string());
+    let mut lexer = AsmLexer::new(assembler.src_file.base_file.code.to_string());
     // 予約語の構築
     lexer.build_keywords();
     let tokens = lexer.build_tokens_for_intel_syntax();
@@ -162,14 +162,14 @@ impl AsmLexer {
 
     fn check_register(reg: &str) -> Option<usize> {
         match reg {
-            "rax" => Some(0),
-            "rcx" => Some(1),
-            "rdx" => Some(2),
-            "rbx" => Some(3),
-            "rsp" => Some(4),
-            "rbp" => Some(5),
-            "rsi" => Some(6),
-            "rdi" => Some(7),
+            "al" | "ax" | "eax" | "rax" => Some(0),
+            "cl" | "cx" | "ecx" | "rcx" => Some(1),
+            "edx" | "rdx" => Some(2),
+            "ebx" | "rbx" => Some(3),
+            "esp" | "rsp" => Some(4),
+            "ebp" | "rbp" => Some(5),
+            "esi" | "rsi" => Some(6),
+            "edi" | "rdi" => Some(7),
             "r8" => Some(8),
             "r9" => Some(9),
             "r10" => Some(10),

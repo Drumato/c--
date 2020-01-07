@@ -1,6 +1,6 @@
 use crate::compiler::backend::HighOptimizer;
-use crate::compiler::error::*;
 use crate::compiler::ir::three_address_code::*;
+use crate::error::*;
 
 use std::collections::BTreeMap;
 
