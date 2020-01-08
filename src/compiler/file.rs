@@ -1,6 +1,3 @@
-extern crate colored;
-use colored::*;
-
 use std::fs;
 
 pub struct SrcFile {

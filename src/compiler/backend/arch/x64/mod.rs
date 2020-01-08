@@ -21,7 +21,7 @@ pub fn x64_process(matches: &clap::ArgMatches, high_optimizer: HighOptimizer) ->
     let x64_optimizer: X64Optimizer = HighOptimizer::translate_tacs_to_x64(high_optimizer);
 
     // コード生成
-    let assembly = if matches.is_present("at-and-t-syntax") {
+    let assembly = if matches.is_present("atandt-syntax") {
         x64_optimizer.generate_assembly_with_at_and_t_syntax()
     } else {
         x64_optimizer.generate_assembly_with_intel_syntax()

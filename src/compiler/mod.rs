@@ -17,7 +17,7 @@ pub fn compile(
         return if source_file.contents.contains(".intel_syntax") {
             AssemblyFile::new_intel_file(source_file.contents, target)
         } else {
-            AssemblyFile::new_at_and_t_file(source_file.contents, target)
+            AssemblyFile::new_atandt_file(source_file.contents, target)
         };
     }
 
@@ -27,8 +27,8 @@ pub fn compile(
     // バックエンド部の処理
     let s = backend::backend_process(matches, manager.entry_block, &target);
 
-    if matches.is_present("at-and-t-syntax") {
-        AssemblyFile::new_at_and_t_file(s, target)
+    if matches.is_present("atandt-syntax") {
+        AssemblyFile::new_atandt_file(s, target)
     } else {
         AssemblyFile::new_intel_file(s, target)
     }

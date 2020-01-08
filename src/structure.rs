@@ -14,7 +14,7 @@ impl AssemblyFile {
             syntax: Syntax::INTEL,
         }
     }
-    pub fn new_at_and_t_file(code: String, target: Target) -> Self {
+    pub fn new_atandt_file(code: String, target: Target) -> Self {
         Self {
             code: code,
             target: target,

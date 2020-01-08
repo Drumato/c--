@@ -1,5 +1,7 @@
 pub mod asmtoken;
 pub mod inst;
+pub mod lex;
+pub mod lex_atandt;
 pub mod lex_intel;
 pub mod parse;
 pub mod parse_intel;
@@ -13,11 +15,10 @@ pub fn assemble(_matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
     let mut assembler = X64Assembler::new(x64_assembly_file);
 
     // 字句解析
-    // 現状Intel記法のみ対応
     if let Syntax::INTEL = &assembler.src_file.base_file.syntax {
         lex_intel::lexing_intel_syntax(&mut assembler);
     } else {
-        // lex_atandt::lexing_atandt_syntax(&mut assembler);
+        lex_atandt::lexing_atandt_syntax(&mut assembler);
     }
 
     // 構文解析

@@ -30,8 +30,15 @@ pub enum AsmTokenKind {
     REG(usize),
 
     // 命令
+    // AT&T記法
+    MOVQ, // movq命令
+    ADDQ, // movq命令
+
+    // intel記法
     MOV, // mov命令
     ADD, // add命令
+
+    // 汎用記法
     RET, // ret命令
 
     // その他

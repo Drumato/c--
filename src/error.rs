@@ -78,7 +78,8 @@ pub enum ErrorMsg {
     InvalidCFileOrDirectory, // ファイルが見つからない or ディレクトリであった
 
     // アセンブラのエラー
-    InvalidOperand,                         // 意図しないオペランドを受け取った
+    MustBeIntegerLiteral, // Lexerが整数を期待する場所で整数ではなかった.
+    InvalidOperand,       // 意図しないオペランドを受け取った
     MustSpecifySymbolNameInGlobalDirective, // .global <name> においてnameが見つからない
 }
 
@@ -96,6 +97,7 @@ impl ErrorMsg {
             Self::InvalidCFileOrDirectory => "invalid c file or directory given",
 
             // アセンブラのエラー
+            Self::MustBeIntegerLiteral => "must be integer-literal",
             Self::InvalidOperand => "invalid operand",
             Self::MustSpecifySymbolNameInGlobalDirective => {
                 "must specify symbol name in global directive"

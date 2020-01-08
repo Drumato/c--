@@ -29,9 +29,9 @@ args:
     - d-higher-ir-regalloced:
         long: d-higher-ir-regalloced
         help: dump higher-IR( three-address-code) after register-allocation to stderr
-    - at-and-t-syntax:
-        long: at-and-t-syntax
-        help: emit assembly-code with at-and-t-syntax
+    - atandt-syntax:
+        long: atandt-syntax
+        help: emit assembly-code with AT&T syntax
     - stop-compile:
         short: C
         long: stop-compile
