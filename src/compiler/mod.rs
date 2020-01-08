@@ -2,7 +2,6 @@ pub mod backend;
 pub mod file;
 pub mod frontend;
 pub mod ir;
-pub mod util;
 
 use crate::structure::AssemblyFile;
 use crate::target::Target;

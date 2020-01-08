@@ -23,6 +23,7 @@ impl AssemblyFile {
     }
 }
 
+#[derive(Debug)]
 pub enum Syntax {
     ATANDT, // AT&T syntax
     INTEL,  // Intel syntax

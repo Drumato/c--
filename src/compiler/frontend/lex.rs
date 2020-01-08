@@ -125,7 +125,7 @@ impl<'a> Lexer<'a> {
 
     // 現在のオフセットを取得
     fn current_position(&mut self) -> Position {
-        (self.column, self.row)
+        (self.row, self.column)
     }
 }
 
@@ -138,9 +138,9 @@ mod lexer_tests {
     fn test_build_tokens() {
         let expected_tokens = vec![
             Token::new((1, 1), TokenKind::INTEGER(12345)),
-            Token::new((7, 1), TokenKind::PLUS),
-            Token::new((9, 1), TokenKind::INTEGER(678910)),
-            Token::new((15, 1), TokenKind::EOF),
+            Token::new((1, 7), TokenKind::PLUS),
+            Token::new((1, 9), TokenKind::INTEGER(678910)),
+            Token::new((1, 15), TokenKind::EOF),
         ];
         let mut lexer = create_lexer("12345 + 678910");
         let tokens = lexer.build_tokens();
@@ -178,7 +178,7 @@ mod lexer_tests {
 
         // scan_number() 内部でオフセットがちゃんと進んでいるか.
         let cur_position = lexer.current_position();
-        assert_eq!((6, 1), cur_position);
+        assert_eq!((1, 6), cur_position);
 
         // 文字列が切り取られているか.
         let cur_looking_string = lexer.contents;
@@ -188,7 +188,7 @@ mod lexer_tests {
     #[test]
     fn test_scan_one_token_with_single_int() {
         let expected_int = Token::new((1, 1), TokenKind::INTEGER(12345));
-        let expected_eof = Token::new((6, 1), TokenKind::EOF);
+        let expected_eof = Token::new((1, 6), TokenKind::EOF);
         let mut lexer = create_lexer("12345");
         let actual = lexer.scan_one_token();
 
@@ -215,7 +215,7 @@ mod lexer_tests {
 
         // オフセットが進んでいるか
         let cur_position = lexer.current_position();
-        assert_eq!((2, 1), cur_position);
+        assert_eq!((1, 2), cur_position);
 
         // 文字列が切り取られているか.
         let cur_looking_string = lexer.contents;
@@ -224,7 +224,7 @@ mod lexer_tests {
 
     #[test]
     fn test_skip_whitespace() {
-        let expected_eof = Token::new((6, 1), TokenKind::EOF);
+        let expected_eof = Token::new((1, 6), TokenKind::EOF);
 
         let mut lexer = create_lexer("     ");
         let whitespace = lexer.skip_whitespace();

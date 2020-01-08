@@ -83,7 +83,9 @@ impl AsmLexer {
 
     // 空白類文字を読み飛ばす.
     pub fn skip_whitespace(&mut self) -> AsmToken {
-        let ws_length = Self::count_length(&self.contents, |c| c.is_whitespace() || c == &'\t');
+        let ws_length = Self::count_length(&self.contents, |c| {
+            c.is_whitespace() || c == &'\t' || c == &','
+        });
 
         self.column += ws_length;
         self.contents.drain(..ws_length);
@@ -128,7 +130,7 @@ impl AsmLexer {
 
     // 現在のオフセットを取得
     pub fn current_position(&mut self) -> Position {
-        (self.column, self.row)
+        (self.row, self.column)
     }
 }
 
@@ -164,7 +166,7 @@ mod general_lexer_tests {
 
         // scan_number() 内部でオフセットがちゃんと進んでいるか.
         let cur_position = lexer.current_position();
-        assert_eq!((6, 1), cur_position);
+        assert_eq!((1, 6), cur_position);
 
         // 文字列が切り取られているか.
         let cur_looking_string = lexer.contents;
@@ -184,7 +186,7 @@ mod general_lexer_tests {
 
     #[test]
     fn test_skip_whitespace() {
-        let expected_eof = AsmToken::new((6, 1), AsmTokenKind::EOF);
+        let expected_eof = AsmToken::new((1, 6), AsmTokenKind::EOF);
 
         let mut lexer = create_lexer("     ");
         let whitespace = lexer.skip_whitespace();

@@ -102,9 +102,9 @@ mod parser_tests {
     #[test]
     fn test_parse_expression_with_addition() {
         let left_node = Node::new((1, 1), NodeKind::INTEGER(100));
-        let right_node = Node::new((7, 1), NodeKind::INTEGER(200));
+        let right_node = Node::new((1, 7), NodeKind::INTEGER(200));
         let expected = Node::new(
-            (5, 1),
+            (1, 5),
             NodeKind::ADD(Box::new(left_node), Box::new(right_node)),
         );
 

@@ -9,8 +9,8 @@ pub mod types;
 
 use crate::compiler::file;
 use crate::compiler::ir::three_address_code::BasicBlock;
-use crate::compiler::util;
 use crate::target::*;
+use crate::util;
 pub struct Manager {
     src_file: file::SrcFile,
     tokens: Vec<token::Token>,

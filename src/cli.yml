@@ -32,6 +32,9 @@ args:
     - atandt-syntax:
         long: atandt-syntax
         help: emit assembly-code with AT&T syntax
+    - d-instructions:
+        long: d-instructions
+        help: dump machine instructions after parse assembly by assembler
     - stop-compile:
         short: C
         long: stop-compile

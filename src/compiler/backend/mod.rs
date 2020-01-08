@@ -9,9 +9,9 @@ pub mod translate_ir;
 use std::collections::BTreeSet;
 
 use crate::compiler::ir::three_address_code::BasicBlock;
-use crate::compiler::util;
 use crate::error::Error;
 use crate::target::*;
+use crate::util;
 
 // 機械独立なバックエンド操作を行う
 pub struct HighOptimizer {

@@ -87,12 +87,12 @@ mod intel_lexer_tests {
                 (1, 1),
                 AsmTokenKind::DIRECTIVE("intel_syntax noprefix".to_string()),
             ),
-            AsmToken::new((1, 2), AsmTokenKind::LABEL("main".to_string())),
+            AsmToken::new((2, 1), AsmTokenKind::LABEL("main".to_string())),
             AsmToken::new((3, 3), AsmTokenKind::MOV),
-            AsmToken::new((7, 3), AsmTokenKind::REG(0)),
-            AsmToken::new((12, 3), AsmTokenKind::INTEGER(3)),
-            AsmToken::new((3, 4), AsmTokenKind::RET),
-            AsmToken::new((1, 5), AsmTokenKind::EOF),
+            AsmToken::new((3, 7), AsmTokenKind::REG(0)),
+            AsmToken::new((3, 12), AsmTokenKind::INTEGER(3)),
+            AsmToken::new((4, 3), AsmTokenKind::RET),
+            AsmToken::new((5, 1), AsmTokenKind::EOF),
         ];
         let mut lexer =
             AsmLexer::new(".intel_syntax noprefix\nmain:\n  mov rax, 3\n  ret\n".to_string());
@@ -107,7 +107,7 @@ mod intel_lexer_tests {
     #[test]
     fn test_scan_one_intel_token_with_single_int() {
         let expected_int = AsmToken::new((1, 1), AsmTokenKind::INTEGER(12345));
-        let expected_eof = AsmToken::new((6, 1), AsmTokenKind::EOF);
+        let expected_eof = AsmToken::new((1, 6), AsmTokenKind::EOF);
         let mut lexer = create_lexer("12345");
         let actual = lexer.scan_one_intel_token();
 
@@ -128,8 +128,8 @@ mod intel_lexer_tests {
     fn test_scan_one_intel_token_with_words() {
         // rbp
         let expected_reg = AsmToken::new((1, 1), AsmTokenKind::REG(5));
-        let expected_label = AsmToken::new((6, 1), AsmTokenKind::LABEL("main".to_string()));
-        let expected_add = AsmToken::new((12, 1), AsmTokenKind::ADD);
+        let expected_label = AsmToken::new((1, 6), AsmTokenKind::LABEL("main".to_string()));
+        let expected_add = AsmToken::new((1, 12), AsmTokenKind::ADD);
 
         let mut lexer = create_lexer("rbp, main: add");
         let actual_reg = lexer.scan_one_intel_token();

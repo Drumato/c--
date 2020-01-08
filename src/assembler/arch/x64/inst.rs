@@ -23,6 +23,19 @@ impl X64Instruction {
             kind: X64InstKind::NOOPERAND,
         }
     }
+    pub fn to_string(&self) -> String {
+        match &self.kind {
+            X64InstKind::NOOPERAND => format!("{}", self.name.to_string()),
+            X64InstKind::UNARY(op) => format!("{} {}", self.name.to_string(), op.to_string()),
+            X64InstKind::BINARY(src, dst) => format!(
+                "{} {}, {}",
+                self.name.to_string(),
+                dst.to_string(),
+                src.to_string()
+            ),
+            X64InstKind::LABEL(name) => format!("{}:", name),
+        }
+    }
 }
 
 type SrcOperand = X64Operand;
@@ -45,6 +58,15 @@ pub enum X64InstName {
     ADD,
     MOV,
     RET,
+}
+impl X64InstName {
+    fn to_string(&self) -> String {
+        match self {
+            Self::ADD => "add".to_string(),
+            Self::MOV => "mov".to_string(),
+            Self::RET => "ret".to_string(),
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -71,6 +93,14 @@ impl X64Operand {
     pub fn new_invalid() -> Self {
         Self {
             kind: X64OpeKind::INVALID,
+        }
+    }
+    pub fn to_string(&self) -> String {
+        match &self.kind {
+            X64OpeKind::REG(number) => format!("r{}", number),
+            X64OpeKind::INTEGER(val) => format!("{}", val),
+            X64OpeKind::LABEL(name) => name.to_string(),
+            _ => "invalid".to_string(),
         }
     }
 }

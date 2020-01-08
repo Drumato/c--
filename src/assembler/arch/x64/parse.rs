@@ -68,17 +68,17 @@ impl X64Assembler {
 #[cfg(test)]
 mod general_parser_tests {
     use super::*;
-    use crate::assembler::arch::x64::lex_intel;
     use crate::assembler::arch::x64::X64AssemblyFile;
+    use crate::assembler::arch::x64::{lex_atandt, lex_intel};
     use crate::structure::{AssemblyFile, Syntax};
     use crate::target::Target;
 
     #[test]
-    fn test_consume_operand() {
+    fn test_intel_consume_operand() {
         let expected_reg = X64Operand::new_register(0);
         let expected_int = X64Operand::new_integer(3);
         let expected_label = X64Operand::new_label("main".to_string());
-        let mut assembler = preprocess("main, rax, 3");
+        let mut assembler = preprocess_intel("main, rax, 3");
 
         // ラベルチェック
         let actual_label = assembler.consume_operand();
@@ -92,9 +92,30 @@ mod general_parser_tests {
         let actual_int = assembler.consume_operand();
         assert_eq!(expected_int, actual_int);
     }
+
+    #[test]
+    fn test_atandt_consume_operand() {
+        let expected_reg = X64Operand::new_register(0);
+        let expected_int = X64Operand::new_integer(3);
+        let expected_label = X64Operand::new_label("main".to_string());
+        let mut assembler = preprocess_atandt("main, %rax, $3");
+
+        // ラベルチェック
+        let actual_label = assembler.consume_operand();
+        assert_eq!(expected_label, actual_label);
+
+        // レジスタチェック
+        let actual_reg = assembler.consume_operand();
+        assert_eq!(expected_reg, actual_reg);
+
+        // 即値チェック
+        let actual_int = assembler.consume_operand();
+        assert_eq!(expected_int, actual_int);
+    }
+
     #[test]
     fn test_parse_directive() {
-        let mut assembler = preprocess("");
+        let mut assembler = preprocess_intel("");
         assembler.parse_directive("global main".to_string(), (0, 0));
 
         // グローバルシンボルは登録されているか
@@ -108,17 +129,20 @@ mod general_parser_tests {
         assert_eq!(2, assembler.next_token);
     }
 
-    fn preprocess(input: &str) -> X64Assembler {
+    fn preprocess_intel(input: &str) -> X64Assembler {
         let target = Target::new();
         let assembly_file = AssemblyFile::new_intel_file(input.to_string(), target);
         let x64_assembly_file = X64AssemblyFile::new(assembly_file);
         let mut assembler = X64Assembler::new(x64_assembly_file);
-
-        if let Syntax::INTEL = &assembler.src_file.base_file.syntax {
-            lex_intel::lexing_intel_syntax(&mut assembler);
-        } else {
-            // lex_atandt::lexing_atandt_syntax(&mut assembler);
-        }
+        lex_intel::lexing_intel_syntax(&mut assembler);
+        assembler
+    }
+    fn preprocess_atandt(input: &str) -> X64Assembler {
+        let target = Target::new();
+        let assembly_file = AssemblyFile::new_atandt_file(input.to_string(), target);
+        let x64_assembly_file = X64AssemblyFile::new(assembly_file);
+        let mut assembler = X64Assembler::new(x64_assembly_file);
+        lex_atandt::lexing_atandt_syntax(&mut assembler);
         assembler
     }
 }

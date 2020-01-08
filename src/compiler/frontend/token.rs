@@ -4,7 +4,7 @@ pub static GLOBAL_EOF_TOKEN: Token = Token {
     position: (0, 0),
     kind: TokenKind::EOF,
 };
-pub type Position = (Column, Row);
+pub type Position = (Row, Column);
 #[derive(PartialEq, Debug, Clone)]
 pub struct Token {
     pub position: Position,

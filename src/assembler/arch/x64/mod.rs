@@ -4,13 +4,15 @@ pub mod lex;
 pub mod lex_atandt;
 pub mod lex_intel;
 pub mod parse;
+pub mod parse_atandt;
 pub mod parse_intel;
 
 use crate::structure::{AssemblyFile, Syntax};
+use crate::util;
 
 use std::collections::BTreeMap;
 
-pub fn assemble(_matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
+pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
     let x64_assembly_file = X64AssemblyFile::new(assembly_file);
     let mut assembler = X64Assembler::new(x64_assembly_file);
 
@@ -23,11 +25,15 @@ pub fn assemble(_matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
 
     // 構文解析
     // ASTみたいなのは作らず,単純に命令列を作成する.
-    // 命令列を持つ構造体はX64AssemblyFileとする.
-    // この構造体に各シンボルの情報も格納していく.
     if let Syntax::INTEL = &assembler.src_file.base_file.syntax {
         assembler.parse_intel_syntax();
     } else {
+        assembler.parse_atandt_syntax();
+    }
+
+    if matches.is_present("d-instructions") {
+        util::colored_prefix_to_stderr("dump x64 instructions");
+        assembler.dump_instructions_to_stderr();
     }
 }
 
@@ -48,6 +54,14 @@ impl X64Assembler {
             tokens: Vec::new(),
             cur_token: 0,
             next_token: 1,
+        }
+    }
+    fn dump_instructions_to_stderr(&self) {
+        for (symbol_name, symbol_info) in self.src_file.symbols_map.iter() {
+            eprintln!("{}'s instructions:", symbol_name);
+            for inst in symbol_info.insts.iter() {
+                eprintln!("\t{}", inst.to_string());
+            }
         }
     }
 }

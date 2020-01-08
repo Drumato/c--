@@ -75,7 +75,7 @@ impl AsmLexer {
             '.' => Some(self.scan_directive()),
 
             // 空白類文字
-            ' ' | '\t' => Some(self.skip_whitespace()),
+            ',' | ' ' | '\t' => Some(self.skip_whitespace()),
             '\n' => {
                 self.column = 1;
                 self.row += 1;
@@ -100,27 +100,27 @@ mod atandt_lexer_tests {
     use super::*;
 
     #[test]
-    fn test_build_tokens_for_intel_syntax() {
+    fn test_build_tokens_for_atandt_syntax() {
         // .global main
         // main:
         //   movq $3, %rax
-        //   addq $3, %rax
+        //   addq $3,%rax
         //   ret
 
         let expected_tokens = vec![
             AsmToken::new((1, 1), AsmTokenKind::DIRECTIVE("global main".to_string())),
-            AsmToken::new((1, 2), AsmTokenKind::LABEL("main".to_string())),
+            AsmToken::new((2, 1), AsmTokenKind::LABEL("main".to_string())),
             AsmToken::new((3, 3), AsmTokenKind::MOVQ),
-            AsmToken::new((9, 3), AsmTokenKind::INTEGER(3)),
-            AsmToken::new((13, 3), AsmTokenKind::REG(0)),
-            AsmToken::new((3, 4), AsmTokenKind::ADDQ),
-            AsmToken::new((9, 4), AsmTokenKind::INTEGER(3)),
-            AsmToken::new((13, 4), AsmTokenKind::REG(0)),
-            AsmToken::new((3, 5), AsmTokenKind::RET),
-            AsmToken::new((1, 6), AsmTokenKind::EOF),
+            AsmToken::new((3, 9), AsmTokenKind::INTEGER(3)),
+            AsmToken::new((3, 13), AsmTokenKind::REG(0)),
+            AsmToken::new((4, 3), AsmTokenKind::ADDQ),
+            AsmToken::new((4, 9), AsmTokenKind::INTEGER(3)),
+            AsmToken::new((4, 12), AsmTokenKind::REG(0)),
+            AsmToken::new((5, 3), AsmTokenKind::RET),
+            AsmToken::new((6, 1), AsmTokenKind::EOF),
         ];
         let mut lexer = AsmLexer::new(
-            ".global main\nmain:\n  movq $3, %rax\n  addq $3, %rax\nret\n".to_string(),
+            ".global main\nmain:\n  movq $3, %rax\n  addq $3,%rax\n  ret\n".to_string(),
         );
         lexer.build_atandt_keywords();
         let tokens = lexer.build_tokens_for_atandt_syntax();
@@ -144,8 +144,8 @@ mod atandt_lexer_tests {
 
     #[test]
     fn test_scan_one_atandt_token_with_single_int() {
-        let expected_int = AsmToken::new((2, 1), AsmTokenKind::INTEGER(12345));
-        let expected_eof = AsmToken::new((7, 1), AsmTokenKind::EOF);
+        let expected_int = AsmToken::new((1, 2), AsmTokenKind::INTEGER(12345));
+        let expected_eof = AsmToken::new((1, 7), AsmTokenKind::EOF);
         let mut lexer = create_lexer("$12345");
         let actual = lexer.scan_one_atandt_token();
 
@@ -156,7 +156,7 @@ mod atandt_lexer_tests {
     }
 
     #[test]
-    fn test_scan_word_with_intel_instruction() {
+    fn test_scan_word_with_atandt_instruction() {
         let expected_movq = AsmToken::new((1, 1), AsmTokenKind::MOVQ);
         let mut lexer = create_lexer("movq");
         let actual_movq = lexer.scan_word();
@@ -166,9 +166,9 @@ mod atandt_lexer_tests {
     #[test]
     fn test_scan_one_atandt_token_with_words() {
         // rbp
-        let expected_reg = AsmToken::new((2, 1), AsmTokenKind::REG(5));
-        let expected_label = AsmToken::new((7, 1), AsmTokenKind::LABEL("main".to_string()));
-        let expected_add = AsmToken::new((13, 1), AsmTokenKind::ADDQ);
+        let expected_reg = AsmToken::new((1, 2), AsmTokenKind::REG(5));
+        let expected_label = AsmToken::new((1, 7), AsmTokenKind::LABEL("main".to_string()));
+        let expected_add = AsmToken::new((1, 13), AsmTokenKind::ADDQ);
 
         let mut lexer = create_lexer("%rbp, main: addq");
         let actual_reg = lexer.scan_one_atandt_token();

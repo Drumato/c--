@@ -8,6 +8,7 @@ mod compiler;
 mod error;
 mod structure;
 mod target;
+mod util;
 
 use compiler::file::SrcFile;
 use target::Target;
