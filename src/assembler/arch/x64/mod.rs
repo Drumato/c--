@@ -1,9 +1,11 @@
 pub mod analyze;
 pub mod asmtoken;
+pub mod codegen;
 pub mod inst;
 pub mod lex;
 pub mod lex_atandt;
 pub mod lex_intel;
+pub mod opcodes;
 pub mod parse;
 pub mod parse_atandt;
 pub mod parse_intel;
@@ -40,6 +42,17 @@ pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
     // オペランド解析
     // コード生成の為に必要な情報をInst構造体に保存する
     assembler.analyze();
+
+    // コード生成
+    // symbols_mapの各エントリが機械語を保持するように
+    assembler.codegen();
+
+    util::colored_prefix_to_stderr("dump x64 machine-code");
+    if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+        for b in symbol.codes.iter() {
+            eprintln!("0x{:x}", b);
+        }
+    }
 }
 
 pub struct X64Assembler {
@@ -88,7 +101,7 @@ impl X64AssemblyFile {
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct X64Symbol {
-    code_size: usize,
+    codes: Vec<u8>,
     insts: Vec<inst::X64Instruction>,
     is_global: bool,
 }
@@ -96,14 +109,14 @@ pub struct X64Symbol {
 impl X64Symbol {
     fn new_global() -> Self {
         Self {
-            code_size: 0,
+            codes: Vec::new(),
             insts: Vec::new(),
             is_global: true,
         }
     }
     fn new_local() -> Self {
         Self {
-            code_size: 0,
+            codes: Vec::new(),
             insts: Vec::new(),
             is_global: false,
         }

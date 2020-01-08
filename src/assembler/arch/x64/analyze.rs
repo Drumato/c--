@@ -1,5 +1,6 @@
-use crate::assembler::arch::x64::inst::{X64InstKind, X64Instruction, X64OpeKind, X64Operand};
+use crate::assembler::arch::x64::inst;
 use crate::assembler::arch::x64::X64Assembler;
+use inst::{X64InstKind, X64InstName, X64Instruction, X64OpeKind, X64Operand};
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum OperandSize {
@@ -36,8 +37,67 @@ impl X64Instruction {
                 // r8~r15を使っているかチェック
                 self.src_expanded = src.check_used_register_is_expand();
                 self.dst_expanded = dst.check_used_register_is_expand();
+
+                // レジスタ番号を割り付ける
+                self.src_regnumber = src.register_number();
+                self.dst_regnumber = dst.register_number();
+
+                // 即値も取得しておく
+                self.immediate_value = src.immediate_value();
+
+                // オペランドの種類からオペコードを一意にする.
+                self.name = Self::change_binary_opcode(&self.name, &self.operand_size, src, dst);
             }
             X64InstKind::LABEL(_name) => (),
+        }
+    }
+    fn change_binary_opcode(
+        name: &X64InstName,
+        size: &OperandSize,
+        src: &X64Operand,
+        dst: &X64Operand,
+    ) -> X64InstName {
+        match name {
+            X64InstName::ADD => Self::change_add_opcode(size, src, dst),
+            X64InstName::MOV => Self::change_mov_opcode(size, src, dst),
+            // 何も変化させない
+            _ => X64InstName::ADD,
+        }
+    }
+    fn change_add_opcode(op_size: &OperandSize, src: &X64Operand, dst: &X64Operand) -> X64InstName {
+        match op_size {
+            OperandSize::QUADWORD => {
+                if dst.is_register() && src.is_immediate() {
+                    // add r/m64, imm32
+                    return X64InstName::ADDRM64IMM32;
+                }
+
+                if dst.is_register() && src.is_register() {
+                    // add r/m64, r64
+                    return X64InstName::ADDRM64R64;
+                }
+                X64InstName::ADD
+            }
+            // 何も変化させない
+            _ => X64InstName::ADD,
+        }
+    }
+    fn change_mov_opcode(op_size: &OperandSize, src: &X64Operand, dst: &X64Operand) -> X64InstName {
+        match op_size {
+            OperandSize::QUADWORD => {
+                if dst.is_register() && src.is_immediate() {
+                    // mov r/m64, imm32
+                    return X64InstName::MOVRM64IMM32;
+                }
+
+                if dst.is_register() && src.is_register() {
+                    // mov r/m64, r64
+                    return X64InstName::MOVRM64R64;
+                }
+                X64InstName::MOV
+            }
+            // 何も変化させない
+            _ => X64InstName::MOV,
         }
     }
 }
@@ -47,6 +107,18 @@ impl X64Operand {
         match &self.kind {
             X64OpeKind::REG(name) => Self::check_register_name(name),
             _ => OperandSize::UNKNOWN,
+        }
+    }
+    fn is_register(&self) -> bool {
+        match &self.kind {
+            X64OpeKind::REG(_n) => true,
+            _ => false,
+        }
+    }
+    fn is_immediate(&self) -> bool {
+        match &self.kind {
+            X64OpeKind::INTEGER(_v) => true,
+            _ => false,
         }
     }
     fn check_register_name(name: &String) -> OperandSize {
@@ -77,6 +149,30 @@ impl X64Operand {
             false
         }
     }
+    fn immediate_value(&self) -> i128 {
+        if let X64OpeKind::INTEGER(val) = &self.kind {
+            *val
+        } else {
+            0
+        }
+    }
+    fn register_number(&self) -> usize {
+        if let X64OpeKind::REG(name) = &self.kind {
+            match name.as_str() {
+                "al" | "ax" | "eax" | "rax" | "r8" => 0,
+                "cl" | "cx" | "ecx" | "rcx" | "r9" => 1,
+                "dl" | "dx" | "edx" | "rdx" | "r10" => 2,
+                "bl" | "bx" | "ebx" | "rbx" | "r11" => 3,
+                "ah" | "sp" | "esp" | "rsp" | "r12" => 4,
+                "ch" | "bp" | "ebp" | "rbp" | "r13" => 5,
+                "dh" | "si" | "esi" | "rsi" | "r14" => 6,
+                "bh" | "di" | "edi" | "rdi" | "r15" => 7,
+                _ => 0,
+            }
+        } else {
+            0
+        }
+    }
 }
 
 #[cfg(test)]
@@ -84,7 +180,7 @@ mod analyze_tests {
     use super::*;
     use crate::assembler::arch::x64::lex_intel;
     use crate::assembler::arch::x64::X64AssemblyFile;
-    use crate::structure::{AssemblyFile, Syntax};
+    use crate::structure::AssemblyFile;
     use crate::target::Target;
 
     #[test]
@@ -115,6 +211,17 @@ mod analyze_tests {
         }
     }
 
+    #[test]
+    fn test_change_add_opcode() {
+        // main:
+        //   add rax, 3
+        let mut assembler = preprocess("main:\n  add rax, 3\n");
+        assembler.analyze();
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            let add_inst = &symbol.insts[0];
+            assert_eq!(X64InstName::ADDRM64IMM32, add_inst.name);
+        }
+    }
     fn preprocess(input: &str) -> X64Assembler {
         let target = Target::new();
         let assembly_file = AssemblyFile::new_intel_file(input.to_string(), target);

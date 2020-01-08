@@ -4,11 +4,20 @@ use crate::assembler::arch::x64::analyze::OperandSize;
 pub struct X64Instruction {
     pub name: X64InstName,
     pub kind: X64InstKind,
+
     pub operand_size: OperandSize,
+    // 拡張レジスタを用いているか
     pub src_expanded: bool,
 
     // 一つオペランドを取る命令も利用
     pub dst_expanded: bool,
+
+    // オペランドのレジスタ番号
+    pub src_regnumber: usize,
+    pub dst_regnumber: usize,
+
+    // 即値も取ってしまう
+    pub immediate_value: i128,
 }
 
 impl X64Instruction {
@@ -19,6 +28,9 @@ impl X64Instruction {
             operand_size: OperandSize::UNKNOWN,
             src_expanded: false,
             dst_expanded: false,
+            src_regnumber: 0,
+            dst_regnumber: 0,
+            immediate_value: 0,
         }
     }
     pub fn new_mov(src: X64Operand, dst: X64Operand) -> Self {
@@ -28,6 +40,9 @@ impl X64Instruction {
             operand_size: OperandSize::UNKNOWN,
             src_expanded: false,
             dst_expanded: false,
+            src_regnumber: 0,
+            dst_regnumber: 0,
+            immediate_value: 0,
         }
     }
     pub fn new_ret() -> Self {
@@ -37,6 +52,9 @@ impl X64Instruction {
             operand_size: OperandSize::UNKNOWN,
             src_expanded: false,
             dst_expanded: false,
+            src_regnumber: 0,
+            dst_regnumber: 0,
+            immediate_value: 0,
         }
     }
     pub fn to_string(&self) -> String {
@@ -72,9 +90,16 @@ pub enum X64InstKind {
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum X64InstName {
+    // 抽象的なオペコード
     ADD,
     MOV,
     RET,
+
+    // 具体的なオペコード
+    ADDRM64IMM32,
+    ADDRM64R64,
+    MOVRM64IMM32,
+    MOVRM64R64,
 }
 impl X64InstName {
     fn to_string(&self) -> String {
@@ -82,6 +107,10 @@ impl X64InstName {
             Self::ADD => "add".to_string(),
             Self::MOV => "mov".to_string(),
             Self::RET => "ret".to_string(),
+            Self::ADDRM64IMM32 => "add(r/m64 imm32)".to_string(),
+            Self::ADDRM64R64 => "add(r/m64 r64)".to_string(),
+            Self::MOVRM64IMM32 => "mov(r/m64 imm32)".to_string(),
+            Self::MOVRM64R64 => "mov(r/m64 r64)".to_string(),
         }
     }
 }

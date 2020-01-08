@@ -70,7 +70,7 @@ mod general_parser_tests {
     use super::*;
     use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::assembler::arch::x64::{lex_atandt, lex_intel};
-    use crate::structure::{AssemblyFile, Syntax};
+    use crate::structure::AssemblyFile;
     use crate::target::Target;
 
     #[test]

@@ -186,8 +186,6 @@ mod general_lexer_tests {
 
     #[test]
     fn test_skip_whitespace() {
-        let expected_eof = AsmToken::new((1, 6), AsmTokenKind::EOF);
-
         let mut lexer = create_lexer("     ");
         let whitespace = lexer.skip_whitespace();
 
@@ -197,7 +195,7 @@ mod general_lexer_tests {
     }
 
     fn create_lexer(input: &str) -> AsmLexer {
-        let mut lexer = AsmLexer::new(input.to_string());
+        let lexer = AsmLexer::new(input.to_string());
         lexer
     }
 }
