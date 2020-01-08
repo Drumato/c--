@@ -1,4 +1,4 @@
-use crate::assembler::arch::x64::inst::{X64Instruction, X64Operand};
+use crate::assembler::arch::x64::inst::X64Instruction;
 use crate::assembler::arch::x64::{asmtoken, X64Assembler, X64Symbol};
 use asmtoken::AsmTokenKind;
 
@@ -93,8 +93,14 @@ mod parse_atandt_tests {
     fn test_parse_atandt_syntax_with_inst() {
         let mut expected_main = X64Symbol::new_global();
         expected_main.insts = vec![
-            X64Instruction::new_mov(X64Operand::new_integer(3), X64Operand::new_register(0)),
-            X64Instruction::new_add(X64Operand::new_integer(3), X64Operand::new_register(0)),
+            X64Instruction::new_mov(
+                X64Operand::new_integer(3),
+                X64Operand::new_register("rax".to_string()),
+            ),
+            X64Instruction::new_add(
+                X64Operand::new_integer(3),
+                X64Operand::new_register("rax".to_string()),
+            ),
             X64Instruction::new_ret(),
         ];
         // .global main
@@ -117,8 +123,10 @@ mod parse_atandt_tests {
 
     #[test]
     fn test_parse_inst_atandt_syntax_with_mov() {
-        let expected_mov =
-            X64Instruction::new_mov(X64Operand::new_integer(3), X64Operand::new_register(0));
+        let expected_mov = X64Instruction::new_mov(
+            X64Operand::new_integer(3),
+            X64Operand::new_register("rax".to_string()),
+        );
         let mut assembler = preprocess("movq $3, %rax");
         let actual_opt_inst = assembler.parse_inst_atandt_syntax();
 

@@ -7,7 +7,7 @@ impl X64Assembler {
     pub fn consume_operand(&mut self) -> X64Operand {
         let cur = self.looking_token_clone();
         let cur_operand = match cur.kind {
-            AsmTokenKind::REG(reg_number) => X64Operand::new_register(reg_number),
+            AsmTokenKind::REG(name) => X64Operand::new_register(name),
             AsmTokenKind::LABEL(name) => X64Operand::new_label(name),
             AsmTokenKind::INTEGER(val) => X64Operand::new_integer(val),
             // エラー生成
@@ -75,7 +75,7 @@ mod general_parser_tests {
 
     #[test]
     fn test_intel_consume_operand() {
-        let expected_reg = X64Operand::new_register(0);
+        let expected_reg = X64Operand::new_register("rax".to_string());
         let expected_int = X64Operand::new_integer(3);
         let expected_label = X64Operand::new_label("main".to_string());
         let mut assembler = preprocess_intel("main, rax, 3");
@@ -95,7 +95,7 @@ mod general_parser_tests {
 
     #[test]
     fn test_atandt_consume_operand() {
-        let expected_reg = X64Operand::new_register(0);
+        let expected_reg = X64Operand::new_register("rax".to_string());
         let expected_int = X64Operand::new_integer(3);
         let expected_label = X64Operand::new_label("main".to_string());
         let mut assembler = preprocess_atandt("main, %rax, $3");

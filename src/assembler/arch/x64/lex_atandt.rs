@@ -112,10 +112,10 @@ mod atandt_lexer_tests {
             AsmToken::new((2, 1), AsmTokenKind::LABEL("main".to_string())),
             AsmToken::new((3, 3), AsmTokenKind::MOVQ),
             AsmToken::new((3, 9), AsmTokenKind::INTEGER(3)),
-            AsmToken::new((3, 13), AsmTokenKind::REG(0)),
+            AsmToken::new((3, 13), AsmTokenKind::REG("rax".to_string())),
             AsmToken::new((4, 3), AsmTokenKind::ADDQ),
             AsmToken::new((4, 9), AsmTokenKind::INTEGER(3)),
-            AsmToken::new((4, 12), AsmTokenKind::REG(0)),
+            AsmToken::new((4, 12), AsmTokenKind::REG("rax".to_string())),
             AsmToken::new((5, 3), AsmTokenKind::RET),
             AsmToken::new((6, 1), AsmTokenKind::EOF),
         ];
@@ -166,7 +166,7 @@ mod atandt_lexer_tests {
     #[test]
     fn test_scan_one_atandt_token_with_words() {
         // rbp
-        let expected_reg = AsmToken::new((1, 2), AsmTokenKind::REG(5));
+        let expected_reg = AsmToken::new((1, 2), AsmTokenKind::REG("rbp".to_string()));
         let expected_label = AsmToken::new((1, 7), AsmTokenKind::LABEL("main".to_string()));
         let expected_add = AsmToken::new((1, 13), AsmTokenKind::ADDQ);
 

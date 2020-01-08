@@ -27,7 +27,7 @@ impl AsmToken {
 #[derive(PartialEq, Debug, Clone)]
 pub enum AsmTokenKind {
     // レジスタ
-    REG(usize),
+    REG(String),
 
     // 命令
     // AT&T記法

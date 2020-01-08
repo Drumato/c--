@@ -1,3 +1,4 @@
+pub mod analyze;
 pub mod asmtoken;
 pub mod inst;
 pub mod lex;
@@ -35,6 +36,10 @@ pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
         util::colored_prefix_to_stderr("dump x64 instructions");
         assembler.dump_instructions_to_stderr();
     }
+
+    // オペランド解析
+    // コード生成の為に必要な情報をInst構造体に保存する
+    assembler.analyze();
 }
 
 pub struct X64Assembler {

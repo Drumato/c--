@@ -89,7 +89,7 @@ mod intel_lexer_tests {
             ),
             AsmToken::new((2, 1), AsmTokenKind::LABEL("main".to_string())),
             AsmToken::new((3, 3), AsmTokenKind::MOV),
-            AsmToken::new((3, 7), AsmTokenKind::REG(0)),
+            AsmToken::new((3, 7), AsmTokenKind::REG("rax".to_string())),
             AsmToken::new((3, 12), AsmTokenKind::INTEGER(3)),
             AsmToken::new((4, 3), AsmTokenKind::RET),
             AsmToken::new((5, 1), AsmTokenKind::EOF),
@@ -127,7 +127,7 @@ mod intel_lexer_tests {
     #[test]
     fn test_scan_one_intel_token_with_words() {
         // rbp
-        let expected_reg = AsmToken::new((1, 1), AsmTokenKind::REG(5));
+        let expected_reg = AsmToken::new((1, 1), AsmTokenKind::REG("rbp".to_string()));
         let expected_label = AsmToken::new((1, 6), AsmTokenKind::LABEL("main".to_string()));
         let expected_add = AsmToken::new((1, 12), AsmTokenKind::ADD);
 

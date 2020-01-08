@@ -1,4 +1,4 @@
-use crate::assembler::arch::x64::inst::{X64Instruction, X64Operand};
+use crate::assembler::arch::x64::inst::X64Instruction;
 use crate::assembler::arch::x64::{asmtoken, X64Assembler, X64Symbol};
 use asmtoken::AsmTokenKind;
 
@@ -96,8 +96,14 @@ mod parse_intel_tests {
         let mut expected_main = X64Symbol::new_global();
         // AT&T記法でテストを定義
         expected_main.insts = vec![
-            X64Instruction::new_mov(X64Operand::new_integer(3), X64Operand::new_register(0)),
-            X64Instruction::new_add(X64Operand::new_integer(3), X64Operand::new_register(0)),
+            X64Instruction::new_mov(
+                X64Operand::new_integer(3),
+                X64Operand::new_register("rax".to_string()),
+            ),
+            X64Instruction::new_add(
+                X64Operand::new_integer(3),
+                X64Operand::new_register("rax".to_string()),
+            ),
             X64Instruction::new_ret(),
         ];
         // .global main

@@ -56,8 +56,8 @@ impl AsmLexer {
         }
 
         // レジスタかチェック
-        if let Some(reg_number) = Self::check_register(&word_trimmed) {
-            return AsmToken::new(cur_position, AsmTokenKind::REG(reg_number));
+        if Self::check_register(&word_trimmed) {
+            return AsmToken::new(cur_position, AsmTokenKind::REG(word_trimmed.to_string()));
         }
 
         // ラベル
@@ -103,25 +103,25 @@ impl AsmLexer {
         input.chars().take_while(f).collect::<String>()
     }
 
-    pub fn check_register(reg: &str) -> Option<usize> {
+    pub fn check_register(reg: &str) -> bool {
         match reg {
-            "al" | "ax" | "eax" | "rax" => Some(0),
-            "cl" | "cx" | "ecx" | "rcx" => Some(1),
-            "edx" | "rdx" => Some(2),
-            "ebx" | "rbx" => Some(3),
-            "esp" | "rsp" => Some(4),
-            "ebp" | "rbp" => Some(5),
-            "esi" | "rsi" => Some(6),
-            "edi" | "rdi" => Some(7),
-            "r8" => Some(8),
-            "r9" => Some(9),
-            "r10" => Some(10),
-            "r11" => Some(11),
-            "r12" => Some(12),
-            "r13" => Some(13),
-            "r14" => Some(14),
-            "r15" => Some(15),
-            _ => None,
+            "ah" | "al" | "ax" | "eax" | "rax" => true,
+            "ch" | "cl" | "cx" | "ecx" | "rcx" => true,
+            "dh" | "dl" | "dx" | "edx" | "rdx" => true,
+            "bh" | "bl" | "bx" | "ebx" | "rbx" => true,
+            "spl" | "sp" | "esp" | "rsp" => true,
+            "bpl" | "bp" | "ebp" | "rbp" => true,
+            "sil" | "si" | "esi" | "rsi" => true,
+            "dil" | "di" | "edi" | "rdi" => true,
+            "r8b" | "r8w" | "r8d" | "r8" => true,
+            "r9b" | "r9w" | "r9d" | "r9" => true,
+            "r10b" | "r10w" | "r10d" | "r10" => true,
+            "r11b" | "r11w" | "r11d" | "r11" => true,
+            "r12b" | "r12w" | "r12d" | "r12" => true,
+            "r13b" | "r13w" | "r13d" | "r13" => true,
+            "r14b" | "r14w" | "r14d" | "r14" => true,
+            "r15b" | "15w" | "r15d" | "r15" => true,
+            _ => false,
         }
     }
     pub fn count_length(input: &str, f: fn(ch: &char) -> bool) -> usize {
