@@ -8,9 +8,6 @@ args:
         required: true
         index: 1
         multiple: true
-    - d-source:
-        long: d-source
-        help: dump the contents of a specified file
     - d-higher-ir:
         long: d-higher-ir
         help: dump higher-IR( three-address-code ) to stderr

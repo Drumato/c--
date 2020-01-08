@@ -83,7 +83,10 @@ mod walk_tests {
     }
 
     fn preprocess(input: &str) -> Manager {
-        let source_file = SrcFile::new(input);
+        let source_file = SrcFile {
+            abs_path: "testcase".to_string(),
+            contents: input.to_string(),
+        };
         let mut manager = Manager::new(source_file);
         lex::tokenize(&mut manager);
         manager.parse();

@@ -15,23 +15,10 @@ use target::Target;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
-
-    // 環境変数のチェック
-    if let Err(r) = std::env::var("C_ROOT") {
-        panic!("{} -> C_ROOT", r);
-    };
-
-    let file_name = matches.value_of("source").unwrap();
-
-    let source_file = SrcFile::new(file_name);
-
-    // デバッグ用.読み込んだファイルに関する情報を出力する.
-    if matches.is_present("d-source") {
-        source_file.dump_to_stderr();
-    }
+    let source_file = setup(&matches);
 
     // compile phase
-    let mut assembly_file = compiler::compile(&matches, source_file, Target::new());
+    let assembly_file = compiler::compile(&matches, source_file, Target::new());
 
     if matches.is_present("stop-compile") {
         // 取り敢えず標準出力.
@@ -41,9 +28,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // assemble phase
-    if matches.is_present("at-and-t-syntax") {
-        assembly_file.syntax = structure::Syntax::ATANDT;
-    }
     assembler::assemble(&matches, assembly_file);
     Ok(())
+}
+
+fn setup(matches: &clap::ArgMatches) -> SrcFile {
+    // 環境変数のチェック
+    if let Err(r) = std::env::var("C_ROOT") {
+        panic!("{} -> C_ROOT", r);
+    };
+
+    let file_name = matches.value_of("source").unwrap();
+
+    // ファイルが存在しなければexit
+    if !SrcFile::is_file(&file_name) {
+        output_invalid_file_error();
+    }
+
+    SrcFile::new(file_name)
+}
+
+fn output_invalid_file_error() -> ! {
+    let err = error::Error::new(
+        error::ErrorKind::Compile,
+        (0, 0),
+        error::ErrorMsg::InvalidCFileOrDirectory,
+    );
+    err.compile_error();
+    std::process::exit(1);
 }

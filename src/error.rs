@@ -75,6 +75,7 @@ pub enum ErrorMsg {
     MustBeSameTypeInBinaryOperation, // 二項演算時,暗黙の型変換が適用されない組み合わせだった
     CantSupportSuchAnArchitecture, // 意図しないアーキテクチャ上でコンパイラが実行された
     CantUseNoMoreRegisters, // レジスタ割付時エラー
+    InvalidCFileOrDirectory, // ファイルが見つからない or ディレクトリであった
 
     // アセンブラのエラー
     InvalidOperand,                         // 意図しないオペランドを受け取った
@@ -92,6 +93,7 @@ impl ErrorMsg {
             }
             Self::CantSupportSuchAnArchitecture => "not supporting such an architecture yet",
             Self::CantUseNoMoreRegisters => "can't use no more registers",
+            Self::InvalidCFileOrDirectory => "invalid c file or directory given",
 
             // アセンブラのエラー
             Self::InvalidOperand => "invalid operand",

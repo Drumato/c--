@@ -133,7 +133,7 @@ mod parse_intel_tests {
 
     fn preprocess(input: &str) -> X64Assembler {
         let target = Target::new();
-        let assembly_file = AssemblyFile::new(input.to_string(), target);
+        let assembly_file = AssemblyFile::new_intel_file(input.to_string(), target);
         let x64_assembly_file = X64AssemblyFile::new(assembly_file);
         let mut assembler = X64Assembler::new(x64_assembly_file);
 
