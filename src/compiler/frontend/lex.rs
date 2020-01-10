@@ -10,6 +10,7 @@ pub fn tokenize(manager: &mut frontend::Manager) {
     manager.tokens = tokens;
 }
 
+#[allow(dead_code)]
 struct Lexer<'a> {
     column: usize,                          // x軸の座標
     row: usize,                             // y軸の座標

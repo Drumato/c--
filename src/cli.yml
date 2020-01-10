@@ -11,12 +11,6 @@ args:
     - d-higher-ir:
         long: d-higher-ir
         help: dump higher-IR( three-address-code ) to stderr
-    - stop-c:
-        short: S
-        help: Stop when compiled
-    - stop-a:
-        short: c
-        help: Stop when assembled
     - d-controlflow:
         long: d-controlflow
         help: dump control-flow-graph (before any process) to stderr
@@ -36,5 +30,8 @@ args:
         long: d-instructions
         help: dump machine instructions after parse assembly by assembler
     - stop-compile:
-        short: C
+        short: S
         long: stop-compile
+    - stop-assemble:
+        short: c
+        long: stop-assemble

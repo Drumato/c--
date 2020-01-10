@@ -1,5 +1,5 @@
 use crate::assembler::arch::x64::asmtoken::{AsmToken, AsmTokenKind};
-use crate::assembler::arch::x64::lex::AsmLexer;
+use crate::assembler::arch::x64::lexer::AsmLexer;
 use crate::assembler::arch::x64::X64Assembler;
 use crate::error::*;
 

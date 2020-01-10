@@ -31,6 +31,12 @@ impl X64Assembler {
                 }
             }
 
+            // アラインメント調整
+            let rest_bytes = codes.len() % 4;
+            for _ in 0..(4 - rest_bytes) {
+                codes.push(0x00);
+            }
+
             // シンボルに格納
             symbol.codes = codes;
         }
@@ -60,7 +66,7 @@ impl X64Assembler {
 #[cfg(test)]
 mod codegen_tests {
     use super::*;
-    use crate::assembler::arch::x64::lex_intel;
+    use crate::assembler::arch::x64::lexer::lex_intel;
     use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
@@ -73,7 +79,7 @@ mod codegen_tests {
         // c3                      ret
         let expected_codes: Vec<u8> = vec![
             0x48, 0xc7, 0xc7, 0x01, 0x00, 0x00, 0x00, 0x48, 0x81, 0xc7, 0x02, 0x00, 0x00, 0x00,
-            0x48, 0x89, 0xf8, 0xc3,
+            0x48, 0x89, 0xf8, 0xc3, 0x00, 0x00,
         ];
 
         let mut assembler =

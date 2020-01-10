@@ -178,7 +178,7 @@ impl X64Operand {
 #[cfg(test)]
 mod analyze_tests {
     use super::*;
-    use crate::assembler::arch::x64::lex_intel;
+    use crate::assembler::arch::x64::lexer::lex_intel;
     use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;

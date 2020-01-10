@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let _compile_cmd = Command::new(&binary_path)
             .arg(&test_file_path.clone())
-            .arg("-C")
+            .arg("-S")
             .stdout(out)
             .status()
             .expect("failed to spawn a process");

@@ -1,3 +1,6 @@
+pub mod parse_atandt;
+pub mod parse_intel;
+
 use crate::assembler::arch::x64::inst::X64Operand;
 use crate::assembler::arch::x64::{asmtoken, X64Assembler, X64Symbol};
 use crate::error::*;
@@ -68,8 +71,8 @@ impl X64Assembler {
 #[cfg(test)]
 mod general_parser_tests {
     use super::*;
+    use crate::assembler::arch::x64::lexer::{lex_atandt, lex_intel};
     use crate::assembler::arch::x64::X64AssemblyFile;
-    use crate::assembler::arch::x64::{lex_atandt, lex_intel};
     use crate::structure::AssemblyFile;
     use crate::target::Target;
 

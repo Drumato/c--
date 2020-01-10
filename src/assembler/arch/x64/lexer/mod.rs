@@ -1,3 +1,6 @@
+pub mod lex_atandt;
+pub mod lex_intel;
+
 use crate::assembler::arch::x64::asmtoken::{AsmToken, AsmTokenKind, Position};
 
 use std::collections::BTreeMap;

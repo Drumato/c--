@@ -5,6 +5,7 @@ use clap::App;
 
 mod assembler;
 mod compiler;
+mod elf;
 mod error;
 mod structure;
 mod target;
@@ -18,6 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::from_yaml(yaml).get_matches();
     let source_file = setup(&matches);
 
+    // 'sample.c' -> 'sample'
+    let output_base_path = source_file.abs_path.split(".").collect::<Vec<&str>>()[0].to_string();
+
     // compile phase
     let assembly_file = compiler::compile(&matches, source_file, Target::new());
 
@@ -29,7 +33,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // assemble phase
-    assembler::assemble(&matches, assembly_file);
+    let object_file = assembler::assemble(&matches, assembly_file);
+
+    if matches.is_present("stop-assemble") {
+        let output_path = output_base_path + ".o";
+        util::object_file_dump(output_path, object_file);
+        return Ok(());
+    }
+
     Ok(())
 }
 

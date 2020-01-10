@@ -1,29 +1,27 @@
 pub mod analyze;
 pub mod asmtoken;
 pub mod codegen;
+pub mod elf;
 pub mod inst;
-pub mod lex;
-pub mod lex_atandt;
-pub mod lex_intel;
+pub mod lexer;
 pub mod opcodes;
-pub mod parse;
-pub mod parse_atandt;
-pub mod parse_intel;
+pub mod parser;
 
+use crate::elf::elf64;
 use crate::structure::{AssemblyFile, Syntax};
 use crate::util;
 
 use std::collections::BTreeMap;
 
-pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
+pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) -> elf64::ELF64 {
     let x64_assembly_file = X64AssemblyFile::new(assembly_file);
     let mut assembler = X64Assembler::new(x64_assembly_file);
 
     // 字句解析
     if let Syntax::INTEL = &assembler.src_file.base_file.syntax {
-        lex_intel::lexing_intel_syntax(&mut assembler);
+        lexer::lex_intel::lexing_intel_syntax(&mut assembler);
     } else {
-        lex_atandt::lexing_atandt_syntax(&mut assembler);
+        lexer::lex_atandt::lexing_atandt_syntax(&mut assembler);
     }
 
     // 構文解析
@@ -47,12 +45,24 @@ pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) {
     // symbols_mapの各エントリが機械語を保持するように
     assembler.codegen();
 
-    util::colored_prefix_to_stderr("dump x64 machine-code");
-    if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
-        for b in symbol.codes.iter() {
-            eprintln!("0x{:x}", b);
-        }
-    }
+    // オブジェクトファイル生成
+    // 再配置可能オブジェクトファイルを表現する構造体にまとめる
+    let mut reloc_elf = elf64::ELF64::new_object_file();
+
+    /* (null section) */
+    reloc_elf.add_null_section();
+    /* .text */
+    reloc_elf.add_text_section_x64(&assembler);
+    /* .symtab */
+    reloc_elf.add_symtab_section_x64(&assembler);
+    /* .strtab */
+    reloc_elf.add_strtab_section_x64(&assembler);
+    /* .shstrtab */
+    let section_names = vec![".text", ".symtab", ".strtab", ".shstrtab"];
+    reloc_elf.add_shstrtab_section_x64(section_names);
+
+    reloc_elf.finalize();
+    reloc_elf
 }
 
 pub struct X64Assembler {
@@ -120,5 +130,8 @@ impl X64Symbol {
             insts: Vec::new(),
             is_global: false,
         }
+    }
+    pub fn is_defined(&self) -> bool {
+        self.codes.len() != 0
     }
 }

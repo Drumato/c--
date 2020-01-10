@@ -70,7 +70,7 @@ impl X64Assembler {
 mod parse_atandt_tests {
     use super::*;
     use crate::assembler::arch::x64::inst::X64Operand;
-    use crate::assembler::arch::x64::lex_atandt;
+    use crate::assembler::arch::x64::lexer::lex_atandt;
     use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
