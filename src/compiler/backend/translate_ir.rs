@@ -1,5 +1,5 @@
+use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Node, NodeKind};
-use crate::compiler::frontend::Manager;
 use crate::compiler::ir::three_address_code as tac;
 use tac::{Operand, Operator, ThreeAddressCode};
 

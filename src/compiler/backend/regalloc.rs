@@ -1,4 +1,4 @@
-use crate::compiler::backend::HighOptimizer;
+use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::three_address_code::*;
 use crate::error::*;
 

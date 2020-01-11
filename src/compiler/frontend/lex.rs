@@ -1,8 +1,9 @@
 use crate::compiler::frontend;
+use frontend::manager::Manager;
 use frontend::token::{Position, Token, TokenKind};
 
 use std::collections::BTreeMap;
-pub fn tokenize(manager: &mut frontend::Manager) {
+pub fn tokenize(manager: &mut Manager) {
     // ソースコードのメモリコピーをするのは,後ほどエラーメッセージでソースコード本体を表示するため.
     // 本体の変更はしたくない.
     let mut lexer = Lexer::new(manager.src_file.contents.to_string());

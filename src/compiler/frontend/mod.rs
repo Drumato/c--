@@ -1,6 +1,7 @@
 extern crate clap;
 
 pub mod lex;
+pub mod manager;
 pub mod node;
 pub mod parse;
 pub mod sema;
@@ -8,47 +9,15 @@ pub mod token;
 pub mod types;
 
 use crate::compiler::file;
-use crate::compiler::ir::three_address_code::BasicBlock;
-use crate::target::*;
+use crate::target::Target;
 use crate::util;
-pub struct Manager {
-    src_file: file::SrcFile,
-    tokens: Vec<token::Token>,
-    pub expr: node::Node,
-
-    // パース処理用
-    cur_token: usize,
-    next_token: usize,
-
-    // 3番地コード列
-    pub entry_block: BasicBlock,
-
-    // レジスタ番号
-    pub virt: usize,
-    // pub label: usize,
-}
-
-impl Manager {
-    pub fn new(src: file::SrcFile) -> Self {
-        let entry_function = src.get_entry_or_default(None);
-        Self {
-            src_file: src,
-            tokens: Vec::new(),
-            expr: node::Node::new((0, 0), node::NodeKind::INVALID),
-            cur_token: 0,
-            next_token: 1,
-            entry_block: BasicBlock::new(entry_function),
-            virt: 0,
-        }
-    }
-}
 
 pub fn frontend_process(
     matches: &clap::ArgMatches,
     source_file: file::SrcFile,
     _target: &Target,
-) -> Manager {
-    let mut manager = Manager::new(source_file);
+) -> manager::Manager {
+    let mut manager = manager::Manager::new(source_file);
 
     // 字句解析
     lex::tokenize(&mut manager);

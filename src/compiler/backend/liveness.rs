@@ -1,4 +1,4 @@
-use crate::compiler::backend::HighOptimizer;
+use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::three_address_code::TacKind;
 
 use std::collections::BTreeSet;
@@ -126,7 +126,7 @@ impl HighOptimizer {
 mod liveness_tests {
     use super::*;
     use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::{lex, Manager};
+    use crate::compiler::frontend::{lex, manager::Manager};
 
     #[test]
     fn test_append_liveness_informations_to_cfg_with_add_calculus() {

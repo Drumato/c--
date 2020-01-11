@@ -1,6 +1,6 @@
+use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Node, NodeKind};
 use crate::compiler::frontend::token;
-use crate::compiler::frontend::Manager;
 use crate::error::{Error, ErrorKind, ErrorMsg};
 use token::{Token, TokenKind};
 

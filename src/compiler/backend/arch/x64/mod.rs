@@ -1,24 +1,13 @@
 extern crate clap;
 
 pub mod generate;
+pub mod optimizer;
 pub mod translate;
 
-use crate::compiler::backend::HighOptimizer;
-use crate::compiler::ir::arch::x64::*;
+use crate::compiler::backend::high_optimizer::HighOptimizer;
 
-#[derive(Clone)]
-pub struct X64Optimizer {
-    entry_bb: X64BasicBlock,
-}
-impl X64Optimizer {
-    pub fn new(label: String, irs: Vec<X64IR>) -> Self {
-        let entry_bb = X64BasicBlock::new(label, irs);
-        Self { entry_bb: entry_bb }
-    }
-}
-
-pub fn x64_process(matches: &clap::ArgMatches, high_optimizer: HighOptimizer) -> String {
-    let x64_optimizer: X64Optimizer = HighOptimizer::translate_tacs_to_x64(high_optimizer);
+pub fn x64_process(matches: &clap::ArgMatches, high_opt: HighOptimizer) -> String {
+    let x64_optimizer: optimizer::X64Optimizer = HighOptimizer::translate_tacs_to_x64(high_opt);
 
     // コード生成
     let assembly = if matches.is_present("atandt-syntax") {

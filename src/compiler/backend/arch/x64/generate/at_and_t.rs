@@ -1,5 +1,5 @@
 use crate::compiler::backend::arch::x64::generate::Registers;
-use crate::compiler::backend::arch::x64::X64Optimizer;
+use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::ir::arch::x64::*;
 
 impl X64Optimizer {

@@ -1,5 +1,31 @@
-use crate::compiler::backend::HighOptimizer;
+use std::collections::BTreeSet;
+
+use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::three_address_code::{BasicBlock, TacKind};
+
+type RegisterNumber = usize;
+#[allow(dead_code)]
+pub struct ControlFlowGraphInBB {
+    pub succ: Vec<BTreeSet<usize>>,
+    pub prev: Vec<BTreeSet<usize>>,
+    pub used: Vec<BTreeSet<RegisterNumber>>,
+    pub def: Vec<BTreeSet<RegisterNumber>>,
+}
+impl ControlFlowGraphInBB {
+    pub fn new(len: usize) -> Self {
+        Self {
+            succ: vec![BTreeSet::new(); len],
+            prev: vec![BTreeSet::new(); len],
+            used: vec![BTreeSet::new(); len],
+            def: vec![BTreeSet::new(); len],
+        }
+    }
+}
+
+// pub strut ControlFlowGraph{
+//  BTreeMap<BasicBlockLabel, BTreeSet<usize>>
+// }
+//
 
 impl HighOptimizer {
     pub fn build_cfg_with_bb(&mut self, bb: BasicBlock) {
@@ -57,7 +83,7 @@ impl HighOptimizer {
 mod build_cfg_tests {
     use super::*;
     use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::{lex, Manager};
+    use crate::compiler::frontend::{lex, manager::Manager};
     #[test]
     fn test_build_cfg_with_bb_in_add_calculus() {
         let (mut optimizer, bb) = preprocess("100 + 200 + 300");

@@ -1,16 +1,16 @@
-use crate::compiler::backend::arch::x64::X64Optimizer;
-use crate::compiler::backend::HighOptimizer;
+use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
+use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::arch::x64::*;
 use crate::compiler::ir::three_address_code as tac;
 use tac::TacKind;
 
 impl HighOptimizer {
     // ここでは抽象的なIRにしておく.
-    pub fn translate_tacs_to_x64(high_optimizer: Self) -> X64Optimizer {
+    pub fn translate_tacs_to_x64(high_opt: Self) -> X64Optimizer {
         let mut low_irs: Vec<X64IR> = Vec::new();
 
         // TAC列のイテレーション
-        for t in high_optimizer.entry_block.tacs.iter() {
+        for t in high_opt.entry_block.tacs.iter() {
             match t.kind.clone() {
                 TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
                     // 各構成要素を変換
@@ -43,7 +43,7 @@ impl HighOptimizer {
             }
         }
 
-        X64Optimizer::new(high_optimizer.entry_block.label, low_irs)
+        X64Optimizer::new(high_opt.entry_block.label, low_irs)
     }
 
     fn add_ir_matching_opcode(
