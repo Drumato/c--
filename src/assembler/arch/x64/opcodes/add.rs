@@ -69,7 +69,7 @@ impl X64Instruction {
 }
 
 #[cfg(test)]
-mod analyze_tests {
+mod add_opcode_tests {
     use super::*;
     use crate::assembler::arch::x64::file::X64AssemblyFile;
     use crate::assembler::arch::x64::lexer::lex_intel;
@@ -77,14 +77,51 @@ mod analyze_tests {
     use crate::target::Target;
 
     #[test]
-    fn test_change_add_opcode() {
+    fn test_change_addrm64imm32() {
         // main:
         //   add rax, 3
-        let mut assembler = preprocess("main:\n  add rax, 3\n");
-        assembler.analyze();
+        let assembler = preprocess("main:\n  add rax, 3\n");
         if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
             let add_inst = &symbol.insts[0];
             assert_eq!(X64InstName::ADDRM64IMM32, add_inst.name);
+        }
+    }
+    #[test]
+    fn test_change_addrm64r64() {
+        // main:
+        //   add rax, rbx
+        let assembler = preprocess("main:\n  add rax, rbx\n");
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            let add_inst = &symbol.insts[0];
+            assert_eq!(X64InstName::ADDRM64R64, add_inst.name);
+        }
+    }
+
+    #[test]
+    fn test_generate_addrm64imm32() {
+        let expected: Vec<u8> = vec![0x48, 0x81, 0xc0, 0x1e, 0x00, 0x00, 0x00];
+        // add rax, 30
+        let mut assembler = preprocess("main:\n  add rax, 30\n");
+        assembler.codegen();
+
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            for (i, b) in expected.iter().enumerate() {
+                assert_eq!(symbol.codes[i], *b);
+            }
+        }
+    }
+
+    #[test]
+    fn test_generate_addrm64r64() {
+        let expected: Vec<u8> = vec![0x48, 0x01, 0xd8];
+        // add rax, rbx
+        let mut assembler = preprocess("main:\n  add rax, rbx\n");
+        assembler.codegen();
+
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            for (i, b) in expected.iter().enumerate() {
+                assert_eq!(symbol.codes[i], *b);
+            }
         }
     }
     fn preprocess(input: &str) -> X64Assembler {
@@ -95,6 +132,7 @@ mod analyze_tests {
 
         lex_intel::lexing_intel_syntax(&mut assembler);
         assembler.parse_intel_syntax();
+        assembler.analyze();
         assembler
     }
 }

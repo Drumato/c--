@@ -68,3 +68,44 @@ impl X64Instruction {
         }
     }
 }
+
+#[cfg(test)]
+mod mov_opcode_tests {
+    use super::*;
+    use crate::assembler::arch::x64::file::X64AssemblyFile;
+    use crate::assembler::arch::x64::lexer::lex_intel;
+    use crate::structure::AssemblyFile;
+    use crate::target::Target;
+
+    #[test]
+    fn test_change_movrm64imm32() {
+        // main:
+        //   mov rax, 3
+        let assembler = preprocess("main:\n  mov rax, 3\n");
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            let mov_inst = &symbol.insts[0];
+            assert_eq!(X64InstName::MOVRM64IMM32, mov_inst.name);
+        }
+    }
+    #[test]
+    fn test_change_movrm64r64() {
+        // main:
+        //   mov rax, rbx
+        let assembler = preprocess("main:\n  mov rax, rbx\n");
+        if let Some(symbol) = assembler.src_file.symbols_map.get("main") {
+            let mov_inst = &symbol.insts[0];
+            assert_eq!(X64InstName::MOVRM64R64, mov_inst.name);
+        }
+    }
+    fn preprocess(input: &str) -> X64Assembler {
+        let target = Target::new();
+        let assembly_file = AssemblyFile::new_intel_file(input.to_string(), target);
+        let x64_assembly_file = X64AssemblyFile::new(assembly_file);
+        let mut assembler = X64Assembler::new(x64_assembly_file);
+
+        lex_intel::lexing_intel_syntax(&mut assembler);
+        assembler.parse_intel_syntax();
+        assembler.analyze();
+        assembler
+    }
+}
