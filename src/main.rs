@@ -7,6 +7,7 @@ mod assembler;
 mod compiler;
 mod elf;
 mod error;
+mod linker;
 mod structure;
 mod target;
 mod util;
@@ -33,13 +34,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // assemble phase
-    let object_file = assembler::assemble(&matches, assembly_file);
+    let do_link = !matches.is_present("stop-assemble");
 
-    if matches.is_present("stop-assemble") {
+    let object_file = assembler::assemble(&matches, assembly_file, do_link);
+
+    if !do_link {
         let output_path = output_base_path + ".o";
         util::object_file_dump(output_path, object_file);
         return Ok(());
     }
+
+    // リンクまでやる
+    let executable_file = linker::link(object_file);
+    util::object_file_dump("a.out".to_string(), executable_file);
 
     Ok(())
 }

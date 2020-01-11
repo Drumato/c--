@@ -1,21 +1,40 @@
 pub mod analyze;
 pub mod asmtoken;
+pub mod assembler;
 pub mod codegen;
 pub mod elf;
+pub mod file;
 pub mod inst;
 pub mod lexer;
 pub mod opcodes;
 pub mod parser;
+pub mod symbol;
 
 use crate::elf::elf64;
 use crate::structure::{AssemblyFile, Syntax};
 use crate::util;
 
-use std::collections::BTreeMap;
+pub fn assemble(
+    matches: &clap::ArgMatches,
+    mut assembly_file: AssemblyFile,
+    do_link: bool,
+) -> elf64::ELF64 {
+    if do_link {
+        // アセンブリコードにスタートアップルーチンを追加
+        let start_up_routine = if let Syntax::INTEL = assembly_file.syntax {
+            std::env::var("C_ROOT").unwrap() + "/lib/start_up_linux64.s"
+        } else {
+            std::env::var("C_ROOT").unwrap() + "/lib/start_up_linux64.S"
+        };
+        eprintln!(
+            "using default start up routine ... -> {}",
+            &start_up_routine
+        );
+        assembly_file.code += &util::read_file_contents(start_up_routine);
+    }
 
-pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) -> elf64::ELF64 {
-    let x64_assembly_file = X64AssemblyFile::new(assembly_file);
-    let mut assembler = X64Assembler::new(x64_assembly_file);
+    let x64_assembly_file = file::X64AssemblyFile::new(assembly_file);
+    let mut assembler = assembler::X64Assembler::new(x64_assembly_file);
 
     // 字句解析
     if let Syntax::INTEL = &assembler.src_file.base_file.syntax {
@@ -45,6 +64,10 @@ pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) -> elf6
     // symbols_mapの各エントリが機械語を保持するように
     assembler.codegen();
 
+    // 再配置情報の構築
+    // シンボルテーブルを検索して,再配置テーブルに存在すれば情報更新
+    assembler.setup_relocations();
+
     // オブジェクトファイル生成
     // 再配置可能オブジェクトファイルを表現する構造体にまとめる
     let mut reloc_elf = elf64::ELF64::new_object_file();
@@ -57,81 +80,12 @@ pub fn assemble(matches: &clap::ArgMatches, assembly_file: AssemblyFile) -> elf6
     reloc_elf.add_symtab_section_x64(&assembler);
     /* .strtab */
     reloc_elf.add_strtab_section_x64(&assembler);
+    /* .rela.text */
+    reloc_elf.add_relatext_section_x64(&assembler);
     /* .shstrtab */
-    let section_names = vec![".text", ".symtab", ".strtab", ".shstrtab"];
+    let section_names = vec![".text", ".symtab", ".strtab", ".rela.text", ".shstrtab"];
     reloc_elf.add_shstrtab_section_x64(section_names);
 
     reloc_elf.finalize();
     reloc_elf
-}
-
-pub struct X64Assembler {
-    src_file: X64AssemblyFile,
-    // アセンブリコードを字句解析してここに格納
-    tokens: Vec<asmtoken::AsmToken>,
-
-    // パース処理用
-    cur_token: usize,
-    next_token: usize,
-}
-
-impl X64Assembler {
-    fn new(file: X64AssemblyFile) -> Self {
-        Self {
-            src_file: file,
-            tokens: Vec::new(),
-            cur_token: 0,
-            next_token: 1,
-        }
-    }
-    fn dump_instructions_to_stderr(&self) {
-        for (symbol_name, symbol_info) in self.src_file.symbols_map.iter() {
-            eprintln!("{}'s instructions:", symbol_name);
-            for inst in symbol_info.insts.iter() {
-                eprintln!("\t{}", inst.to_string());
-            }
-        }
-    }
-}
-
-pub struct X64AssemblyFile {
-    base_file: AssemblyFile,
-    symbols_map: BTreeMap<String, X64Symbol>,
-    // relocations
-}
-
-impl X64AssemblyFile {
-    fn new(base_file: AssemblyFile) -> Self {
-        Self {
-            base_file: base_file,
-            symbols_map: BTreeMap::new(),
-        }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct X64Symbol {
-    codes: Vec<u8>,
-    insts: Vec<inst::X64Instruction>,
-    is_global: bool,
-}
-
-impl X64Symbol {
-    fn new_global() -> Self {
-        Self {
-            codes: Vec::new(),
-            insts: Vec::new(),
-            is_global: true,
-        }
-    }
-    fn new_local() -> Self {
-        Self {
-            codes: Vec::new(),
-            insts: Vec::new(),
-            is_global: false,
-        }
-    }
-    pub fn is_defined(&self) -> bool {
-        self.codes.len() != 0
-    }
 }

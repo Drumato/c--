@@ -39,7 +39,9 @@ pub enum AsmTokenKind {
     ADD, // add命令
 
     // 汎用記法
-    RET, // ret命令
+    CALL,    // call命令
+    RET,     // ret命令
+    SYSCALL, // syscall命令
 
     // その他
     LABEL(String),     // ラベル

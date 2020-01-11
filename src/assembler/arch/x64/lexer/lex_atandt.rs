@@ -1,6 +1,6 @@
 use crate::assembler::arch::x64::asmtoken::{AsmToken, AsmTokenKind};
+use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::lexer::AsmLexer;
-use crate::assembler::arch::x64::X64Assembler;
 use crate::error::*;
 
 pub fn lexing_atandt_syntax(assembler: &mut X64Assembler) {
@@ -50,6 +50,7 @@ impl AsmLexer {
             }
 
             // アルファベットの場合 -> 命令かシンボル/ラベル
+            '_' => Some(self.scan_word()),
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),
 
             // $の場合 -> 数値リテラル
@@ -89,8 +90,11 @@ impl AsmLexer {
     pub fn build_atandt_keywords(&mut self) {
         // 命令
         self.keywords.insert("addq".to_string(), AsmTokenKind::ADDQ);
+        self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
         self.keywords.insert("movq".to_string(), AsmTokenKind::MOVQ);
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
+        self.keywords
+            .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
     }
 }
 
@@ -135,11 +139,13 @@ mod atandt_lexer_tests {
         let mut lexer = create_lexer("");
         lexer.build_atandt_keywords();
 
-        assert_eq!(3, lexer.keywords.len());
+        assert_eq!(5, lexer.keywords.len());
 
         assert!(lexer.keywords.contains_key("addq"));
+        assert!(lexer.keywords.contains_key("call"));
         assert!(lexer.keywords.contains_key("movq"));
         assert!(lexer.keywords.contains_key("ret"));
+        assert!(lexer.keywords.contains_key("syscall"));
     }
 
     #[test]

@@ -1,5 +1,5 @@
-use crate::assembler::arch::x64::inst::X64InstName;
-use crate::assembler::arch::x64::X64Assembler;
+use crate::assembler::arch::x64::assembler::X64Assembler;
+use crate::assembler::arch::x64::inst::{X64InstKind, X64InstName};
 
 pub const REX_PREFIX_BASE: u8 = 0x40;
 pub const REX_PREFIX_WBIT: u8 = 0x08;
@@ -21,13 +21,43 @@ impl X64Assembler {
                     X64InstName::ADDRM64IMM32 => {
                         Self::generate_addrm64imm32_inst(&mut codes, &inst)
                     }
+                    X64InstName::CALLRM64 => {
+                        /* ただのcallではなく,raxにアドレス即値をmovしてからcallするやつに変換 */
+                        // mov-rex-prefix
+                        codes.push(0x48);
+
+                        // mov-opcode
+                        codes.push(0xc7);
+
+                        // mov-modrm
+                        codes.push(0xc0);
+                        if let X64InstKind::UNARY(op) = &inst.kind {
+                            let label_name = op.label_name();
+                            if let Some(rela) = self.src_file.relocations_map.get_mut(&label_name) {
+                                rela.r_offset = self.all_bytes + codes.len() as u64;
+                            }
+                        }
+                        //  TODO: 関数実装したときに追加
+                        //  if let None = self.src_file.symbols_map.get(label_name) {
+                        //     self.src_file.symbols_map.insert(label_name, new_global_symbol());
+                        //  }
+                        // mov-immediate-value
+                        for b in (0 as u32).to_le_bytes().to_vec().iter() {
+                            codes.push(*b);
+                        }
+
+                        Self::generate_callrm64_inst(&mut codes, &inst);
+                    }
                     X64InstName::MOVRM64R64 => Self::generate_movrm64r64_inst(&mut codes, &inst),
                     X64InstName::MOVRM64IMM32 => {
                         Self::generate_movrm64imm32_inst(&mut codes, &inst)
                     }
                     // X64InstName::MOV => ,
                     X64InstName::RET => Self::generate_ret_inst(&mut codes, &inst),
-                    _ => (),
+                    X64InstName::SYSCALL => Self::generate_syscall_inst(&mut codes),
+                    _ => {
+                        eprintln!("not generate ... {:?}", inst.name);
+                    }
                 }
             }
 
@@ -38,6 +68,7 @@ impl X64Assembler {
             }
 
             // シンボルに格納
+            self.all_bytes += codes.len() as u64;
             symbol.codes = codes;
         }
     }
@@ -66,8 +97,8 @@ impl X64Assembler {
 #[cfg(test)]
 mod codegen_tests {
     use super::*;
+    use crate::assembler::arch::x64::file::X64AssemblyFile;
     use crate::assembler::arch::x64::lexer::lex_intel;
-    use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
 

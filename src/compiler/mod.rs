@@ -13,7 +13,7 @@ pub fn compile(
 ) -> AssemblyFile {
     if !source_file.abs_path.ends_with(".c") {
         // アセンブリ以下のレイヤが渡されたので,そのまま返す.
-        return if source_file.contents.contains(".intel_syntax") {
+        return if source_file.abs_path.ends_with(".s") {
             AssemblyFile::new_intel_file(source_file.contents, target)
         } else {
             AssemblyFile::new_atandt_file(source_file.contents, target)

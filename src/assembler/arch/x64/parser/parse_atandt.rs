@@ -1,5 +1,7 @@
+use crate::assembler::arch::x64::asmtoken;
+use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::inst::X64Instruction;
-use crate::assembler::arch::x64::{asmtoken, X64Assembler, X64Symbol};
+use crate::assembler::arch::x64::symbol::X64Symbol;
 use asmtoken::AsmTokenKind;
 
 impl X64Assembler {
@@ -20,18 +22,12 @@ impl X64Assembler {
                         insts_in_label.push(inst);
                     }
 
-                    // グローバルシンボルの定義がされていればすでにエントリがある
-                    if let Some(symbol) = self.src_file.symbols_map.get_mut(&name) {
-                        symbol.insts = insts_in_label;
-                        continue;
-                    }
-
                     // シンボルマップにエントリを登録
-                    let mut local_symbol = X64Symbol::new_local();
-                    local_symbol.insts = insts_in_label;
+                    let mut global_symbol = X64Symbol::new_global();
+                    global_symbol.insts = insts_in_label;
                     self.src_file
                         .symbols_map
-                        .insert(name.to_string(), local_symbol);
+                        .insert(name.to_string(), global_symbol);
                 }
                 // パース終了
                 _ => break,
@@ -43,23 +39,37 @@ impl X64Assembler {
         // ex. mov rax, 3
 
         let cur = self.looking_token_clone();
-        self.read_token();
         match cur.kind {
             AsmTokenKind::ADDQ => {
+                self.read_token();
                 // 2つのオペランドを取得
                 let src_op = self.consume_operand();
                 let dst_op = self.consume_operand();
 
                 Some(X64Instruction::new_add(src_op, dst_op))
             }
+            AsmTokenKind::CALL => {
+                self.read_token();
+                // 1つのオペランドを取得
+                let call_op = self.consume_operand();
+                Some(X64Instruction::new_call(call_op))
+            }
             AsmTokenKind::MOVQ => {
+                self.read_token();
                 // 2つのオペランドを取得
                 let src_op = self.consume_operand();
                 let dst_op = self.consume_operand();
 
                 Some(X64Instruction::new_mov(src_op, dst_op))
             }
-            AsmTokenKind::RET => Some(X64Instruction::new_ret()),
+            AsmTokenKind::RET => {
+                self.read_token();
+                Some(X64Instruction::new_ret())
+            }
+            AsmTokenKind::SYSCALL => {
+                self.read_token();
+                Some(X64Instruction::new_syscall())
+            }
             _ => None,
         }
     }
@@ -69,9 +79,9 @@ impl X64Assembler {
 #[cfg(test)]
 mod parse_atandt_tests {
     use super::*;
+    use crate::assembler::arch::x64::file::X64AssemblyFile;
     use crate::assembler::arch::x64::inst::X64Operand;
     use crate::assembler::arch::x64::lexer::lex_atandt;
-    use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
 

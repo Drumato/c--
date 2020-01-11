@@ -1,5 +1,5 @@
-use crate::assembler::arch::x64::X64Assembler;
-use crate::elf::elf64::ehdr::Ehdr64;
+use crate::assembler::arch::x64::assembler::X64Assembler;
+use crate::elf::elf64::rela::Rela64;
 use crate::elf::elf64::shdr::Shdr64;
 use crate::elf::elf64::symbol::Symbol64;
 use crate::elf::elf64::*;
@@ -51,14 +51,14 @@ impl ELF64 {
         }
 
         // Vec<Symbol64> をバイナリ列に変換する
-        let mut symbol_tables: Vec<u8> = Vec::new();
+        let mut symbol_table: Vec<u8> = Vec::new();
         for symbol in symbols.iter() {
             let mut symbol_entry = symbol.to_binary();
-            symbol_tables.append(&mut symbol_entry);
+            symbol_table.append(&mut symbol_entry);
         }
 
-        let symtab_header = Shdr64::init_symtab_header(symbol_tables.len() as Elf64Xword);
-        self.add_section(symbol_tables, symtab_header, ".symtab");
+        let symtab_header = Shdr64::init_symtab_header(symbol_table.len() as Elf64Xword);
+        self.add_section(symbol_table, symtab_header, ".symtab");
     }
     pub fn add_strtab_section_x64(&mut self, assembler: &X64Assembler) {
         // シンボルマップをイテレートして,名前を集める.
@@ -81,81 +81,32 @@ impl ELF64 {
             Shdr64::init_strtab_header(section_string_table.len() as Elf64Xword);
         self.add_section(section_string_table, section_strtab_header, ".shstrtab");
     }
+    pub fn add_relatext_section_x64(&mut self, assembler: &X64Assembler) {
+        // BTreeMap<String, Rela64> -> Vec<&Rela64>
+        let rela_vector = assembler
+            .src_file
+            .relocations_map
+            .values()
+            .collect::<Vec<&Rela64>>();
 
-    // セクション文字列のインデックスなど,全てを整理する.
-    pub fn finalize(&mut self) {
-        // ファイル先頭からのオフセット
-        let mut file_offset = Ehdr64::size() as u64;
-        // 各セクションのオフセットを設定
-        for section in self.sections.iter_mut() {
-            section.header.sh_offset += file_offset;
-            file_offset += section.header.sh_size;
+        // Relaオブジェクトをバイナリに変換
+        let mut rela_table: Vec<u8> = Vec::new();
+        for rela in rela_vector.iter() {
+            let mut rela_entry = rela.to_binary();
+            rela_table.append(&mut rela_entry);
         }
 
-        // SectionHeaderTable のスタートの設定 -> Ehdr + 全セクションサイズ
-        let start: u64 = 0x40;
-        self.ehdr.e_shoff = self
-            .sections
-            .iter()
-            .fold(start, |sum, section| sum + section.bytes.len() as u64);
+        let rela_text_header = Shdr64::init_relatext_header(rela_table.len() as Elf64Xword);
 
-        // セクション数,shstrtabの位置の設定
-        // TODO: `.shstrtab` 名のインデックスを返す関数で対応したほうが良い
-        self.ehdr.e_shnum = self.sections.len() as u16;
-        self.ehdr.e_shstrndx = self.ehdr.e_shnum - 1;
-
-        // セクション名を揃える
-        let name_count = self.sections[self.ehdr.e_shstrndx as usize]
-            .bytes
-            .iter()
-            .filter(|num| *num == &0x00)
-            .collect::<Vec<&u8>>()
-            .len()
-            - 1;
-        let mut sh_name = 1;
-        for (idx, bb) in self.sections[self.ehdr.e_shstrndx as usize]
-            .bytes
-            .to_vec()
-            .splitn(name_count, |num| *num == 0x00)
-            .enumerate()
-        {
-            if idx == 0 || idx >= self.ehdr.e_shnum as usize {
-                continue;
-            }
-            let b: Vec<&u8> = bb
-                .iter()
-                .take_while(|num| *num != &0x00)
-                .collect::<Vec<&u8>>();
-            self.sections[idx].header.sh_name = sh_name as u32;
-            sh_name += b.len() as u32 + 1;
-        }
-    }
-    fn build_strtab_from_names(names: Vec<&str>) -> Vec<u8> {
-        // ELFの文字列テーブルは null-byte + (name + null-byte) * n という形状に
-        // それに合うようにバイト列を構築.
-        let mut string_table: Vec<u8> = vec![0x00];
-        for name in names {
-            for byte in name.as_bytes() {
-                string_table.push(*byte);
-            }
-            string_table.push(0x00);
-        }
-
-        // アラインメントの調整
-        let md = string_table.len() % 4;
-        for _ in 0..(4 - md) {
-            string_table.push(0x00);
-        }
-
-        string_table
+        self.add_section(rela_table, rela_text_header, ".rela.text");
     }
 }
 
 #[cfg(test)]
 mod x64_elf_tests {
     use super::*;
+    use crate::assembler::arch::x64::file::X64AssemblyFile;
     use crate::assembler::arch::x64::lexer::lex_intel;
-    use crate::assembler::arch::x64::X64AssemblyFile;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
 

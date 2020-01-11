@@ -19,6 +19,9 @@ impl Symbol64 {
     pub fn size() -> usize {
         24
     }
+    pub fn new_unsafe(binary: Vec<u8>) -> Self {
+        unsafe { std::ptr::read(binary.as_ptr() as *const Self) }
+    }
     pub fn new_null_symbol() -> Self {
         Self {
             st_name: 0,
@@ -60,5 +63,13 @@ impl Symbol64 {
             bytes.push(byte);
         }
         bytes
+    }
+    pub fn symbols_to_binary(symbols: Vec<Self>) -> Vec<u8> {
+        let mut binary = Vec::new();
+        for symbol in symbols.iter() {
+            let mut symbol_binary = symbol.to_binary();
+            binary.append(&mut symbol_binary);
+        }
+        binary
     }
 }

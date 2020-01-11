@@ -1,6 +1,6 @@
 use crate::assembler::arch::x64::asmtoken::{AsmToken, AsmTokenKind};
+use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::lexer::AsmLexer;
-use crate::assembler::arch::x64::X64Assembler;
 
 pub fn lexing_intel_syntax(assembler: &mut X64Assembler) {
     // ソースコードのメモリコピーをするのは,後ほどエラーメッセージでソースコード本体を表示するため.
@@ -43,6 +43,7 @@ impl AsmLexer {
         match head_char {
             // アルファベットの場合
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),
+            '_' => Some(self.scan_word()),
             // 数字の場合
             number if number.is_ascii_digit() => Some(self.scan_number()),
 
@@ -65,8 +66,11 @@ impl AsmLexer {
     fn build_intel_keywords(&mut self) {
         // 命令
         self.keywords.insert("add".to_string(), AsmTokenKind::ADD);
+        self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
         self.keywords.insert("mov".to_string(), AsmTokenKind::MOV);
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
+        self.keywords
+            .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
     }
 }
 
@@ -161,11 +165,13 @@ mod intel_lexer_tests {
         let mut lexer = create_lexer("");
         lexer.build_intel_keywords();
 
-        assert_eq!(3, lexer.keywords.len());
+        assert_eq!(5, lexer.keywords.len());
 
         assert!(lexer.keywords.contains_key("add"));
+        assert!(lexer.keywords.contains_key("call"));
         assert!(lexer.keywords.contains_key("mov"));
         assert!(lexer.keywords.contains_key("ret"));
+        assert!(lexer.keywords.contains_key("syscall"));
     }
 
     fn create_lexer(input: &str) -> AsmLexer {

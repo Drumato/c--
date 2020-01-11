@@ -1,3 +1,4 @@
+use crate::elf::elf64::rela::Rela64;
 use crate::elf::elf64::symbol::Symbol64;
 use crate::elf::elf64::*;
 
@@ -5,10 +6,12 @@ use crate::elf::elf64::*;
 pub const SHT_PROGBITS: Elf64Word = 1;
 pub const SHT_SYMTAB: Elf64Word = 2;
 pub const SHT_STRTAB: Elf64Word = 3;
+pub const SHT_RELA: Elf64Word = 4;
 
 /* definitions for sh_flags */
 pub const SHF_ALLOC: Elf64Xword = 1 << 1;
 pub const SHF_EXECINSTR: Elf64Xword = 1 << 2;
+pub const SHF_INFO_LINK: Elf64Xword = 1 << 6;
 
 #[repr(C)]
 pub struct Shdr64 {
@@ -117,6 +120,20 @@ impl Shdr64 {
             sh_info: 0,
             sh_addralign: 1,
             sh_entsize: 0,
+        }
+    }
+    pub fn init_relatext_header(size: Elf64Xword) -> Self {
+        Self {
+            sh_name: 0,
+            sh_type: SHT_RELA,
+            sh_flags: SHF_INFO_LINK,
+            sh_addr: 0,
+            sh_offset: 0,
+            sh_size: size,
+            sh_link: 2, // シンボルテーブルが二番目にあることを決め打ち
+            sh_info: 1, // .textセクションが一番目にあることを決め打ち
+            sh_addralign: 8,
+            sh_entsize: Rela64::size() as u64,
         }
     }
 }

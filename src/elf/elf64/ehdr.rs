@@ -7,7 +7,8 @@ const ELFDATA2LSB: NIdentSize = 0x01;
 const ELFOSABI_SYSV: NIdentSize = 0x00;
 const EV_CURRENT: NIdentSize = 0x01;
 
-const ET_REL: Elf64Half = 0x01;
+pub const ET_REL: Elf64Half = 0x01;
+pub const ET_EXEC: Elf64Half = 0x02;
 const EM_X86_64: Elf64Half = 0x3e;
 #[repr(C)]
 pub struct Ehdr64 {

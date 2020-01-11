@@ -3,9 +3,8 @@ use colored::*;
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 // testcase
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,20 +29,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // subprocess の起動
         let binary_path = std::env::var("C_ROOT").unwrap() + "/target/debug/c--";
 
-        let file = fs::File::create("test.S").unwrap();
-        // ファイルからfdを経由してStdioを作る
-        let out = unsafe { Stdio::from_raw_fd(file.as_raw_fd()) };
-
         let _compile_cmd = Command::new(&binary_path)
             .arg(&test_file_path.clone())
-            .arg("-S")
-            .stdout(out)
+            .arg("--stop-assemble")
+            .arg("--sample-name")
             .status()
             .expect("failed to spawn a process");
 
-        // test.S -> a.out
+        // test.o -> a.out
         let _build_cmd = Command::new("gcc")
-            .args(vec!["test.S"])
+            .args(vec!["sample.o"])
             .status()
             .expect("failed to spawn a process");
 

@@ -35,3 +35,5 @@ args:
     - stop-assemble:
         short: c
         long: stop-assemble
+    - sample-name:
+        long: sample-name

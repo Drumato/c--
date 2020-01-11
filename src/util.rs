@@ -31,3 +31,9 @@ pub fn object_file_dump(output_path: String, obj_file: elf64::ELF64) {
         Err(e) => eprintln!("{}", e),
     }
 }
+
+pub fn read_file_contents(path: String) -> String {
+    use std::fs;
+
+    fs::read_to_string(path).unwrap()
+}

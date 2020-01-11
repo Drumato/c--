@@ -1,6 +1,7 @@
+use crate::assembler::arch::x64::analyze::OperandSize;
+use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::codegen::*;
-use crate::assembler::arch::x64::inst::X64Instruction;
-use crate::assembler::arch::x64::X64Assembler;
+use crate::assembler::arch::x64::inst::{X64InstName, X64Instruction, X64Operand};
 
 pub const MODRM_REGISTER_REGISTER: u8 = 0xc0;
 impl X64Assembler {
@@ -40,5 +41,30 @@ impl X64Assembler {
         let rm_field = Self::modrm_rm_field(inst.dst_regnumber);
         let reg_field = Self::modrm_reg_field(inst.src_regnumber);
         codes.push(MODRM_REGISTER_REGISTER | reg_field | rm_field);
+    }
+}
+
+impl X64Instruction {
+    pub fn change_mov_opcode(
+        op_size: &OperandSize,
+        src: &X64Operand,
+        dst: &X64Operand,
+    ) -> X64InstName {
+        match op_size {
+            OperandSize::QUADWORD => {
+                if dst.is_register() && src.is_immediate() {
+                    // mov r/m64, imm32
+                    return X64InstName::MOVRM64IMM32;
+                }
+
+                if dst.is_register() && src.is_register() {
+                    // mov r/m64, r64
+                    return X64InstName::MOVRM64R64;
+                }
+                X64InstName::MOV
+            }
+            // 何も変化させない
+            _ => X64InstName::MOV,
+        }
     }
 }
