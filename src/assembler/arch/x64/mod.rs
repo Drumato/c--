@@ -26,10 +26,6 @@ pub fn assemble(
         } else {
             std::env::var("C_ROOT").unwrap() + "/lib/start_up_linux64.S"
         };
-        eprintln!(
-            "using default start up routine ... -> {}",
-            &start_up_routine
-        );
         assembly_file.code += &util::read_file_contents(start_up_routine);
     }
 

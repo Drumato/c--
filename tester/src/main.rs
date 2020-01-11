@@ -14,57 +14,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // samplesディレクトリ以下を全て走査
-
-    let samples_dir = std::env::var("C_ROOT").unwrap() + "/samples";
+    let samples_dir = get_testcases_located_path();
     let samples_path = Path::new(&samples_dir);
 
     // テストケースの構築
     let expected_map = build_expected()?;
 
+    // 各テストケースについて
     for entry in fs::read_dir(samples_path)? {
-        let test_file_path = std::env::var("C_ROOT").unwrap()
-            + "/samples/"
-            + &entry?.file_name().into_string().unwrap();
+        let iter_file_name = entry?.file_name().into_string().unwrap();
+        let test_file_path = get_single_testcase_path(iter_file_name);
 
         // subprocess の起動
-        let binary_path = std::env::var("C_ROOT").unwrap() + "/target/debug/c--";
+        let binary_path = get_cminus_binary_path();
 
-        let _compile_cmd = Command::new(&binary_path)
-            .arg(&test_file_path.clone())
-            .arg("--stop-assemble")
-            .arg("--sample-name")
-            .status()
-            .expect("failed to spawn a process");
+        exec_compile_command(binary_path, test_file_path.clone());
 
-        // test.o -> a.out
-        let _build_cmd = Command::new("gcc")
-            .args(vec!["sample.o"])
-            .status()
-            .expect("failed to spawn a process");
-
-        let execute_status = Command::new("./a.out")
-            .status()
-            .expect("failed to spawn a process");
+        let execute_status = get_executed_elf_status().code().unwrap();
 
         // 終了ステータスのチェック
-        if let Some(expected) = expected_map.get(&test_file_path) {
-            if execute_status.code().unwrap() != *expected {
-                eprintln!(
-                    "{} -> {} expected {} but actual {}",
-                    test_file_path,
-                    "FAILED".bold().red(),
-                    *expected,
-                    execute_status
-                );
-            } else {
-                eprintln!(
-                    "{} -> {} ({})",
-                    test_file_path,
-                    "PASSED".bold().green(),
-                    execute_status
-                );
-            }
-        }
+        check_given_status_is_success(&expected_map, test_file_path, execute_status);
     }
 
     Ok(())
@@ -75,14 +44,14 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
 
     // samplesディレクトリ以下を全て走査
 
-    let samples_dir = std::env::var("C_ROOT").unwrap() + "/samples";
+    let samples_dir = get_testcases_located_path();
     let samples_path = Path::new(&samples_dir);
 
     for entry in fs::read_dir(samples_path)? {
         // ファイルパスの階層を取り除いてパターンマッチ
-        let test_file_path = std::env::var("C_ROOT").unwrap()
-            + "/samples/"
-            + &entry?.file_name().into_string().unwrap();
+        let iter_file_name = entry?.file_name().into_string().unwrap();
+        let test_file_path = get_single_testcase_path(iter_file_name);
+
         let splitted_path: Vec<&str> = test_file_path.split('/').collect();
         let final_name = splitted_path[splitted_path.len() - 1];
 
@@ -97,4 +66,57 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
         expected_map.insert(test_file_path.to_string(), exit_status);
     }
     Ok(expected_map)
+}
+
+fn get_testcases_located_path() -> String {
+    std::env::var("C_ROOT").unwrap() + "/samples"
+}
+
+fn get_single_testcase_path(single_file: String) -> String {
+    let samples_dir = get_testcases_located_path();
+    samples_dir + "/" + &single_file
+}
+
+fn get_cminus_binary_path() -> String {
+    std::env::var("C_ROOT").unwrap() + "/target/debug/c--"
+}
+
+fn exec_compile_command(binary_path: String, test_file_path: String) {
+    // $ c-- <test_file_path>
+    let _compile_cmd = Command::new(&binary_path)
+        .arg(&test_file_path.clone())
+        .status()
+        .expect("failed to spawn a process");
+}
+
+fn get_executed_elf_status() -> std::process::ExitStatus {
+    // $ ./a.out
+    Command::new("./a.out")
+        .status()
+        .expect("failed to spawn a process")
+}
+
+fn check_given_status_is_success(
+    expected_map: &BTreeMap<String, i32>,
+    test_file_path: String,
+    execute_status: i32,
+) {
+    if let Some(expected) = expected_map.get(&test_file_path) {
+        if execute_status != *expected {
+            eprintln!(
+                "{} -> {} expected {} but actual {}",
+                test_file_path,
+                "FAILED".bold().red(),
+                *expected,
+                execute_status
+            );
+        } else {
+            eprintln!(
+                "{} -> {} ({})",
+                test_file_path,
+                "PASSED".bold().green(),
+                execute_status
+            );
+        }
+    }
 }
