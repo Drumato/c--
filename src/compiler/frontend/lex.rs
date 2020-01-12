@@ -62,6 +62,7 @@ impl<'a> Lexer<'a> {
 
             // 記号の場合
             '+' => Some(self.scan_symbol(TokenKind::PLUS)),
+            '-' => Some(self.scan_symbol(TokenKind::MINUS)),
 
             // 空白類文字
             ' ' | '\t' => Some(self.skip_whitespace()),
@@ -209,18 +210,23 @@ mod lexer_tests {
 
     #[test]
     fn test_scan_symbol() {
-        let expected = Token::new((1, 1), TokenKind::PLUS);
-        let mut lexer = create_lexer("+  ");
-        let actual = lexer.scan_symbol(TokenKind::PLUS);
+        let expected_plus = Token::new((1, 1), TokenKind::PLUS);
+        let expected_minus = Token::new((1, 2), TokenKind::MINUS);
+        let mut lexer = create_lexer("+-  ");
+        let actual_plus = lexer.scan_symbol(TokenKind::PLUS);
 
-        assert_eq!(expected, actual);
+        assert_eq!(expected_plus, actual_plus);
 
         // オフセットが進んでいるか
         let cur_position = lexer.current_position();
         assert_eq!((1, 2), cur_position);
 
+        // 残りの記号を一括チェック
+        let actual_minus = lexer.scan_symbol(TokenKind::MINUS);
+        assert_eq!(expected_minus, actual_minus);
+
         // 文字列が切り取られているか.
-        let cur_looking_string = lexer.contents;
+        let cur_looking_string = lexer.contents.clone();
         assert_eq!(cur_looking_string, "  ");
     }
 

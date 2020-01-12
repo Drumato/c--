@@ -3,6 +3,16 @@ use crate::compiler::frontend::node::{Node, NodeKind};
 use crate::compiler::ir::three_address_code as tac;
 use tac::{Operand, Operator, ThreeAddressCode};
 
+impl NodeKind {
+    fn to_operator(&self) -> Option<Operator> {
+        match self {
+            Self::ADD(_left, _right) => Some(Operator::PLUS),
+            Self::SUB(_left, _right) => Some(Operator::MINUS),
+            _ => None,
+        }
+    }
+}
+
 impl Manager {
     pub fn generate_three_address_code(&mut self) {
         let n = self.expr.clone();
@@ -13,8 +23,8 @@ impl Manager {
             .push(ThreeAddressCode::new_return_code(final_reg));
     }
     fn gen_expr(&mut self, n: Node) -> Operand {
-        match n.kind {
-            NodeKind::ADD(left, right) => {
+        match n.kind.clone() {
+            NodeKind::ADD(left, right) | NodeKind::SUB(left, right) => {
                 // 左右の子ノードを変換
                 let left_op = self.gen_expr(*left);
                 let right_op = self.gen_expr(*right);
@@ -25,7 +35,7 @@ impl Manager {
                 // 加算コード生成
                 let add_code = ThreeAddressCode::new_binop_code(
                     variable_reg.clone(),
-                    Operator::PLUS,
+                    n.kind.to_operator().unwrap(),
                     left_op,
                     right_op,
                 );
@@ -35,7 +45,9 @@ impl Manager {
                 variable_reg
             }
             NodeKind::INTEGER(val) => Operand::new_int_literal(val),
-            NodeKind::INVALID => Operand::new_invalid(),
+
+            // NodeKind::INVALID => Operand::new_invalid(),
+            _ => Operand::new_invalid(),
         }
     }
     fn use_current_virt_reg(&mut self) -> Operand {
@@ -79,6 +91,24 @@ mod generate_tac_tests {
         let return_operand = manager.gen_expr(add_node);
 
         // 加算ノードの場合,まず仮想レジスタに束縛するコードが生成されるはず.
+        // gen_expr()の呼び出しによってコード列にそのコード片が追加されている事を期待.
+        assert_eq!(1, manager.entry_block.tacs.len());
+        let expected = Operand::new_virtreg(0);
+
+        assert_eq!(expected, return_operand);
+    }
+
+    #[test]
+    fn test_gen_expr_with_sub_calculus() {
+        let mut manager = preprocess("100 - 200");
+        let left_node = Node::new((1, 1), NodeKind::INTEGER(100));
+        let right_node = Node::new((7, 1), NodeKind::INTEGER(200));
+        let sub_node_kind = NodeKind::SUB(Box::new(left_node), Box::new(right_node));
+        let sub_node = Node::new((5, 1), sub_node_kind);
+
+        let return_operand = manager.gen_expr(sub_node);
+
+        // 減算ノードの場合,まず仮想レジスタに束縛するコードが生成されるはず.
         // gen_expr()の呼び出しによってコード列にそのコード片が追加されている事を期待.
         assert_eq!(1, manager.entry_block.tacs.len());
         let expected = Operand::new_virtreg(0);

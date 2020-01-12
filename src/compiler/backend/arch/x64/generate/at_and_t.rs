@@ -59,6 +59,22 @@ impl X64IR {
                     }
                 }
             }
+            X64IRKind::SUB(dst, src) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                match src.kind {
+                    X64OpeKind::REG => {
+                        let src_reg = Registers::from_number_ir(src.phys);
+                        format!("subq %{}, %{}", src_reg.to_string(), dst_reg.to_string())
+                    }
+                    X64OpeKind::INTLIT(src_value) => {
+                        format!("subq ${}, %{}", src_value, dst_reg.to_string())
+                    }
+                    _ => {
+                        eprintln!("can't emit with INVALID operand!");
+                        String::new()
+                    }
+                }
+            }
             X64IRKind::RET(return_op) => match return_op.kind {
                 X64OpeKind::REG => {
                     let return_reg = Registers::from_number_ir(return_op.phys);

@@ -3,7 +3,7 @@ pub mod parse_intel;
 
 use crate::assembler::arch::x64::asmtoken;
 use crate::assembler::arch::x64::assembler::X64Assembler;
-use crate::assembler::arch::x64::inst::X64Operand;
+use crate::assembler::arch::x64::inst::inst_kind::X64Operand;
 use crate::assembler::arch::x64::symbol::X64Symbol;
 use crate::error::*;
 use asmtoken::{AsmToken, AsmTokenKind};

@@ -1,3 +1,4 @@
+use crate::assembler::arch::x64::inst::inst_name::X64InstName;
 type Column = usize;
 type Row = usize;
 
@@ -32,11 +33,13 @@ pub enum AsmTokenKind {
     // 命令
     // AT&T記法
     MOVQ, // movq命令
-    ADDQ, // movq命令
+    ADDQ, // addq命令
+    SUBQ, // subq命令
 
     // intel記法
     MOV, // mov命令
     ADD, // add命令
+    SUB, // sub命令
 
     // 汎用記法
     CALL,    // call命令
@@ -50,4 +53,15 @@ pub enum AsmTokenKind {
     BLANK,             // 空白類文字
     NEWLINE,           // 改行
     EOF,
+}
+
+impl AsmTokenKind {
+    pub fn to_inst_name(&self) -> X64InstName {
+        match self {
+            Self::ADD | Self::ADDQ => X64InstName::ADD,
+            Self::SUB | Self::SUBQ => X64InstName::SUB,
+            Self::MOV | Self::MOVQ => X64InstName::MOV,
+            _ => panic!("can't translate to X64InstName"),
+        }
+    }
 }

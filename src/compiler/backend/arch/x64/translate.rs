@@ -56,6 +56,9 @@ impl HighOptimizer {
             X64IRKind::ADD(_, _) => {
                 low_irs.push(X64IR::new_add(left, right));
             }
+            X64IRKind::SUB(_, _) => {
+                low_irs.push(X64IR::new_sub(left, right));
+            }
             _ => {}
         }
     }
@@ -63,6 +66,7 @@ impl HighOptimizer {
         // 返すIRKindの中身は全てINVALID
         match operator {
             tac::Operator::PLUS => X64IRKind::ADD(X64Operand::new_inv(), X64Operand::new_inv()),
+            tac::Operator::MINUS => X64IRKind::SUB(X64Operand::new_inv(), X64Operand::new_inv()),
         }
     }
     fn tac_operand_to_x64(op: tac::Operand) -> X64Operand {

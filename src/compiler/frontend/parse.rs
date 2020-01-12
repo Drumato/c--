@@ -12,15 +12,21 @@ impl Manager {
     fn parse_expression(&mut self) -> Node {
         let mut left_node: Node = self.parse_term();
         loop {
-            if !self.current_token_is_in(vec![TokenKind::PLUS]) {
+            if !self.current_token_is_in(vec![TokenKind::PLUS, TokenKind::MINUS]) {
                 break;
             }
             let cur_token = &self.looking_token_clone();
             self.read_token();
+            let right_node = self.parse_term();
+
             if let TokenKind::PLUS = cur_token.kind {
-                let right_node = self.parse_term();
+                // 加算ノードの構築
                 let add_node = NodeKind::ADD(Box::new(left_node), Box::new(right_node));
                 left_node = Node::new(cur_token.position, add_node);
+            } else if let TokenKind::MINUS = cur_token.kind {
+                // 減算ノードの構築
+                let sub_node = NodeKind::SUB(Box::new(left_node), Box::new(right_node));
+                left_node = Node::new(cur_token.position, sub_node);
             }
         }
         left_node
@@ -111,6 +117,22 @@ mod parser_tests {
         let mut manager = preprocess("100 + 200");
 
         // 加算ノードを受け取れるか.
+        let actual = manager.parse_expression();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_parse_expression_with_subtraction() {
+        let left_node = Node::new((1, 1), NodeKind::INTEGER(200));
+        let right_node = Node::new((1, 7), NodeKind::INTEGER(100));
+        let expected = Node::new(
+            (1, 5),
+            NodeKind::SUB(Box::new(left_node), Box::new(right_node)),
+        );
+
+        let mut manager = preprocess("200 - 100");
+
+        // 減算ノードを受け取れるか.
         let actual = manager.parse_expression();
         assert_eq!(expected, actual);
     }

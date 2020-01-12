@@ -27,6 +27,11 @@ impl X64IR {
             kind: X64IRKind::ADD(dst, src),
         }
     }
+    pub fn new_sub(dst: X64Operand, src: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::SUB(dst, src),
+        }
+    }
     pub fn new_ret(return_op: X64Operand) -> Self {
         Self {
             kind: X64IRKind::RET(return_op),
@@ -39,6 +44,7 @@ pub enum X64IRKind {
     // 2つオペランドを持つ系
     MOV(X64Operand, X64Operand),
     ADD(X64Operand, X64Operand),
+    SUB(X64Operand, X64Operand),
 
     // 1つオペランドを持つ系
     RET(X64Operand),

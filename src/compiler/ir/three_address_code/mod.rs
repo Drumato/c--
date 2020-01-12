@@ -94,12 +94,14 @@ pub enum TacKind {
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum Operator {
     PLUS,
+    MINUS,
 }
 
 impl Operator {
     fn to_string(&self) -> &str {
         match self {
             Self::PLUS => "+",
+            Self::MINUS => "-",
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::assembler::arch::x64::assembler::X64Assembler;
-use crate::assembler::arch::x64::inst::{X64InstKind, X64InstName};
+use crate::assembler::arch::x64::inst::{inst_kind::X64InstKind, inst_name::X64InstName};
 
 pub const REX_PREFIX_BASE: u8 = 0x40;
 pub const REX_PREFIX_WBIT: u8 = 0x08;
@@ -51,6 +51,10 @@ impl X64Assembler {
                     X64InstName::MOVRM64R64 => Self::generate_movrm64r64_inst(&mut codes, &inst),
                     X64InstName::MOVRM64IMM32 => {
                         Self::generate_movrm64imm32_inst(&mut codes, &inst)
+                    }
+                    X64InstName::SUBRM64R64 => Self::generate_subrm64r64_inst(&mut codes, &inst),
+                    X64InstName::SUBRM64IMM32 => {
+                        Self::generate_subrm64imm32_inst(&mut codes, &inst)
                     }
                     // X64InstName::MOV => ,
                     X64InstName::RET => Self::generate_ret_inst(&mut codes, &inst),

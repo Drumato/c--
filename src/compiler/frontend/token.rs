@@ -30,6 +30,7 @@ impl Token {
 pub enum TokenKind {
     INTEGER(i128), // 整数
     PLUS,          // +記号
+    MINUS,         // -記号
     BLANK,         // 空白類文字
     NEWLINE,       // 改行
     EOF,

@@ -1,7 +1,11 @@
 use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::inst;
 use crate::elf::elf64::rela;
-use inst::{X64InstKind, X64InstName, X64Instruction, X64OpeKind, X64Operand};
+use inst::{
+    inst_kind::{X64InstKind, X64OpeKind, X64Operand},
+    inst_name::X64InstName,
+    X64Instruction,
+};
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum OperandSize {
@@ -80,6 +84,7 @@ impl X64Instruction {
     ) -> X64InstName {
         match name {
             X64InstName::ADD => Self::change_add_opcode(size, src, dst),
+            X64InstName::SUB => Self::change_sub_opcode(size, src, dst),
             X64InstName::MOV => Self::change_mov_opcode(size, src, dst),
             // 何も変化させない
             _ => X64InstName::ADD,

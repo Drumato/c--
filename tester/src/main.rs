@@ -58,6 +58,7 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
         let exit_status = match final_name {
             "add.c" => 3,
             "huge_add.c" => 55,
+            "sub.c" => 1,
             _ => {
                 eprintln!("something went wrong -> {}", final_name);
                 0

@@ -95,6 +95,7 @@ impl AsmLexer {
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
         self.keywords
             .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
+        self.keywords.insert("subq".to_string(), AsmTokenKind::SUBQ);
     }
 }
 
@@ -139,13 +140,14 @@ mod atandt_lexer_tests {
         let mut lexer = create_lexer("");
         lexer.build_atandt_keywords();
 
-        assert_eq!(5, lexer.keywords.len());
+        assert_eq!(6, lexer.keywords.len());
 
         assert!(lexer.keywords.contains_key("addq"));
         assert!(lexer.keywords.contains_key("call"));
         assert!(lexer.keywords.contains_key("movq"));
         assert!(lexer.keywords.contains_key("ret"));
         assert!(lexer.keywords.contains_key("syscall"));
+        assert!(lexer.keywords.contains_key("subq"));
     }
 
     #[test]

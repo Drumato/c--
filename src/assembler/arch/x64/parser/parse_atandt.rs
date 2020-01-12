@@ -40,27 +40,22 @@ impl X64Assembler {
 
         let cur = self.looking_token_clone();
         match cur.kind {
-            AsmTokenKind::ADDQ => {
+            // 2つのオペランドを持つ命令
+            AsmTokenKind::ADDQ | AsmTokenKind::SUBQ | AsmTokenKind::MOVQ => {
                 self.read_token();
+
                 // 2つのオペランドを取得
                 let src_op = self.consume_operand();
                 let dst_op = self.consume_operand();
 
-                Some(X64Instruction::new_add(src_op, dst_op))
+                let inst_name = cur.kind.to_inst_name();
+                Some(X64Instruction::new_binary_inst(inst_name, src_op, dst_op))
             }
             AsmTokenKind::CALL => {
                 self.read_token();
                 // 1つのオペランドを取得
                 let call_op = self.consume_operand();
                 Some(X64Instruction::new_call(call_op))
-            }
-            AsmTokenKind::MOVQ => {
-                self.read_token();
-                // 2つのオペランドを取得
-                let src_op = self.consume_operand();
-                let dst_op = self.consume_operand();
-
-                Some(X64Instruction::new_mov(src_op, dst_op))
             }
             AsmTokenKind::RET => {
                 self.read_token();
@@ -80,7 +75,7 @@ impl X64Assembler {
 mod parse_atandt_tests {
     use super::*;
     use crate::assembler::arch::x64::file::X64AssemblyFile;
-    use crate::assembler::arch::x64::inst::X64Operand;
+    use crate::assembler::arch::x64::inst::{inst_kind::X64Operand, inst_name::X64InstName};
     use crate::assembler::arch::x64::lexer::lex_atandt;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
@@ -104,11 +99,13 @@ mod parse_atandt_tests {
     fn test_parse_atandt_syntax_with_inst() {
         let mut expected_main = X64Symbol::new_global();
         expected_main.insts = vec![
-            X64Instruction::new_mov(
+            X64Instruction::new_binary_inst(
+                X64InstName::MOV,
                 X64Operand::new_integer(3),
                 X64Operand::new_register("rax".to_string()),
             ),
-            X64Instruction::new_add(
+            X64Instruction::new_binary_inst(
+                X64InstName::ADD,
                 X64Operand::new_integer(3),
                 X64Operand::new_register("rax".to_string()),
             ),
@@ -134,7 +131,8 @@ mod parse_atandt_tests {
 
     #[test]
     fn test_parse_inst_atandt_syntax_with_mov() {
-        let expected_mov = X64Instruction::new_mov(
+        let expected_mov = X64Instruction::new_binary_inst(
+            X64InstName::MOV,
             X64Operand::new_integer(3),
             X64Operand::new_register("rax".to_string()),
         );

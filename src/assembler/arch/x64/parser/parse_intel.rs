@@ -38,18 +38,19 @@ impl X64Assembler {
         // Intel記法なので,パースしたオペランドは左がdst,右がsrcとなる.
         // ex. mov rax, 3
         // AT&T記法に合わせて格納するので注意.
-        // ex. X64InstKind::MOV(X64Operand::REG(0), X64Operand::INTEGER(3))
+        // ex. X64InstKind::MOV(X64Operand::INTEGER(3), X64Operand::REG(0))
 
         let cur = self.looking_token_clone();
         match cur.kind {
-            AsmTokenKind::ADD => {
+            // 2つのオペランドを持つ命令
+            AsmTokenKind::ADD | AsmTokenKind::SUB | AsmTokenKind::MOV => {
                 self.read_token();
 
-                // 2つのオペランドを取得
                 let dst_op = self.consume_operand();
                 let src_op = self.consume_operand();
 
-                Some(X64Instruction::new_add(src_op, dst_op))
+                let inst_name = cur.kind.to_inst_name();
+                Some(X64Instruction::new_binary_inst(inst_name, src_op, dst_op))
             }
             AsmTokenKind::CALL => {
                 self.read_token();
@@ -57,15 +58,6 @@ impl X64Assembler {
                 // 1つのオペランドを取得
                 let call_op = self.consume_operand();
                 Some(X64Instruction::new_call(call_op))
-            }
-            AsmTokenKind::MOV => {
-                self.read_token();
-
-                // 2つのオペランドを取得
-                let dst_op = self.consume_operand();
-                let src_op = self.consume_operand();
-
-                Some(X64Instruction::new_mov(src_op, dst_op))
             }
             AsmTokenKind::RET => {
                 self.read_token();
@@ -85,7 +77,7 @@ impl X64Assembler {
 mod parse_intel_tests {
     use super::*;
     use crate::assembler::arch::x64::file::X64AssemblyFile;
-    use crate::assembler::arch::x64::inst::X64Operand;
+    use crate::assembler::arch::x64::inst::{inst_kind::X64Operand, inst_name::X64InstName};
     use crate::assembler::arch::x64::lexer::lex_intel;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
@@ -176,11 +168,13 @@ mod parse_intel_tests {
         let mut expected_main = X64Symbol::new_global();
         // AT&T記法でテストを定義
         expected_main.insts = vec![
-            X64Instruction::new_mov(
+            X64Instruction::new_binary_inst(
+                X64InstName::MOV,
                 X64Operand::new_integer(3),
                 X64Operand::new_register("rax".to_string()),
             ),
-            X64Instruction::new_add(
+            X64Instruction::new_binary_inst(
+                X64InstName::ADD,
                 X64Operand::new_integer(3),
                 X64Operand::new_register("rax".to_string()),
             ),

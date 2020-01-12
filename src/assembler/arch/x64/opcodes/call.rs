@@ -1,6 +1,8 @@
 use crate::assembler::arch::x64::analyze::OperandSize;
 use crate::assembler::arch::x64::assembler::X64Assembler;
-use crate::assembler::arch::x64::inst::{X64InstName, X64Instruction, X64Operand};
+use crate::assembler::arch::x64::inst::{
+    inst_kind::X64Operand, inst_name::X64InstName, X64Instruction,
+};
 
 impl X64Assembler {
     pub fn generate_callrm64_inst(codes: &mut Vec<u8>, _inst: &X64Instruction) {
