@@ -1,4 +1,4 @@
-use crate::compiler::frontend::token::Position;
+use crate::compiler::frontend::token::{Position, Token, TokenKind};
 use crate::compiler::frontend::types::Type;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Node {
@@ -15,6 +15,14 @@ impl Node {
             ctype: Type::new_unknown(),
         }
     }
+    pub fn new_binary_node(tok: &Token, left: Node, right: Node) -> Self {
+        let node_kind = match tok.kind {
+            TokenKind::PLUS => NodeKind::ADD(Box::new(left), Box::new(right)),
+            TokenKind::MINUS => NodeKind::SUB(Box::new(left), Box::new(right)),
+            _ => panic!("not found such an operator"),
+        };
+        Node::new(tok.position, node_kind)
+    }
 }
 
 type Operand = Box<Node>;
@@ -24,4 +32,10 @@ pub enum NodeKind {
     SUB(Operand, Operand),
     INTEGER(i128),
     INVALID,
+}
+
+// 演算の優先順位を定義
+#[derive(Debug, PartialEq, Clone)]
+pub enum Priority {
+    ADDSUB,
 }

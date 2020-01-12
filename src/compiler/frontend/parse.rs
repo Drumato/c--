@@ -1,5 +1,5 @@
 use crate::compiler::frontend::manager::Manager;
-use crate::compiler::frontend::node::{Node, NodeKind};
+use crate::compiler::frontend::node::{Node, NodeKind, Priority};
 use crate::compiler::frontend::token;
 use crate::error::{Error, ErrorKind, ErrorMsg};
 use token::{Token, TokenKind};
@@ -10,26 +10,42 @@ impl Manager {
     }
 
     fn parse_expression(&mut self) -> Node {
-        let mut left_node: Node = self.parse_term();
+        // expr -> term | expr_1 (`+`/`-` term)+
+        // 最初はPriority::ADDSUBで始まる
+        self.parse_node_current_prio()
+    }
+    fn parse_node_current_prio(&mut self) -> Node {
+        // 現在の優先順位に対応した関数を呼ぶ
+        match self.priority {
+            Priority::ADDSUB => self.parse_binary_node(),
+        }
+    }
+    fn parse_binary_node(&mut self) -> Node {
+        // 現在の優先順位よりひとつ上の関数を呼ぶ
+        let mut left_node: Node = self.parse_node_next_prio();
+        // チェックする演算子の列挙
+        let operators = self.current_prio_operators();
         loop {
-            if !self.current_token_is_in(vec![TokenKind::PLUS, TokenKind::MINUS]) {
+            // いずれにも合致しなければ終了
+            if !self.current_token_is_in(&operators) {
                 break;
             }
-            let cur_token = &self.looking_token_clone();
-            self.read_token();
-            let right_node = self.parse_term();
 
-            if let TokenKind::PLUS = cur_token.kind {
-                // 加算ノードの構築
-                let add_node = NodeKind::ADD(Box::new(left_node), Box::new(right_node));
-                left_node = Node::new(cur_token.position, add_node);
-            } else if let TokenKind::MINUS = cur_token.kind {
-                // 減算ノードの構築
-                let sub_node = NodeKind::SUB(Box::new(left_node), Box::new(right_node));
-                left_node = Node::new(cur_token.position, sub_node);
-            }
+            // 演算子トークンを退避
+            let cur_token = self.looking_token_clone();
+            self.read_token();
+            let right_node = self.parse_node_next_prio();
+
+            // コンストラクト
+            left_node = Node::new_binary_node(&cur_token, left_node, right_node);
         }
         left_node
+    }
+    fn parse_node_next_prio(&mut self) -> Node {
+        // 各関数におけるより優先度の高い関数を定義しておく
+        match self.priority {
+            Priority::ADDSUB => self.parse_term(),
+        }
     }
     fn parse_term(&mut self) -> Node {
         let cur = self.looking_token_clone();
@@ -44,15 +60,19 @@ impl Manager {
             }
         }
     }
-    fn current_token_is_in(&mut self, tks: Vec<TokenKind>) -> bool {
+    fn current_token_is_in(&mut self, tks: &Vec<TokenKind>) -> bool {
         for t in tks {
-            if self.looking_token().kind == t {
+            if &self.looking_token().kind == t {
                 return true;
             }
         }
         false
     }
-
+    fn current_prio_operators(&mut self) -> Vec<TokenKind> {
+        match self.priority {
+            Priority::ADDSUB => vec![TokenKind::PLUS, TokenKind::MINUS],
+        }
+    }
     fn looking_token(&mut self) -> &Token {
         if self.tokens.len() <= self.cur_token {
             if self.tokens.len() <= self.cur_token {

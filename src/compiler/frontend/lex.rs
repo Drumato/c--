@@ -137,6 +137,7 @@ impl<'a> Lexer<'a> {
 mod lexer_tests {
     use super::*;
 
+    // 字句解析コード全体のテスト
     #[test]
     fn test_build_tokens() {
         let expected_tokens = vec![
@@ -153,6 +154,7 @@ mod lexer_tests {
         }
     }
 
+    // 関数/ケースごとのテスト
     #[test]
     fn test_count_length() {
         // 数字の範囲

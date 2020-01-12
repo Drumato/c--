@@ -10,6 +10,7 @@ pub struct Manager {
     // パース処理用
     pub cur_token: usize,
     pub next_token: usize,
+    pub priority: node::Priority,
 
     // 3番地コード列
     pub entry_block: BasicBlock,
@@ -28,6 +29,7 @@ impl Manager {
             expr: node::Node::new((0, 0), node::NodeKind::INVALID),
             cur_token: 0,
             next_token: 1,
+            priority: node::Priority::ADDSUB,
             entry_block: BasicBlock::new(entry_function),
             virt: 0,
         }
