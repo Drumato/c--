@@ -1,7 +1,10 @@
 use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Node, NodeKind};
-use crate::compiler::ir::three_address_code as tac;
-use tac::{Operand, Operator, ThreeAddressCode};
+use crate::compiler::ir::three_address_code;
+use three_address_code::{
+    tac::ThreeAddressCode,
+    tac_kind::{Operand, Operator},
+};
 
 impl NodeKind {
     fn to_operator(&self) -> Option<Operator> {

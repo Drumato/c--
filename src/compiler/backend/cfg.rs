@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::{BasicBlock, TacKind};
+use crate::compiler::ir::three_address_code::{basicblock::BasicBlock, tac_kind::TacKind};
 
 type RegisterNumber = usize;
 #[allow(dead_code)]

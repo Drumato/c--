@@ -1,5 +1,5 @@
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::TacKind;
+use crate::compiler::ir::three_address_code::tac_kind::TacKind;
 
 use std::collections::BTreeSet;
 

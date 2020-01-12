@@ -1,5 +1,5 @@
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::*;
+use crate::compiler::ir::three_address_code::tac_kind::{OpeKind, TacKind};
 use crate::error::*;
 
 use std::collections::BTreeMap;

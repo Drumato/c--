@@ -1,4 +1,4 @@
-use crate::compiler::ir::arch::x64::*;
+use crate::compiler::ir::arch::x64::{basicblock::X64BasicBlock, ir::X64IR};
 
 #[derive(Clone)]
 pub struct X64Optimizer {

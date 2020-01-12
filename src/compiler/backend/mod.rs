@@ -7,7 +7,7 @@ pub mod liveness;
 pub mod regalloc;
 pub mod translate_ir;
 
-use crate::compiler::ir::three_address_code::BasicBlock;
+use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
 use crate::error::Error;
 use crate::target::*;
 use crate::util;

@@ -1,6 +1,10 @@
 use crate::compiler::backend::arch::x64::generate::Registers;
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
-use crate::compiler::ir::arch::x64::*;
+use crate::compiler::ir::arch::x64::{
+    basicblock::X64BasicBlock,
+    ir::X64IR,
+    ir_kind::{X64IRKind, X64OpeKind},
+};
 
 impl X64Optimizer {
     pub fn generate_assembly_with_intel_syntax(&self) -> String {

@@ -1,7 +1,7 @@
 use crate::compiler::file;
 use crate::compiler::frontend::node;
 use crate::compiler::frontend::token;
-use crate::compiler::ir::three_address_code::BasicBlock;
+use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
 pub struct Manager {
     pub src_file: file::SrcFile,
     pub tokens: Vec<token::Token>,

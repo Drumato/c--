@@ -1,8 +1,11 @@
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::arch::x64::*;
+use crate::compiler::ir::arch::x64::{
+    ir::X64IR,
+    ir_kind::{X64IRKind, X64OpeKind, X64Operand},
+};
 use crate::compiler::ir::three_address_code as tac;
-use tac::TacKind;
+use tac::tac_kind;
 
 impl HighOptimizer {
     // ここでは抽象的なIRにしておく.
@@ -12,7 +15,7 @@ impl HighOptimizer {
         // TAC列のイテレーション
         for t in high_opt.entry_block.tacs.iter() {
             match t.kind.clone() {
-                TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
+                tac_kind::TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
                     // 各構成要素を変換
                     let left = Self::tac_operand_to_x64(left_bf);
                     let right = Self::tac_operand_to_x64(right_bf);
@@ -35,7 +38,7 @@ impl HighOptimizer {
                         low_irs.push(load_ir);
                     }
                 }
-                TacKind::RET(return_bf) => {
+                tac_kind::TacKind::RET(return_bf) => {
                     let return_op = Self::tac_operand_to_x64(return_bf);
                     // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
                     low_irs.push(X64IR::new_ret(return_op));
@@ -62,22 +65,26 @@ impl HighOptimizer {
             _ => {}
         }
     }
-    fn opcode_from_operator(operator: tac::Operator) -> X64IRKind {
+    fn opcode_from_operator(operator: tac_kind::Operator) -> X64IRKind {
         // 返すIRKindの中身は全てINVALID
         match operator {
-            tac::Operator::PLUS => X64IRKind::ADD(X64Operand::new_inv(), X64Operand::new_inv()),
-            tac::Operator::MINUS => X64IRKind::SUB(X64Operand::new_inv(), X64Operand::new_inv()),
+            tac_kind::Operator::PLUS => {
+                X64IRKind::ADD(X64Operand::new_inv(), X64Operand::new_inv())
+            }
+            tac_kind::Operator::MINUS => {
+                X64IRKind::SUB(X64Operand::new_inv(), X64Operand::new_inv())
+            }
         }
     }
-    fn tac_operand_to_x64(op: tac::Operand) -> X64Operand {
+    fn tac_operand_to_x64(op: tac_kind::Operand) -> X64Operand {
         let kind = Self::tac_opekind_to_x64(op.kind);
         X64Operand::new(kind, op.virt, op.phys)
     }
-    fn tac_opekind_to_x64(kind: tac::OpeKind) -> X64OpeKind {
+    fn tac_opekind_to_x64(kind: tac_kind::OpeKind) -> X64OpeKind {
         match kind {
-            tac::OpeKind::INTLIT(val) => X64OpeKind::INTLIT(val),
-            tac::OpeKind::REG => X64OpeKind::REG,
-            tac::OpeKind::INVALID => X64OpeKind::INVALID,
+            tac_kind::OpeKind::INTLIT(val) => X64OpeKind::INTLIT(val),
+            tac_kind::OpeKind::REG => X64OpeKind::REG,
+            tac_kind::OpeKind::INVALID => X64OpeKind::INVALID,
         }
     }
 }

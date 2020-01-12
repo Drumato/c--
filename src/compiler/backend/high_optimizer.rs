@@ -1,5 +1,5 @@
 use crate::compiler::backend::cfg::ControlFlowGraphInBB;
-use crate::compiler::ir::three_address_code::BasicBlock;
+use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
 
 // 機械独立なバックエンド操作を行う
 pub struct HighOptimizer {
