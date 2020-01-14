@@ -11,6 +11,7 @@ impl Manager {
     }
     fn walk_expression(&mut self, n: &mut Node) -> Type {
         match n.kind {
+            NodeKind::RETURNSTMT(ref mut return_expr) => self.walk_expression(return_expr),
             NodeKind::INTEGER(_val) => {
                 n.ctype = Type::new_integer();
                 n.ctype.clone()
@@ -58,50 +59,24 @@ mod walk_tests {
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::lex;
     #[test]
-    fn test_walk_with_single_integer_node() {
-        let mut manager = preprocess("100");
+    fn test_add_types_to_ast_with_return_stmt() {
+        let mut left = Node::new((1, 8), NodeKind::INTEGER(100));
+        left.ctype = Type::new_integer();
+        let mut right = Node::new((1, 14), NodeKind::INTEGER(200));
+        right.ctype = Type::new_integer();
+        let mut subtraction = Node::new((1, 12), NodeKind::SUB(Box::new(left), Box::new(right)));
+        subtraction.ctype = Type::new_integer();
+        let expected = Node::new_return((1, 1), subtraction);
 
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
-        manager.semantics();
-
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
+        integration_test_semantics("return 100 - 200;", expected);
     }
 
-    #[test]
-    fn test_walk_with_add_node() {
-        let mut manager = preprocess("100 + 200");
-
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
+    // 統合テスト用
+    fn integration_test_semantics(input: &str, expected: Node) {
+        let mut manager = preprocess(input);
         manager.semantics();
 
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
-
-        // 子ノードのチェック
-        if let NodeKind::ADD(left, right) = manager.expr.kind {
-            assert_eq!(left.ctype, Type::new_integer());
-            assert_eq!(right.ctype, Type::new_integer());
-        }
-    }
-    #[test]
-    fn test_walk_with_sub_node() {
-        let mut manager = preprocess("100 - 200");
-
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
-        manager.semantics();
-
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
-
-        // 子ノードのチェック
-        if let NodeKind::SUB(left, right) = manager.expr.kind {
-            assert_eq!(left.ctype, Type::new_integer());
-            assert_eq!(right.ctype, Type::new_integer());
-        }
+        assert_eq!(manager.expr, expected);
     }
 
     fn preprocess(input: &str) -> Manager {

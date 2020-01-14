@@ -85,8 +85,8 @@ mod build_cfg_tests {
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::{lex, manager::Manager};
     #[test]
-    fn test_build_cfg_with_bb_in_add_calculus() {
-        let (mut optimizer, bb) = preprocess("100 + 200 + 300");
+    fn test_build_cfg_with_bb_return_stmt() {
+        let (mut optimizer, bb) = preprocess("return 100 + 200 + 300;");
         optimizer.build_cfg_with_bb(bb);
 
         // succ_edgeのテスト

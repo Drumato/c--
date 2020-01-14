@@ -7,19 +7,23 @@ pub fn tokenize(manager: &mut Manager) {
     // ソースコードのメモリコピーをするのは,後ほどエラーメッセージでソースコード本体を表示するため.
     // 本体の変更はしたくない.
     let mut lexer = Lexer::new(manager.src_file.contents.to_string());
+
+    // 予約語の構築
+    lexer.build_keywords();
+
     let tokens = lexer.build_tokens();
     manager.tokens = tokens;
 }
 
 #[allow(dead_code)]
-struct Lexer<'a> {
-    column: usize,                          // x軸の座標
-    row: usize,                             // y軸の座標
+struct Lexer {
+    column: usize,                         // x軸の座標
+    row: usize,                            // y軸の座標
     contents: String, // メモリコピーし, SrcFile構造体の文字列を破壊しないように
-    keywords: BTreeMap<&'a str, TokenKind>, // 予約語をO(1)で取り出すためのメンバ
+    keywords: BTreeMap<String, TokenKind>, // 予約語をO(1)で取り出すためのメンバ
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer {
     fn new(contents: String) -> Self {
         Self {
             row: 1,
@@ -63,6 +67,11 @@ impl<'a> Lexer<'a> {
             // 記号の場合
             '+' => Some(self.scan_symbol(TokenKind::PLUS)),
             '-' => Some(self.scan_symbol(TokenKind::MINUS)),
+            ';' => Some(self.scan_symbol(TokenKind::SEMICOLON)),
+
+            // アルファベットの場合
+            c if c.is_ascii_alphabetic() => Some(self.scan_word()),
+            '_' => Some(self.scan_word()),
 
             // 空白類文字
             ' ' | '\t' => Some(self.skip_whitespace()),
@@ -74,6 +83,25 @@ impl<'a> Lexer<'a> {
             }
             _ => None,
         }
+    }
+    // 文字列を切り取って,予約語/識別子トークンを返す
+    pub fn scan_word(&mut self) -> Token {
+        // 現在のオフセットを退避
+        let cur_position = self.current_position();
+
+        // 空白,改行までの文字列を読み取る
+        let word = Self::take_conditional_string(&self.contents, |c| c != &' ' && c != &'\n');
+
+        // オフセットを進める
+        self.skip_offset(word.len());
+
+        // 予約語かチェック
+        if let Some(t_kind) = self.keywords.get(&word) {
+            return Token::new(cur_position, t_kind.clone());
+        }
+
+        // TODO: 識別子
+        panic!("not implemented when parse identifier");
     }
 
     // 数字を切り取って,整数トークンを返す
@@ -113,6 +141,13 @@ impl<'a> Lexer<'a> {
         Token::new((0, 0), TokenKind::BLANK)
     }
 
+    // 予約語の構築
+    fn build_keywords(&mut self) {
+        // 命令
+        self.keywords
+            .insert("return".to_string(), TokenKind::RETURN);
+    }
+
     fn skip_offset(&mut self, len: usize) {
         self.column += len;
         self.contents.drain(..len);
@@ -137,7 +172,6 @@ impl<'a> Lexer<'a> {
 mod lexer_tests {
     use super::*;
 
-    // 字句解析コード全体のテスト
     #[test]
     fn test_build_tokens() {
         let expected_tokens = vec![
@@ -146,15 +180,32 @@ mod lexer_tests {
             Token::new((1, 9), TokenKind::INTEGER(678910)),
             Token::new((1, 15), TokenKind::EOF),
         ];
-        let mut lexer = create_lexer("12345 + 678910");
-        let tokens = lexer.build_tokens();
-
-        for (i, actual) in tokens.iter().enumerate() {
-            assert_eq!(&expected_tokens[i], actual);
-        }
+        integration_test_lexing("12345 + 678910", expected_tokens);
     }
 
-    // 関数/ケースごとのテスト
+    #[test]
+    fn test_lex_return_statement() {
+        let expected_tokens = vec![
+            Token::new((1, 1), TokenKind::RETURN),
+            Token::new((1, 8), TokenKind::INTEGER(30)),
+            Token::new((1, 10), TokenKind::SEMICOLON),
+            Token::new((1, 11), TokenKind::EOF),
+        ];
+
+        integration_test_lexing("return 30;", expected_tokens);
+    }
+
+    #[test]
+    fn test_addition_expression() {
+        let expected_tokens = vec![
+            Token::new((1, 1), TokenKind::INTEGER(30)),
+            Token::new((1, 4), TokenKind::PLUS),
+            Token::new((1, 6), TokenKind::INTEGER(40)),
+            Token::new((1, 8), TokenKind::EOF),
+        ];
+
+        integration_test_lexing("30 + 40", expected_tokens);
+    }
     #[test]
     fn test_count_length() {
         // 数字の範囲
@@ -191,48 +242,6 @@ mod lexer_tests {
     }
 
     #[test]
-    fn test_scan_one_token_with_single_int() {
-        let expected_int = Token::new((1, 1), TokenKind::INTEGER(12345));
-        let expected_eof = Token::new((1, 6), TokenKind::EOF);
-        let mut lexer = create_lexer("12345");
-        let actual = lexer.scan_one_token();
-
-        assert_eq!(Some(expected_int), actual);
-
-        let should_eof = lexer.scan_one_token();
-        assert_eq!(Some(expected_eof), should_eof);
-    }
-
-    #[test]
-    fn test_scan_one_token_with_invalid_symbol() {
-        let mut lexer = create_lexer("@");
-        let actual = lexer.scan_one_token();
-        assert_eq!(None, actual);
-    }
-
-    #[test]
-    fn test_scan_symbol() {
-        let expected_plus = Token::new((1, 1), TokenKind::PLUS);
-        let expected_minus = Token::new((1, 2), TokenKind::MINUS);
-        let mut lexer = create_lexer("+-  ");
-        let actual_plus = lexer.scan_symbol(TokenKind::PLUS);
-
-        assert_eq!(expected_plus, actual_plus);
-
-        // オフセットが進んでいるか
-        let cur_position = lexer.current_position();
-        assert_eq!((1, 2), cur_position);
-
-        // 残りの記号を一括チェック
-        let actual_minus = lexer.scan_symbol(TokenKind::MINUS);
-        assert_eq!(expected_minus, actual_minus);
-
-        // 文字列が切り取られているか.
-        let cur_looking_string = lexer.contents.clone();
-        assert_eq!(cur_looking_string, "  ");
-    }
-
-    #[test]
     fn test_skip_whitespace() {
         let expected_eof = Token::new((1, 6), TokenKind::EOF);
 
@@ -247,6 +256,26 @@ mod lexer_tests {
         assert_eq!(Some(expected_eof), should_eof);
     }
 
+    #[test]
+    fn test_build_keywords() {
+        let mut lexer = create_lexer("");
+        lexer.build_keywords();
+
+        assert_eq!(1, lexer.keywords.len());
+
+        assert!(lexer.keywords.contains_key("return"));
+    }
+
+    // 総合テスト関数
+    fn integration_test_lexing(input: &str, expected_tokens: Vec<Token>) {
+        let mut lexer = create_lexer(input);
+        lexer.build_keywords();
+        let tokens = lexer.build_tokens();
+
+        for (i, actual) in tokens.iter().enumerate() {
+            assert_eq!(&expected_tokens[i], actual);
+        }
+    }
     fn create_lexer(input: &str) -> Lexer {
         Lexer::new(input.to_string())
     }

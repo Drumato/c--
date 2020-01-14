@@ -6,9 +6,22 @@ use token::{Token, TokenKind};
 
 impl Manager {
     pub fn parse(&mut self) {
-        self.expr = self.parse_expression();
+        self.expr = self.parse_return_stmt();
     }
 
+    fn parse_return_stmt(&mut self) -> Node {
+        // return_stmt -> return + expr + `;`
+        // return文開始位置を保存
+        let current_position = self.looking_token_clone().position;
+
+        self.expect(TokenKind::RETURN);
+
+        let return_expr = self.parse_expression();
+
+        self.expect(TokenKind::SEMICOLON);
+
+        Node::new_return(current_position, return_expr)
+    }
     fn parse_expression(&mut self) -> Node {
         // expr -> term | expr_1 (`+`/`-` term)+
         // 最初はPriority::ADDSUBで始まる
@@ -73,6 +86,13 @@ impl Manager {
             Priority::ADDSUB => vec![TokenKind::PLUS, TokenKind::MINUS],
         }
     }
+    fn expect(&mut self, tk: TokenKind) {
+        if self.looking_token_clone().kind != tk {
+            panic!("unexpected token");
+        }
+
+        self.read_token();
+    }
     fn looking_token(&mut self) -> &Token {
         if self.tokens.len() <= self.cur_token {
             if self.tokens.len() <= self.cur_token {
@@ -102,6 +122,20 @@ mod parser_tests {
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::lex;
     #[test]
+    fn test_parse_return_statement() {
+        let left_node = Node::new((1, 8), NodeKind::INTEGER(200));
+        let right_node = Node::new((1, 14), NodeKind::INTEGER(100));
+        let expr = Node::new(
+            (1, 12),
+            NodeKind::SUB(Box::new(left_node), Box::new(right_node)),
+        );
+
+        let expected = Node::new_return((1, 1), expr);
+
+        integration_test_parser("return 200 - 100;", expected);
+    }
+
+    #[test]
     fn test_parse_term() {
         let expected = Node::new((1, 1), NodeKind::INTEGER(100));
         let mut manager = preprocess("100");
@@ -125,36 +159,13 @@ mod parser_tests {
         assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn test_parse_expression_with_addition() {
-        let left_node = Node::new((1, 1), NodeKind::INTEGER(100));
-        let right_node = Node::new((1, 7), NodeKind::INTEGER(200));
-        let expected = Node::new(
-            (1, 5),
-            NodeKind::ADD(Box::new(left_node), Box::new(right_node)),
-        );
+    // 総合テスト用
+    // 後々Function構造体に書き換える?
+    fn integration_test_parser(input: &str, expected: Node) {
+        let mut manager = preprocess(input);
+        manager.parse();
 
-        let mut manager = preprocess("100 + 200");
-
-        // 加算ノードを受け取れるか.
-        let actual = manager.parse_expression();
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_parse_expression_with_subtraction() {
-        let left_node = Node::new((1, 1), NodeKind::INTEGER(200));
-        let right_node = Node::new((1, 7), NodeKind::INTEGER(100));
-        let expected = Node::new(
-            (1, 5),
-            NodeKind::SUB(Box::new(left_node), Box::new(right_node)),
-        );
-
-        let mut manager = preprocess("200 - 100");
-
-        // 減算ノードを受け取れるか.
-        let actual = manager.parse_expression();
-        assert_eq!(expected, actual);
+        assert_eq!(expected, manager.expr)
     }
 
     fn preprocess(input: &str) -> Manager {

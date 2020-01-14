@@ -130,7 +130,7 @@ mod liveness_tests {
 
     #[test]
     fn test_append_liveness_informations_to_cfg_with_add_calculus() {
-        let mut optimizer = preprocess("100 + 200 + 300");
+        let mut optimizer = preprocess("return 100 + 200 + 300;");
         optimizer.append_liveness_informations_to_cfg();
 
         let expected_used: Vec<Vec<usize>> = vec![vec![], vec![0], vec![1]];

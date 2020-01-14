@@ -18,12 +18,21 @@ impl NodeKind {
 
 impl Manager {
     pub fn generate_three_address_code(&mut self) {
+        // TODO: 今はexprを文のように扱っている
         let n = self.expr.clone();
 
-        let final_reg = self.gen_expr(n);
-        self.entry_block
-            .tacs
-            .push(ThreeAddressCode::new_return_code(final_reg));
+        self.gen_stmt(n);
+    }
+    fn gen_stmt(&mut self, stmt: Node) {
+        match stmt.kind.clone() {
+            NodeKind::RETURNSTMT(child) => {
+                let return_operand = self.gen_expr(*child);
+                self.entry_block
+                    .tacs
+                    .push(ThreeAddressCode::new_return_code(return_operand));
+            }
+            _ => (),
+        }
     }
     fn gen_expr(&mut self, n: Node) -> Operand {
         match n.kind.clone() {
@@ -69,54 +78,31 @@ mod generate_tac_tests {
     use super::*;
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::lex;
+    use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
+
     #[test]
-    fn test_gen_expr_with_single_integer() {
-        let mut manager = preprocess("100");
-        let integer_node = Node::new((1, 1), NodeKind::INTEGER(100));
-        let return_operand = manager.gen_expr(integer_node);
+    fn test_gen_expr_with_return_stmt() {
+        let mut expected = BasicBlock::new("main".to_string());
+        expected.tacs = vec![
+            ThreeAddressCode::new_binop_code(
+                Operand::new_virtreg(0),
+                Operator::MINUS,
+                Operand::new_int_literal(100),
+                Operand::new_int_literal(200),
+            ),
+            ThreeAddressCode::new_return_code(Operand::new_virtreg(0)),
+        ];
 
-        // 整数ノード単体では内部でコード生成されない.
-        assert_eq!(0, manager.entry_block.tacs.len());
-
-        let expected = Operand::new_int_literal(100);
-
-        assert_eq!(expected, return_operand);
+        integration_test_genir("return 100 - 200;", expected);
     }
 
-    #[test]
-    fn test_gen_expr_with_add_calculus() {
-        let mut manager = preprocess("100 + 200");
-        let left_node = Node::new((1, 1), NodeKind::INTEGER(100));
-        let right_node = Node::new((7, 1), NodeKind::INTEGER(200));
-        let add_node_kind = NodeKind::ADD(Box::new(left_node), Box::new(right_node));
-        let add_node = Node::new((5, 1), add_node_kind);
+    // 統合テスト用
+    // TODO: IRFunctionのチェックに変える必要あり
+    fn integration_test_genir(input: &str, expected: BasicBlock) {
+        let mut manager = preprocess(input);
+        manager.generate_three_address_code();
 
-        let return_operand = manager.gen_expr(add_node);
-
-        // 加算ノードの場合,まず仮想レジスタに束縛するコードが生成されるはず.
-        // gen_expr()の呼び出しによってコード列にそのコード片が追加されている事を期待.
-        assert_eq!(1, manager.entry_block.tacs.len());
-        let expected = Operand::new_virtreg(0);
-
-        assert_eq!(expected, return_operand);
-    }
-
-    #[test]
-    fn test_gen_expr_with_sub_calculus() {
-        let mut manager = preprocess("100 - 200");
-        let left_node = Node::new((1, 1), NodeKind::INTEGER(100));
-        let right_node = Node::new((7, 1), NodeKind::INTEGER(200));
-        let sub_node_kind = NodeKind::SUB(Box::new(left_node), Box::new(right_node));
-        let sub_node = Node::new((5, 1), sub_node_kind);
-
-        let return_operand = manager.gen_expr(sub_node);
-
-        // 減算ノードの場合,まず仮想レジスタに束縛するコードが生成されるはず.
-        // gen_expr()の呼び出しによってコード列にそのコード片が追加されている事を期待.
-        assert_eq!(1, manager.entry_block.tacs.len());
-        let expected = Operand::new_virtreg(0);
-
-        assert_eq!(expected, return_operand);
+        assert_eq!(manager.entry_block, expected);
     }
 
     fn preprocess(input: &str) -> Manager {
