@@ -67,7 +67,12 @@ impl Lexer {
             // 記号の場合
             '+' => Some(self.scan_symbol(TokenKind::PLUS)),
             '-' => Some(self.scan_symbol(TokenKind::MINUS)),
+            '*' => Some(self.scan_symbol(TokenKind::ASTERISK)),
             ';' => Some(self.scan_symbol(TokenKind::SEMICOLON)),
+            '(' => Some(self.scan_symbol(TokenKind::LPAREN)),
+            ')' => Some(self.scan_symbol(TokenKind::RPAREN)),
+            '{' => Some(self.scan_symbol(TokenKind::LBRACKET)),
+            '}' => Some(self.scan_symbol(TokenKind::RBRACKET)),
 
             // アルファベットの場合
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),
@@ -89,8 +94,10 @@ impl Lexer {
         // 現在のオフセットを退避
         let cur_position = self.current_position();
 
-        // 空白,改行までの文字列を読み取る
-        let word = Self::take_conditional_string(&self.contents, |c| c != &' ' && c != &'\n');
+        // 文字列を読み取る
+        let word = Self::take_conditional_string(&self.contents, |c| {
+            c.is_alphabetic() || c == &'_' || c.is_ascii_digit()
+        });
 
         // オフセットを進める
         self.skip_offset(word.len());
@@ -100,8 +107,8 @@ impl Lexer {
             return Token::new(cur_position, t_kind.clone());
         }
 
-        // TODO: 識別子
-        panic!("not implemented when parse identifier");
+        // 識別子
+        Token::new(cur_position, TokenKind::IDENTIFIER(word))
     }
 
     // 数字を切り取って,整数トークンを返す
@@ -143,9 +150,10 @@ impl Lexer {
 
     // 予約語の構築
     fn build_keywords(&mut self) {
-        // 命令
         self.keywords
             .insert("return".to_string(), TokenKind::RETURN);
+        self.keywords.insert("int".to_string(), TokenKind::INT);
+        self.keywords.insert("void".to_string(), TokenKind::VOID);
     }
 
     fn skip_offset(&mut self, len: usize) {
@@ -184,15 +192,21 @@ mod lexer_tests {
     }
 
     #[test]
-    fn test_lex_return_statement() {
+    fn test_lex_function_definition() {
         let expected_tokens = vec![
-            Token::new((1, 1), TokenKind::RETURN),
-            Token::new((1, 8), TokenKind::INTEGER(30)),
-            Token::new((1, 10), TokenKind::SEMICOLON),
-            Token::new((1, 11), TokenKind::EOF),
+            Token::new((1, 1), TokenKind::INT),
+            Token::new((1, 5), TokenKind::IDENTIFIER("main".to_string())),
+            Token::new((1, 9), TokenKind::LPAREN),
+            Token::new((1, 10), TokenKind::RPAREN),
+            Token::new((1, 11), TokenKind::LBRACKET),
+            Token::new((1, 13), TokenKind::RETURN),
+            Token::new((1, 20), TokenKind::INTEGER(30)),
+            Token::new((1, 22), TokenKind::SEMICOLON),
+            Token::new((1, 24), TokenKind::RBRACKET),
+            Token::new((1, 25), TokenKind::EOF),
         ];
 
-        integration_test_lexing("return 30;", expected_tokens);
+        integration_test_lexing("int main(){ return 30; }", expected_tokens);
     }
 
     #[test]
@@ -261,9 +275,11 @@ mod lexer_tests {
         let mut lexer = create_lexer("");
         lexer.build_keywords();
 
-        assert_eq!(1, lexer.keywords.len());
+        assert_eq!(3, lexer.keywords.len());
 
         assert!(lexer.keywords.contains_key("return"));
+        assert!(lexer.keywords.contains_key("int"));
+        assert!(lexer.keywords.contains_key("void"));
     }
 
     // 総合テスト関数

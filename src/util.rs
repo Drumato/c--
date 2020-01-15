@@ -10,9 +10,6 @@ pub fn colored_prefix_to_stderr(msg: &str) {
     eprintln!("++++++++ {} ++++++++", msg.bold().green());
 }
 
-pub fn colored_message_to_stderr(msg: &str) {
-    eprintln!("{}", msg.bold().green());
-}
 pub fn object_file_dump(output_path: String, obj_file: elf64::ELF64) {
     let file = std::fs::OpenOptions::new()
         .create(true)

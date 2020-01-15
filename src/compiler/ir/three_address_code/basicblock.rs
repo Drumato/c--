@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use crate::compiler::backend::cfg::ControlFlowGraphInBB;
 use crate::compiler::ir::three_address_code::tac::ThreeAddressCode;
 
 type RegisterNumber = usize;
@@ -11,6 +12,7 @@ pub struct BasicBlock {
     pub label: String,
     pub tacs: Vec<ThreeAddressCode>,
 
+    pub cfg_inbb: ControlFlowGraphInBB,
     pub living: BTreeMap<RegisterNumber, (LiveIn, LiveOut)>,
 }
 
@@ -19,19 +21,20 @@ impl BasicBlock {
         Self {
             label: label,
             tacs: Vec::new(),
+            cfg_inbb: ControlFlowGraphInBB::new(0),
             living: BTreeMap::new(),
         }
     }
     pub fn dump_tacs_to_stderr(&self) {
-        eprintln!("{}'s IR:", self.label);
+        eprintln!("  {}'s IR:", self.label);
         for t in self.tacs.iter() {
-            eprintln!("\t{}", t.to_string());
+            eprintln!("    {}", t.to_string());
         }
     }
     pub fn dump_tacs_to_stderr_with_physical(&self) {
-        eprintln!("{}'s IR:", self.label);
+        eprintln!("  {}'s IR:", self.label);
         for t in self.tacs.iter() {
-            eprintln!("\t{}", t.to_string_physical());
+            eprintln!("    {}", t.to_string_physical());
         }
     }
     pub fn dump_liveness(&self) {

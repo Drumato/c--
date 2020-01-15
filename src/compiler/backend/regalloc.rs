@@ -1,20 +1,27 @@
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::tac_kind::{OpeKind, TacKind};
+use crate::compiler::ir::three_address_code::{
+    basicblock::BasicBlock,
+    tac_kind::{OpeKind, TacKind},
+};
 use crate::error::*;
 
 use std::collections::BTreeMap;
 
 impl HighOptimizer {
     // 簡易的な実装
-    pub fn register_allocation_for_virtual_registers(&mut self, available_registers: usize) {
+    pub fn register_allocation_for_virtual_registers(
+        &mut self,
+        mut block: BasicBlock,
+        available_registers: usize,
+    ) -> BasicBlock {
         // レジスタの使用を管理するマップ
         // virtual_register_number -> physical_register_number
         let mut register_map: BTreeMap<usize, usize> = BTreeMap::new();
 
-        let living = self.entry_block.living.clone();
+        let living = block.living.clone();
 
         // 各IRのレジスタに物理レジスタを割り当てる
-        for (now_looking, t) in self.entry_block.tacs.iter_mut().enumerate() {
+        for (now_looking, t) in block.tacs.iter_mut().enumerate() {
             match t.kind {
                 TacKind::EXPR(ref mut var_op, ref mut _operator, ref mut left, ref mut right) => {
                     // 左オペランド
@@ -70,6 +77,8 @@ impl HighOptimizer {
                 err.compile_error();
             }
         }
+
+        block
     }
     fn reduce_register_number(
         living: &BTreeMap<usize, (usize, usize)>,

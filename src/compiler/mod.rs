@@ -24,7 +24,7 @@ pub fn compile(
     let manager = frontend::frontend_process(matches, source_file, &target);
 
     // バックエンド部の処理
-    let s = backend::backend_process(matches, manager.entry_block, &target);
+    let s = backend::backend_process(matches, manager.ir_func, &target);
 
     if matches.is_present("atandt-syntax") {
         AssemblyFile::new_atandt_file(s, target)

@@ -2,6 +2,7 @@ use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Node, NodeKind};
 use crate::compiler::ir::three_address_code;
 use three_address_code::{
+    basicblock::BasicBlock,
     tac::ThreeAddressCode,
     tac_kind::{Operand, Operator},
 };
@@ -18,18 +19,19 @@ impl NodeKind {
 
 impl Manager {
     pub fn generate_three_address_code(&mut self) {
-        // TODO: 今はexprを文のように扱っている
-        let n = self.expr.clone();
-
-        self.gen_stmt(n);
+        // 単一関数
+        let entry_bb = BasicBlock::new("entry".to_string());
+        self.ir_func.blocks.push(entry_bb);
+        let statements = self.entry_func.stmts.clone();
+        for stmt in statements.iter() {
+            self.gen_stmt(stmt.clone());
+        }
     }
     fn gen_stmt(&mut self, stmt: Node) {
         match stmt.kind.clone() {
             NodeKind::RETURNSTMT(child) => {
                 let return_operand = self.gen_expr(*child);
-                self.entry_block
-                    .tacs
-                    .push(ThreeAddressCode::new_return_code(return_operand));
+                self.add_ir_to_current_bb(ThreeAddressCode::new_return_code(return_operand));
             }
             _ => (),
         }
@@ -51,7 +53,7 @@ impl Manager {
                     left_op,
                     right_op,
                 );
-                self.entry_block.tacs.push(add_code);
+                self.add_ir_to_current_bb(add_code);
 
                 // 式が代入されたレジスタを上位に返す
                 variable_reg
@@ -61,6 +63,9 @@ impl Manager {
             // NodeKind::INVALID => Operand::new_invalid(),
             _ => Operand::new_invalid(),
         }
+    }
+    fn add_ir_to_current_bb(&mut self, ir: ThreeAddressCode) {
+        self.ir_func.blocks[self.cur_bb].tacs.push(ir);
     }
     fn use_current_virt_reg(&mut self) -> Operand {
         let current_reg = self.cur_virt_reg();
@@ -78,12 +83,12 @@ mod generate_tac_tests {
     use super::*;
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::lex;
-    use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
+    use crate::compiler::ir::three_address_code::function::IRFunction;
 
     #[test]
     fn test_gen_expr_with_return_stmt() {
-        let mut expected = BasicBlock::new("main".to_string());
-        expected.tacs = vec![
+        let mut entry_bb = BasicBlock::new("entry".to_string());
+        entry_bb.tacs = vec![
             ThreeAddressCode::new_binop_code(
                 Operand::new_virtreg(0),
                 Operator::MINUS,
@@ -92,17 +97,20 @@ mod generate_tac_tests {
             ),
             ThreeAddressCode::new_return_code(Operand::new_virtreg(0)),
         ];
+        let expected = IRFunction {
+            name: "main".to_string(),
+            blocks: vec![entry_bb],
+        };
 
-        integration_test_genir("return 100 - 200;", expected);
+        integration_test_genir("int main(){ return 100 - 200; }", expected);
     }
 
     // 統合テスト用
-    // TODO: IRFunctionのチェックに変える必要あり
-    fn integration_test_genir(input: &str, expected: BasicBlock) {
+    fn integration_test_genir(input: &str, expected: IRFunction) {
         let mut manager = preprocess(input);
         manager.generate_three_address_code();
 
-        assert_eq!(manager.entry_block, expected);
+        assert_eq!(manager.ir_func, expected);
     }
 
     fn preprocess(input: &str) -> Manager {

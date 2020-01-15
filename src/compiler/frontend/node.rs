@@ -1,5 +1,26 @@
 use crate::compiler::frontend::token::{Position, Token, TokenKind};
 use crate::compiler::frontend::types::Type;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Function {
+    pub name: String,
+
+    pub def_position: Position,
+    // args
+    // pub args: BTreeMap<String, Node>,
+    pub stmts: Vec<Node>,
+}
+
+impl Function {
+    pub fn init(name: String, pos: Position) -> Self {
+        Self {
+            name: name,
+            def_position: pos,
+            stmts: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Node {
     pub position: Position,
