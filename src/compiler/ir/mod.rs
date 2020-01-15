@@ -5,6 +5,9 @@ use crate::compiler::frontend::manager::Manager;
 
 impl Manager {
     pub fn dump_tacs_to_stderr(&self) {
-        self.entry_block.dump_tacs_to_stderr();
+        eprintln!("{}'s blocks", self.ir_func.name);
+        for bb in self.ir_func.blocks.iter() {
+            bb.dump_tacs_to_stderr();
+        }
     }
 }

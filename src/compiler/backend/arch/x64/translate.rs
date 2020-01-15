@@ -1,6 +1,7 @@
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::arch::x64::{
+    basicblock::X64BasicBlock,
     ir::X64IR,
     ir_kind::{X64IRKind, X64OpeKind, X64Operand},
 };
@@ -10,43 +11,51 @@ use tac::tac_kind;
 impl HighOptimizer {
     // ここでは抽象的なIRにしておく.
     pub fn translate_tacs_to_x64(high_opt: Self) -> X64Optimizer {
-        let mut low_irs: Vec<X64IR> = Vec::new();
+        let mut x64_blocks: Vec<X64BasicBlock> = Vec::new();
 
-        // TAC列のイテレーション
-        for t in high_opt.entry_block.tacs.iter() {
-            match t.kind.clone() {
-                tac_kind::TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
-                    // 各構成要素を変換
-                    let left = Self::tac_operand_to_x64(left_bf);
-                    let right = Self::tac_operand_to_x64(right_bf);
-                    let opcode: X64IRKind = Self::opcode_from_operator(operator_bf);
-                    let dst = Self::tac_operand_to_x64(var_bf);
+        // BasicBlock列のイテレーション
+        for bb in high_opt.entry_func.blocks.iter() {
+            let mut low_irs: Vec<X64IR> = Vec::new();
 
-                    // 左が数値リテラル -> 先にdstにロードしてから,演算
-                    // それ以外         -> 演算してからdstにロード
-                    if let X64OpeKind::INTLIT(_) = &left.kind {
-                        let load_ir = X64IR::new_mov(dst.clone(), left.clone());
-                        low_irs.push(load_ir);
+            // TAC列のイテレーション
+            for t in bb.tacs.iter() {
+                match t.kind.clone() {
+                    tac_kind::TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
+                        // 各構成要素を変換
+                        let left = Self::tac_operand_to_x64(left_bf);
+                        let right = Self::tac_operand_to_x64(right_bf);
+                        let opcode: X64IRKind = Self::opcode_from_operator(operator_bf);
+                        let dst = Self::tac_operand_to_x64(var_bf);
 
-                        // 演算命令
-                        Self::add_ir_matching_opcode(&mut low_irs, opcode, dst, right);
-                    } else {
-                        // 演算命令
-                        Self::add_ir_matching_opcode(&mut low_irs, opcode, left.clone(), right);
+                        // 左が数値リテラル -> 先にdstにロードしてから,演算
+                        // それ以外         -> 演算してからdstにロード
+                        if let X64OpeKind::INTLIT(_) = &left.kind {
+                            let load_ir = X64IR::new_mov(dst.clone(), left.clone());
+                            low_irs.push(load_ir);
 
-                        let load_ir = X64IR::new_mov(dst, left);
-                        low_irs.push(load_ir);
+                            // 演算命令
+                            Self::add_ir_matching_opcode(&mut low_irs, opcode, dst, right);
+                        } else {
+                            // 演算命令
+                            Self::add_ir_matching_opcode(&mut low_irs, opcode, left.clone(), right);
+
+                            let load_ir = X64IR::new_mov(dst, left);
+                            low_irs.push(load_ir);
+                        }
+                    }
+                    tac_kind::TacKind::RET(return_bf) => {
+                        let return_op = Self::tac_operand_to_x64(return_bf);
+                        // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
+                        low_irs.push(X64IR::new_ret(return_op));
                     }
                 }
-                tac_kind::TacKind::RET(return_bf) => {
-                    let return_op = Self::tac_operand_to_x64(return_bf);
-                    // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
-                    low_irs.push(X64IR::new_ret(return_op));
-                }
             }
+
+            let x64_bb = X64BasicBlock::new(bb.label.to_string(), low_irs);
+            x64_blocks.push(x64_bb);
         }
 
-        X64Optimizer::new(high_opt.entry_block.label, low_irs)
+        X64Optimizer::new(high_opt.entry_func.name, x64_blocks)
     }
 
     fn add_ir_matching_opcode(

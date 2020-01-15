@@ -5,9 +5,22 @@ use crate::error::{Error, ErrorKind, ErrorMsg};
 
 impl Manager {
     pub fn semantics(&mut self) {
-        let mut n = self.expr.clone();
-        self.walk_expression(&mut n);
-        self.expr = n;
+        let mut statements = self.entry_func.stmts.clone();
+        let statements_number = self.entry_func.stmts.len();
+        for stmt_idx in 0..statements_number {
+            self.walk_statement(&mut statements[stmt_idx]);
+        }
+        self.entry_func.stmts = statements;
+    }
+    fn walk_statement(&mut self, stmt: &mut Node) {
+        match stmt.kind {
+            NodeKind::RETURNSTMT(ref mut return_expr) => {
+                self.walk_expression(return_expr);
+            }
+            _ => {
+                self.output_invalid_node_type_error(stmt.position);
+            }
+        }
     }
     fn walk_expression(&mut self, n: &mut Node) -> Type {
         match n.kind {
@@ -31,7 +44,7 @@ impl Manager {
                 self.output_type_difference_error(left.position);
                 Type::new_unknown()
             }
-            NodeKind::INVALID => {
+            _ => {
                 self.output_invalid_node_type_error(n.position);
                 Type::new_unknown()
             }
@@ -57,51 +70,31 @@ mod walk_tests {
     use super::*;
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::lex;
+    use crate::compiler::frontend::node::Function;
     #[test]
-    fn test_walk_with_single_integer_node() {
-        let mut manager = preprocess("100");
+    fn test_add_types_to_ast_with_main_func() {
+        let mut left = Node::new((1, 21), NodeKind::INTEGER(100));
+        left.ctype = Type::new_integer();
+        let mut right = Node::new((1, 27), NodeKind::INTEGER(200));
+        right.ctype = Type::new_integer();
+        let mut subtraction = Node::new((1, 25), NodeKind::SUB(Box::new(left), Box::new(right)));
+        subtraction.ctype = Type::new_integer();
+        let return_stmt = Node::new_return((1, 14), subtraction);
+        let expected = Function {
+            name: "main".to_string(),
+            stmts: vec![return_stmt],
+            def_position: (1, 1),
+        };
 
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
-        manager.semantics();
-
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
+        integration_test_semantics("int main() { return 100 - 200; }", expected);
     }
 
-    #[test]
-    fn test_walk_with_add_node() {
-        let mut manager = preprocess("100 + 200");
-
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
+    // 統合テスト用
+    fn integration_test_semantics(input: &str, expected: Function) {
+        let mut manager = preprocess(input);
         manager.semantics();
 
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
-
-        // 子ノードのチェック
-        if let NodeKind::ADD(left, right) = manager.expr.kind {
-            assert_eq!(left.ctype, Type::new_integer());
-            assert_eq!(right.ctype, Type::new_integer());
-        }
-    }
-    #[test]
-    fn test_walk_with_sub_node() {
-        let mut manager = preprocess("100 - 200");
-
-        // 意味解析前
-        assert_eq!(manager.expr.ctype, Type::new_unknown());
-        manager.semantics();
-
-        // 意味解析後
-        assert_eq!(manager.expr.ctype, Type::new_integer());
-
-        // 子ノードのチェック
-        if let NodeKind::SUB(left, right) = manager.expr.kind {
-            assert_eq!(left.ctype, Type::new_integer());
-            assert_eq!(right.ctype, Type::new_integer());
-        }
+        assert_eq!(manager.entry_func, expected);
     }
 
     fn preprocess(input: &str) -> Manager {

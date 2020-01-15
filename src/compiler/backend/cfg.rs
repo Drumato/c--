@@ -1,10 +1,11 @@
 use std::collections::BTreeSet;
 
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::{basicblock::BasicBlock, tac_kind::TacKind};
+use crate::compiler::ir::three_address_code::{tac::ThreeAddressCode, tac_kind::TacKind};
 
 type RegisterNumber = usize;
 #[allow(dead_code)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct ControlFlowGraphInBB {
     pub succ: Vec<BTreeSet<usize>>,
     pub prev: Vec<BTreeSet<usize>>,
@@ -22,59 +23,50 @@ impl ControlFlowGraphInBB {
     }
 }
 
-// pub strut ControlFlowGraph{
-//  BTreeMap<BasicBlockLabel, BTreeSet<usize>>
-// }
-//
-
 impl HighOptimizer {
-    pub fn build_cfg_with_bb(&mut self, bb: BasicBlock) {
-        for (i, t) in bb.tacs.iter().enumerate() {
+    pub fn build_cfg(&mut self) {
+        let block_number = self.entry_func.blocks.len();
+        for blk_idx in 0..block_number {
+            let cfg_inbb = self.build_cfg_with_bb(self.entry_func.blocks[blk_idx].tacs.clone());
+            self.entry_func.blocks[blk_idx].cfg_inbb = cfg_inbb;
+        }
+    }
+    pub fn build_cfg_with_bb(&mut self, tacs: Vec<ThreeAddressCode>) -> ControlFlowGraphInBB {
+        let mut cfg_inbb = ControlFlowGraphInBB::new(tacs.len());
+        for (i, t) in tacs.iter().enumerate() {
             match &t.kind {
                 TacKind::EXPR(_var, _operator, _left, _right) => {
-                    self.add_succ(bb.tacs.len(), i, i + 1);
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
                     if i != 0 {
-                        self.add_prev(i, i - 1);
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
                 TacKind::RET(_return_op) => {
-                    self.add_succ(bb.tacs.len(), i, i + 1);
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
                     if i != 0 {
-                        self.add_prev(i, i - 1);
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
             }
         }
+        cfg_inbb
     }
-    pub fn dump_cfg_to_file(&self) {
-        use std::fs::File;
-        use std::io::Write;
-
-        let mut out: String = String::new();
-        out += "digraph { \n";
-        for (i, t) in self.entry_block.tacs.iter().enumerate() {
-            out += &(format!("\t{}[label=\"{}\",shape=\"box\"];\n", i, t.to_string()).as_str());
-        }
-        for idx in 0..self.entry_block.tacs.len() {
-            for prev in self.cfg_inbb.prev[idx].iter() {
-                out += &(format!("\t{} -> {};\n", prev, idx).as_str());
-            }
-        }
-        out += "}";
-        let file_name: String = "cfg.dot".to_string();
-        let mut file = File::create(file_name).unwrap();
-        file.write_all(out.as_bytes()).unwrap();
-    }
-    fn add_succ(&mut self, tac_length: usize, n: usize, edge: usize) {
+    fn add_succ(
+        &mut self,
+        cfg_inbb: &mut ControlFlowGraphInBB,
+        tac_length: usize,
+        n: usize,
+        edge: usize,
+    ) {
         if edge < tac_length {
-            self.cfg_inbb.succ[n].insert(edge);
+            cfg_inbb.succ[n].insert(edge);
         } else {
             // eprintln!("edge out of bound");
         }
     }
-    fn add_prev(&mut self, n: usize, edge: usize) {
+    fn add_prev(&mut self, cfg_inbb: &mut ControlFlowGraphInBB, n: usize, edge: usize) {
         if n != 0 {
-            self.cfg_inbb.prev[n].insert(edge);
+            cfg_inbb.prev[n].insert(edge);
         }
     }
 }
@@ -85,26 +77,28 @@ mod build_cfg_tests {
     use crate::compiler::file::SrcFile;
     use crate::compiler::frontend::{lex, manager::Manager};
     #[test]
-    fn test_build_cfg_with_bb_in_add_calculus() {
-        let (mut optimizer, bb) = preprocess("100 + 200 + 300");
-        optimizer.build_cfg_with_bb(bb);
+    fn test_build_cfg() {
+        let mut optimizer = preprocess("int main(){ return 100 + 200 + 300; }");
+        optimizer.build_cfg();
+
+        let entry_block = optimizer.entry_func.blocks[0].clone();
 
         // succ_edgeのテスト
         // 最後のコードからsucc-edgeは生えてない
-        let expected_succ: Vec<bool> = vec![true, true, false];
-        for (i, succ_set) in optimizer.cfg_inbb.succ.iter().enumerate() {
-            assert_eq!(succ_set.contains(&i), expected_succ[i]);
+        let expected_succ: Vec<usize> = vec![1, 1, 0];
+        for (i, succ_set) in entry_block.cfg_inbb.succ.iter().enumerate() {
+            assert_eq!(succ_set.len(), expected_succ[i]);
         }
 
         // prev_edgeのテスト
         // 最初のコードからprev-edgeは生えてない
-        let expected_prev: Vec<bool> = vec![false, true, true];
-        for (i, prev_set) in optimizer.cfg_inbb.prev.iter().enumerate() {
-            assert_eq!(prev_set.contains(&i), expected_prev[i]);
+        let expected_prev: Vec<usize> = vec![0, 1, 1];
+        for (i, prev_set) in entry_block.cfg_inbb.prev.iter().enumerate() {
+            assert_eq!(prev_set.len(), expected_prev[i]);
         }
     }
 
-    fn preprocess(input: &str) -> (HighOptimizer, BasicBlock) {
+    fn preprocess(input: &str) -> HighOptimizer {
         let source_file = SrcFile {
             abs_path: "testcase".to_string(),
             contents: input.to_string(),
@@ -113,8 +107,9 @@ mod build_cfg_tests {
         lex::tokenize(&mut manager);
         manager.parse();
         manager.semantics();
-        let entry_bb = manager.entry_block;
-        let optimizer = HighOptimizer::new(entry_bb.clone());
-        (optimizer, entry_bb)
+        manager.generate_three_address_code();
+        let ir_func = manager.ir_func;
+        let optimizer = HighOptimizer::new(ir_func);
+        optimizer
     }
 }

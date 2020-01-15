@@ -2,6 +2,7 @@ use crate::compiler::backend::arch::x64::generate::Registers;
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::ir::arch::x64::{
     basicblock::X64BasicBlock,
+    function::X64Function,
     ir::X64IR,
     ir_kind::{X64IRKind, X64OpeKind},
 };
@@ -9,10 +10,21 @@ use crate::compiler::ir::arch::x64::{
 impl X64Optimizer {
     pub fn generate_assembly_with_at_and_t_syntax(&self) -> String {
         let mut output = String::new();
-        output += &(format!(".global {}\n", self.entry_bb.label).as_str());
+        output += &(format!(".global {}\n", self.entry_func.func_name).as_str());
 
-        // BasicBlock本体
-        output += &self.entry_bb.to_at_and_t_code();
+        // Function本体
+        output += &self.entry_func.to_at_and_t_code();
+        output
+    }
+}
+
+impl X64Function {
+    fn to_at_and_t_code(&self) -> String {
+        let mut output = String::new();
+        output += &(format!("{}:\n", self.func_name).as_str());
+        for block in self.blocks.iter() {
+            output += &block.to_at_and_t_code();
+        }
         output
     }
 }
@@ -20,7 +32,9 @@ impl X64Optimizer {
 impl X64BasicBlock {
     fn to_at_and_t_code(&self) -> String {
         let mut output = String::new();
-        output += &(format!("{}:\n", self.label).as_str());
+        if self.label != "entry" {
+            output += &(format!("{}:\n", self.label).as_str());
+        }
         for ir in self.irs.iter() {
             output += &(format!("  {}\n", ir.to_at_and_t_code()).as_str());
         }

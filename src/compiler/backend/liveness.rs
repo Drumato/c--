@@ -1,42 +1,88 @@
+use crate::compiler::backend::cfg::ControlFlowGraphInBB;
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::tac_kind::TacKind;
+use crate::compiler::ir::three_address_code::{basicblock::BasicBlock, tac_kind::TacKind};
 
 use std::collections::BTreeSet;
 
-impl HighOptimizer {
-    pub fn append_liveness_informations_to_cfg(&mut self) {
-        for (i, t) in self.entry_block.tacs.iter().enumerate() {
-            match &t.kind {
-                TacKind::EXPR(var, _operator, left, right) => {
-                    // 代入されているオペランドがレジスタであれば定義集合に
-                    if var.is_register() {
-                        self.cfg_inbb.def[i].insert(var.virt);
-                        self.entry_block.living.insert(var.virt, (0, 0));
-                    }
+type LiveInMap = Vec<BTreeSet<usize>>;
+type LiveOutMap = Vec<BTreeSet<usize>>;
 
-                    // 左右オペランドがレジスタであれば使用集合に
-                    if left.is_register() {
-                        self.cfg_inbb.used[i].insert(left.virt);
+impl HighOptimizer {
+    pub fn setup_liveness_analyze(&mut self) {
+        // 生存解析用の情報収集
+        self.append_liveness_informations();
+
+        // iter_mut() では多段的に変更できないのでインデックス指定で
+        let block_number = self.entry_func.blocks.len();
+
+        for blk_idx in 0..block_number {
+            let ir_number = self.entry_func.blocks[blk_idx].tacs.len();
+
+            // 生存情報の収集
+            let (live_in, live_out) =
+                self.liveness_analysis(self.entry_func.blocks[blk_idx].cfg_inbb.clone(), ir_number);
+
+            // 生存情報の反映
+            for (reg_number, range) in self.entry_func.blocks[blk_idx].living.iter_mut() {
+                for ir_idx in 0..ir_number {
+                    if !live_in[ir_idx].contains(reg_number)
+                        && live_out[ir_idx].contains(reg_number)
+                    {
+                        range.0 = ir_idx;
                     }
-                    if right.is_register() {
-                        self.cfg_inbb.used[i].insert(right.virt);
-                    }
-                }
-                TacKind::RET(return_op) => {
-                    // 返すオペランドがレジスタなら使用集合に
-                    if return_op.is_register() {
-                        self.cfg_inbb.used[i].insert(return_op.virt);
+                    if live_in[ir_idx].contains(reg_number)
+                        && !live_out[ir_idx].contains(reg_number)
+                    {
+                        range.1 = ir_idx;
                     }
                 }
             }
         }
     }
-    // TODO: ベーシックブロックを受け取って変更をそのBBに適用する
-    pub fn liveness_analysis(&mut self) {
+    pub fn append_liveness_informations(&mut self) {
+        let mut blocks = self.entry_func.blocks.clone();
+        let blocks_number = self.entry_func.blocks.len();
+        for blk_idx in 0..blocks_number {
+            self.liveness_analyze_to_bb(&mut blocks[blk_idx]);
+        }
+        self.entry_func.blocks = blocks;
+    }
+    fn liveness_analyze_to_bb(&mut self, bb: &mut BasicBlock) {
+        for (i, t) in bb.tacs.iter().enumerate() {
+            match &t.kind {
+                TacKind::EXPR(var, _operator, left, right) => {
+                    // 代入されているオペランドがレジスタであれば定義集合に
+                    if var.is_register() {
+                        bb.cfg_inbb.def[i].insert(var.virt);
+                        bb.living.insert(var.virt, (0, 0));
+                    }
+
+                    // 左右オペランドがレジスタであれば使用集合に
+                    if left.is_register() {
+                        bb.cfg_inbb.used[i].insert(left.virt);
+                    }
+                    if right.is_register() {
+                        bb.cfg_inbb.used[i].insert(right.virt);
+                    }
+                }
+                TacKind::RET(return_op) => {
+                    // 返すオペランドがレジスタなら使用集合に
+                    if return_op.is_register() {
+                        bb.cfg_inbb.used[i].insert(return_op.virt);
+                    }
+                }
+            }
+        }
+    }
+    pub fn liveness_analysis(
+        &mut self,
+        cfg_inbb: ControlFlowGraphInBB,
+        tac_length: usize,
+    ) -> (LiveInMap, LiveOutMap) {
         // in集合, out集合の定義
         // foreach n; in[n] <- {}; out[n] <- {};
-        let mut live_in: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); self.entry_block.tacs.len()];
-        let mut live_out: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); self.entry_block.tacs.len()];
+        let mut live_in: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); tac_length];
+        let mut live_out: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); tac_length];
 
         // repeat
         'outer: loop {
@@ -45,18 +91,17 @@ impl HighOptimizer {
             let mut out_dash: Vec<BTreeSet<usize>> = Vec::new();
 
             // foreach n
-            for (idx, _t) in self.entry_block.tacs.iter().rev().enumerate() {
+            for idx in 0..tac_length {
                 // 後で変更が無いかチェックする為に保存
                 in_dash.push(live_in[idx].clone());
                 out_dash.push(live_out[idx].clone());
 
                 // out[n] <- U in[s] (where s ∈ succ[n])
-                for s in self.cfg_inbb.succ[idx].iter() {
+                for s in cfg_inbb.succ[idx].iter() {
                     live_out[idx] = &live_out[idx] | &live_in[*s];
                 }
 
-                live_in[idx] =
-                    &self.cfg_inbb.used[idx] | &(&live_out[idx] - &self.cfg_inbb.def[idx]);
+                live_in[idx] = &cfg_inbb.used[idx] | &(&live_out[idx] - &cfg_inbb.def[idx]);
             }
 
             // until in'[n] == in[n] and out'[n] == out[n] for all n
@@ -74,51 +119,7 @@ impl HighOptimizer {
             }
         }
 
-        // 生存情報の反映
-        for (reg_number, range) in self.entry_block.living.iter_mut() {
-            for (idx, _t) in self.entry_block.tacs.iter().enumerate() {
-                if !live_in[idx].contains(reg_number) && live_out[idx].contains(reg_number) {
-                    range.0 = idx;
-                }
-                if live_in[idx].contains(reg_number) && !live_out[idx].contains(reg_number) {
-                    range.1 = idx;
-                }
-            }
-        }
-    }
-    pub fn dump_cfg_liveness_to_file(&self) {
-        use std::fs::File;
-        use std::io::Write;
-
-        let mut out: String = String::new();
-        out += "digraph { \n";
-        for (i, t) in self.entry_block.tacs.iter().enumerate() {
-            out += &(format!("\t{}[label=\"{}\",shape=\"box\"];\n", i, t.to_string()).as_str());
-        }
-        for idx in 0..self.entry_block.tacs.len() {
-            for prev in self.cfg_inbb.prev[idx].iter() {
-                // 定義集合を文字列にまとめる
-                let mut def_string = String::new();
-                for def in self.cfg_inbb.def[*prev].iter() {
-                    def_string += &(format!("t{}", def).as_str());
-                }
-
-                // 使用集合を文字列にまとめる
-                let mut used_string = String::new();
-                for used in self.cfg_inbb.used[*prev].iter() {
-                    used_string += &(format!("t{}", used).as_str());
-                }
-                out += &(format!(
-                    "\t{} -> {}[label=\"def: {}, used: {}\"];\n",
-                    prev, idx, def_string, used_string,
-                )
-                .as_str());
-            }
-        }
-        out += "}";
-        let file_name: String = "cfg.dot".to_string();
-        let mut file = File::create(file_name).unwrap();
-        file.write_all(out.as_bytes()).unwrap();
+        (live_in, live_out)
     }
 }
 
@@ -129,18 +130,19 @@ mod liveness_tests {
     use crate::compiler::frontend::{lex, manager::Manager};
 
     #[test]
-    fn test_append_liveness_informations_to_cfg_with_add_calculus() {
-        let mut optimizer = preprocess("100 + 200 + 300");
-        optimizer.append_liveness_informations_to_cfg();
+    fn test_append_liveness_informations_with_main_func() {
+        let mut optimizer = preprocess("int main(){ return 100 + 200 + 300; }");
+        optimizer.append_liveness_informations();
 
         let expected_used: Vec<Vec<usize>> = vec![vec![], vec![0], vec![1]];
         let expected_def: Vec<Vec<usize>> = vec![vec![0], vec![1], vec![]];
 
-        for (i, used_set) in optimizer.cfg_inbb.used.iter().enumerate() {
+        let cfg_inbb = optimizer.entry_func.blocks[0].clone().cfg_inbb;
+        for (i, used_set) in cfg_inbb.used.iter().enumerate() {
             assert_eq!(used_set.len(), expected_used[i].len());
         }
 
-        for (i, def_set) in optimizer.cfg_inbb.def.iter().enumerate() {
+        for (i, def_set) in cfg_inbb.def.iter().enumerate() {
             assert_eq!(def_set.len(), expected_def[i].len());
         }
     }
@@ -154,10 +156,11 @@ mod liveness_tests {
         lex::tokenize(&mut manager);
         manager.parse();
         manager.semantics();
-        let entry_bb = manager.entry_block;
-        let mut optimizer = HighOptimizer::new(entry_bb.clone());
+        manager.generate_three_address_code();
+        let entry_func = manager.ir_func;
+        let mut optimizer = HighOptimizer::new(entry_func);
 
-        optimizer.build_cfg_with_bb(entry_bb);
+        optimizer.build_cfg();
         optimizer
     }
 }

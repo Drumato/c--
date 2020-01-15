@@ -1,12 +1,14 @@
-use crate::compiler::ir::arch::x64::{basicblock::X64BasicBlock, ir::X64IR};
+use crate::compiler::ir::arch::x64::{basicblock::X64BasicBlock, function::X64Function};
 
 #[derive(Clone)]
 pub struct X64Optimizer {
-    pub entry_bb: X64BasicBlock,
+    pub entry_func: X64Function,
 }
 impl X64Optimizer {
-    pub fn new(label: String, irs: Vec<X64IR>) -> Self {
-        let entry_bb = X64BasicBlock::new(label, irs);
-        Self { entry_bb: entry_bb }
+    pub fn new(func_name: String, blocks: Vec<X64BasicBlock>) -> Self {
+        let entry_func = X64Function::new(func_name, blocks);
+        Self {
+            entry_func: entry_func,
+        }
     }
 }

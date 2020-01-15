@@ -2,6 +2,7 @@ use crate::compiler::backend::arch::x64::generate::Registers;
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::ir::arch::x64::{
     basicblock::X64BasicBlock,
+    function::X64Function,
     ir::X64IR,
     ir_kind::{X64IRKind, X64OpeKind},
 };
@@ -12,10 +13,21 @@ impl X64Optimizer {
         // intel記法のprefix
         output += ".intel_syntax noprefix\n";
 
-        output += &(format!(".global {}\n", self.entry_bb.label).as_str());
+        output += &(format!(".global {}\n", self.entry_func.func_name).as_str());
 
-        // BasicBlock本体
-        output += &self.entry_bb.to_intel_code();
+        // Function本体
+        output += &self.entry_func.to_intel_code();
+        output
+    }
+}
+
+impl X64Function {
+    fn to_intel_code(&self) -> String {
+        let mut output = String::new();
+        output += &(format!("{}:\n", self.func_name).as_str());
+        for block in self.blocks.iter() {
+            output += &block.to_intel_code();
+        }
         output
     }
 }
@@ -23,7 +35,9 @@ impl X64Optimizer {
 impl X64BasicBlock {
     fn to_intel_code(&self) -> String {
         let mut output = String::new();
-        output += &(format!("{}:\n", self.label).as_str());
+        if self.label != "entry" {
+            output += &(format!("{}:\n", self.label).as_str());
+        }
         for ir in self.irs.iter() {
             output += &(format!("  {}\n", ir.to_intel_code()).as_str());
         }
