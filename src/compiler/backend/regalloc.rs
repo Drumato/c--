@@ -12,14 +12,13 @@ impl HighOptimizer {
     pub fn register_allocation_for_virtual_registers(&mut self, available_registers: usize) {
         let mut allocated_blocks = Vec::new();
         let blocks = self.entry_func.blocks.clone();
-        for block in blocks.iter() {
-            let allocated_block =
-                self.register_allocation_for_bb(block.clone(), available_registers);
+        for block in blocks {
+            let allocated_block = self.register_allocation_for_bb(block, available_registers);
 
             allocated_blocks.push(allocated_block);
         }
 
-        self.entry_func.blocks = blocks;
+        self.entry_func.blocks = allocated_blocks;
     }
     pub fn register_allocation_for_bb(
         &mut self,

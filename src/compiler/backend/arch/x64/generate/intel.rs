@@ -1,10 +1,7 @@
 use crate::compiler::backend::arch::x64::generate::Registers;
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::ir::arch::x64::{
-    basicblock::X64BasicBlock,
-    function::X64Function,
-    ir::X64IR,
-    ir_kind::{X64IRKind, X64OpeKind},
+    basicblock::X64BasicBlock, function::X64Function, ir::X64IR, ir_kind::X64IRKind,
 };
 
 impl X64Optimizer {
@@ -48,65 +45,52 @@ impl X64BasicBlock {
 impl X64IR {
     fn to_intel_code(&self) -> String {
         match &self.kind {
-            X64IRKind::MOV(dst, src) => {
+            // add
+            X64IRKind::ADDREGTOREG(dst, src) => {
                 let dst_reg = Registers::from_number_ir(dst.phys);
-                match src.kind {
-                    X64OpeKind::REG => {
-                        let src_reg = Registers::from_number_ir(src.phys);
-                        format!("mov {}, {}", dst_reg.to_string(), src_reg.to_string())
-                    }
-                    X64OpeKind::INTLIT(src_value) => {
-                        format!("mov {}, {}", dst_reg.to_string(), src_value)
-                    }
-                    _ => {
-                        eprintln!("can't emit with INVALID operand!");
-                        String::new()
-                    }
-                }
+                let src_reg = Registers::from_number_ir(src.phys);
+                format!("add {}, {}", dst_reg.to_string(), src_reg.to_string())
             }
-            X64IRKind::ADD(dst, src) => {
+            X64IRKind::ADDIMMTOREG(dst, immediate) => {
                 let dst_reg = Registers::from_number_ir(dst.phys);
-                match src.kind {
-                    X64OpeKind::REG => {
-                        let src_reg = Registers::from_number_ir(src.phys);
-                        format!("add {}, {}", dst_reg.to_string(), src_reg.to_string())
-                    }
-                    X64OpeKind::INTLIT(src_value) => {
-                        format!("add {}, {}", dst_reg.to_string(), src_value)
-                    }
-                    _ => {
-                        eprintln!("can't emit with INVALID operand!");
-                        String::new()
-                    }
-                }
+                format!("add {}, {}", dst_reg.to_string(), immediate.int_value())
             }
-            X64IRKind::SUB(dst, src) => {
+
+            // mov
+            X64IRKind::MOVREGTOREG(dst, src) => {
                 let dst_reg = Registers::from_number_ir(dst.phys);
-                match src.kind {
-                    X64OpeKind::REG => {
-                        let src_reg = Registers::from_number_ir(src.phys);
-                        format!("sub {}, {}", dst_reg.to_string(), src_reg.to_string())
-                    }
-                    X64OpeKind::INTLIT(src_value) => {
-                        format!("sub {}, {}", dst_reg.to_string(), src_value)
-                    }
-                    _ => {
-                        eprintln!("can't emit with INVALID operand!");
-                        String::new()
-                    }
-                }
+                let src_reg = Registers::from_number_ir(src.phys);
+                format!("mov {}, {}", dst_reg.to_string(), src_reg.to_string())
             }
-            X64IRKind::RET(return_op) => match return_op.kind {
-                X64OpeKind::REG => {
-                    let return_reg = Registers::from_number_ir(return_op.phys);
-                    format!("mov rax, {}\n  ret", return_reg.to_string())
-                }
-                X64OpeKind::INTLIT(return_value) => format!("mov rax, {}\n  ret", return_value),
-                _ => {
-                    eprintln!("can't emit with INVALID operand!");
-                    String::new()
-                }
-            },
+            X64IRKind::MOVIMMTOREG(dst, immediate) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                format!("mov {}, {}", dst_reg.to_string(), immediate.int_value())
+            }
+
+            // sub
+            X64IRKind::SUBREGTOREG(dst, src) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                let src_reg = Registers::from_number_ir(src.phys);
+                format!("sub {}, {}", dst_reg.to_string(), src_reg.to_string())
+            }
+            X64IRKind::SUBIMMTOREG(dst, immediate) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                format!("sub {}, {}", dst_reg.to_string(), immediate.int_value())
+            }
+
+            // ret
+            X64IRKind::RETREG(return_op) => {
+                let return_reg = Registers::from_number_ir(return_op.phys);
+                format!("mov rax, {}\n  ret", return_reg.to_string())
+            }
+            X64IRKind::RETIMM(return_op) => {
+                let return_value = return_op.int_value();
+                format!("mov rax, {}\n  ret", return_value)
+            }
+            _ => {
+                eprintln!("can't emit with invalid ir -> {:?}", self.kind);
+                String::new()
+            }
         }
     }
 }
