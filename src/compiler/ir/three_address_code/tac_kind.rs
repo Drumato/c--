@@ -8,6 +8,8 @@ pub enum TacKind {
 pub enum Operator {
     PLUS,
     MINUS,
+    ASTERISK,
+    SLASH,
 }
 
 impl Operator {
@@ -15,6 +17,8 @@ impl Operator {
         match self {
             Self::PLUS => "+",
             Self::MINUS => "-",
+            Self::ASTERISK => "*",
+            Self::SLASH => "/",
         }
     }
 }

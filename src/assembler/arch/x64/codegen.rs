@@ -52,11 +52,16 @@ impl X64Assembler {
                     X64InstName::MOVRM64IMM32 => {
                         Self::generate_movrm64imm32_inst(&mut codes, &inst)
                     }
+                    X64InstName::IMULR64RM64IMM32 => {
+                        Self::generate_imulr64rm64imm32_inst(&mut codes, &inst)
+                    }
+                    X64InstName::IMULR64RM64 => Self::generate_imulr64rm64_inst(&mut codes, &inst),
+                    X64InstName::IDIVRM64 => Self::generate_idivrm64_inst(&mut codes, &inst),
                     X64InstName::SUBRM64R64 => Self::generate_subrm64r64_inst(&mut codes, &inst),
                     X64InstName::SUBRM64IMM32 => {
                         Self::generate_subrm64imm32_inst(&mut codes, &inst)
                     }
-                    // X64InstName::MOV => ,
+                    X64InstName::CQO => Self::generate_cqo_inst(&mut codes, &inst),
                     X64InstName::RET => Self::generate_ret_inst(&mut codes, &inst),
                     X64InstName::SYSCALL => Self::generate_syscall_inst(&mut codes),
                     _ => {
@@ -123,6 +128,7 @@ mod codegen_tests {
         assembler.codegen();
         for (_name, symbol) in assembler.src_file.symbols_map.iter() {
             for (i, b) in symbol.codes.iter().enumerate() {
+                eprintln!("{} 0x{:x} = 0x{:x}", i, expected_codes[i], *b);
                 assert_eq!(expected_codes[i], *b);
             }
         }

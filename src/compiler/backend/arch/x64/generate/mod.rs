@@ -24,23 +24,18 @@ pub enum Registers {
 impl Registers {
     fn from_number_ir(num: usize) -> Self {
         match num {
-            0 => Self::RDI,
-            1 => Self::RSI,
-            2 => Self::RDX,
-            3 => Self::RCX,
-            4 => Self::R8,
-            5 => Self::R9,
-            6 => Self::R10,
-            7 => Self::R11,
-            8 => Self::R12,
-            9 => Self::R13,
-            10 => Self::R14,
-            11 => Self::R15,
-            12 => Self::RAX,
-            13 => Self::RBX,
+            0 => Self::R10,
+            1 => Self::R11,
+            2 => Self::R12,
+            3 => Self::R13,
+            4 => Self::R14,
+            5 => Self::R15,
+            6 => Self::RAX,
+            7 => Self::RDX,
+            8 => Self::RCX,
             _ => {
-                eprintln!("can't use rsp and rbp!");
-                Self::RDI
+                eprintln!("can't use any registers!");
+                Self::R10
             }
         }
     }

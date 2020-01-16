@@ -67,6 +67,9 @@ impl AsmLexer {
         // 命令
         self.keywords.insert("add".to_string(), AsmTokenKind::ADD);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
+        self.keywords.insert("cqo".to_string(), AsmTokenKind::CQO);
+        self.keywords.insert("imul".to_string(), AsmTokenKind::IMUL);
+        self.keywords.insert("idiv".to_string(), AsmTokenKind::IDIV);
         self.keywords.insert("mov".to_string(), AsmTokenKind::MOV);
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
         self.keywords.insert("sub".to_string(), AsmTokenKind::SUB);
@@ -159,21 +162,6 @@ mod intel_lexer_tests {
         let mut lexer = create_lexer("mov");
         let actual_mov = lexer.scan_word();
         assert_eq!(expected_mov, actual_mov);
-    }
-
-    #[test]
-    fn test_build_intel_keywords() {
-        let mut lexer = create_lexer("");
-        lexer.build_intel_keywords();
-
-        assert_eq!(6, lexer.keywords.len());
-
-        assert!(lexer.keywords.contains_key("add"));
-        assert!(lexer.keywords.contains_key("call"));
-        assert!(lexer.keywords.contains_key("mov"));
-        assert!(lexer.keywords.contains_key("ret"));
-        assert!(lexer.keywords.contains_key("syscall"));
-        assert!(lexer.keywords.contains_key("sub"));
     }
 
     fn create_lexer(input: &str) -> AsmLexer {

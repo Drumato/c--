@@ -86,6 +86,7 @@ impl X64Instruction {
             X64InstName::ADD => Self::change_add_opcode(size, src, dst),
             X64InstName::SUB => Self::change_sub_opcode(size, src, dst),
             X64InstName::MOV => Self::change_mov_opcode(size, src, dst),
+            X64InstName::IMUL => Self::change_imul_opcode(size, src, dst),
             // 何も変化させない
             _ => X64InstName::ADD,
         }
@@ -93,6 +94,7 @@ impl X64Instruction {
     fn change_unary_opcode(name: &X64InstName, size: &OperandSize, op: &X64Operand) -> X64InstName {
         match name {
             X64InstName::CALL => Self::change_call_opcode(size, op),
+            X64InstName::IDIV => Self::change_idiv_opcode(size, op),
             // 何も変化させない
             _ => X64InstName::CALL,
         }
@@ -192,6 +194,14 @@ mod analyze_tests {
     use crate::assembler::arch::x64::lexer::lex_intel;
     use crate::structure::AssemblyFile;
     use crate::target::Target;
+
+    #[test]
+    fn test_reg_expanded() {
+        let r10 = X64Operand::new_register("r10".to_string());
+        let rdx = X64Operand::new_register("rdx".to_string());
+        assert!(r10.check_used_register_is_expand());
+        assert!(!rdx.check_used_register_is_expand());
+    }
 
     #[test]
     fn test_relocations_information() {

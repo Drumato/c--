@@ -35,6 +35,7 @@ pub enum TokenKind {
     PLUS,      // +記号
     MINUS,     // -記号
     ASTERISK,  // *記号
+    SLASH,     // /記号
     LPAREN,    // (記号
     RPAREN,    // )記号
     LBRACKET,  // {記号

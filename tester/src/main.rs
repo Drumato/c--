@@ -59,6 +59,7 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
             "add.c" => 3,
             "huge_add.c" => 55,
             "sub.c" => 1,
+            "four_arith.c" => 8,
             _ => {
                 eprintln!("something went wrong -> {}", final_name);
                 0

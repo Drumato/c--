@@ -5,6 +5,8 @@ pub enum X64IRKind {
     MOV(X64Operand, X64Operand),
     ADD(X64Operand, X64Operand),
     SUB(X64Operand, X64Operand),
+    MUL(X64Operand, X64Operand),
+    DIV(X64Operand, X64Operand),
 
     // 1つオペランドを持つ系
     RET(X64Operand),
@@ -16,6 +18,10 @@ pub enum X64IRKind {
     MOVREGTOREG(X64Operand, X64Operand),
     SUBIMMTOREG(X64Operand, X64Operand),
     SUBREGTOREG(X64Operand, X64Operand),
+    MULIMMTOREG(X64Operand, X64Operand),
+    MULREGTOREG(X64Operand, X64Operand),
+    DIVIMMTOREG(X64Operand, X64Operand),
+    DIVREGTOREG(X64Operand, X64Operand),
     RETREG(X64Operand),
     RETIMM(X64Operand),
 }
@@ -32,6 +38,13 @@ impl X64Operand {
             kind: kind,
             virt: virt,
             phys: phys,
+        }
+    }
+    pub fn new_rax() -> Self {
+        Self {
+            kind: X64OpeKind::REG,
+            virt: 0,
+            phys: 6,
         }
     }
     pub fn new_inv() -> Self {

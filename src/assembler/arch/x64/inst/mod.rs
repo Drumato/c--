@@ -36,6 +36,21 @@ impl X64Instruction {
             immediate_value: 0,
         }
     }
+    pub fn new_noop_inst(name: inst_name::X64InstName) -> Self {
+        match name {
+            inst_name::X64InstName::SYSCALL => Self::new_syscall(),
+            inst_name::X64InstName::CQO => Self::new_cqo(),
+            inst_name::X64InstName::RET => Self::new_ret(),
+            _ => panic!("no such a no-operand instruction"),
+        }
+    }
+    pub fn new_unary_inst(name: inst_name::X64InstName, unop: inst_kind::X64Operand) -> Self {
+        match name {
+            inst_name::X64InstName::CALL => Self::new_call(unop),
+            inst_name::X64InstName::IDIV => Self::new_idiv(unop),
+            _ => panic!("no such an unary instruction"),
+        }
+    }
     pub fn new_binary_inst(
         name: inst_name::X64InstName,
         src: inst_kind::X64Operand,
@@ -44,45 +59,10 @@ impl X64Instruction {
         match name {
             inst_name::X64InstName::ADD => Self::new_add(src, dst),
             inst_name::X64InstName::SUB => Self::new_sub(src, dst),
+            inst_name::X64InstName::IMUL => Self::new_imul(src, dst),
             inst_name::X64InstName::MOV => Self::new_mov(src, dst),
             _ => panic!("no such a binary instruction"),
         }
-    }
-    fn new_add(src: inst_kind::X64Operand, dst: inst_kind::X64Operand) -> Self {
-        Self::new(
-            inst_name::X64InstName::ADD,
-            inst_kind::X64InstKind::BINARY(src, dst),
-        )
-    }
-    fn new_sub(src: inst_kind::X64Operand, dst: inst_kind::X64Operand) -> Self {
-        Self::new(
-            inst_name::X64InstName::SUB,
-            inst_kind::X64InstKind::BINARY(src, dst),
-        )
-    }
-    pub fn new_call(call_op: inst_kind::X64Operand) -> Self {
-        Self::new(
-            inst_name::X64InstName::CALL,
-            inst_kind::X64InstKind::UNARY(call_op),
-        )
-    }
-    pub fn new_mov(src: inst_kind::X64Operand, dst: inst_kind::X64Operand) -> Self {
-        Self::new(
-            inst_name::X64InstName::MOV,
-            inst_kind::X64InstKind::BINARY(src, dst),
-        )
-    }
-    pub fn new_ret() -> Self {
-        Self::new(
-            inst_name::X64InstName::RET,
-            inst_kind::X64InstKind::NOOPERAND,
-        )
-    }
-    pub fn new_syscall() -> Self {
-        Self::new(
-            inst_name::X64InstName::SYSCALL,
-            inst_kind::X64InstKind::NOOPERAND,
-        )
     }
     pub fn to_string(&self) -> String {
         match &self.kind {

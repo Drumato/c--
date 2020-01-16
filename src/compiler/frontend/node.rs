@@ -43,6 +43,8 @@ impl Node {
         let node_kind = match tok.kind {
             TokenKind::PLUS => NodeKind::ADD(Box::new(left), Box::new(right)),
             TokenKind::MINUS => NodeKind::SUB(Box::new(left), Box::new(right)),
+            TokenKind::ASTERISK => NodeKind::MUL(Box::new(left), Box::new(right)),
+            TokenKind::SLASH => NodeKind::DIV(Box::new(left), Box::new(right)),
             _ => panic!("not found such an operator"),
         };
         Self::new(tok.position, node_kind)
@@ -58,6 +60,8 @@ pub enum NodeKind {
     // expression
     ADD(Child, Child),
     SUB(Child, Child),
+    MUL(Child, Child),
+    DIV(Child, Child),
     INTEGER(i128),
     INVALID,
 }
@@ -65,5 +69,6 @@ pub enum NodeKind {
 // 演算の優先順位を定義
 #[derive(Debug, PartialEq, Clone)]
 pub enum Priority {
-    ADDSUB,
+    ADDITIVE,
+    MULTIPLICATIVE,
 }

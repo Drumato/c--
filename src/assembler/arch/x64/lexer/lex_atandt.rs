@@ -91,7 +91,12 @@ impl AsmLexer {
         // 命令
         self.keywords.insert("addq".to_string(), AsmTokenKind::ADDQ);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
+        self.keywords.insert("cltd".to_string(), AsmTokenKind::CLTD);
         self.keywords.insert("movq".to_string(), AsmTokenKind::MOVQ);
+        self.keywords
+            .insert("imulq".to_string(), AsmTokenKind::IMULQ);
+        self.keywords
+            .insert("idivq".to_string(), AsmTokenKind::IDIVQ);
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
         self.keywords
             .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
@@ -133,21 +138,6 @@ mod atandt_lexer_tests {
         for (i, actual) in tokens.iter().enumerate() {
             assert_eq!(&expected_tokens[i], actual);
         }
-    }
-
-    #[test]
-    fn test_build_atandt_keywords() {
-        let mut lexer = create_lexer("");
-        lexer.build_atandt_keywords();
-
-        assert_eq!(6, lexer.keywords.len());
-
-        assert!(lexer.keywords.contains_key("addq"));
-        assert!(lexer.keywords.contains_key("call"));
-        assert!(lexer.keywords.contains_key("movq"));
-        assert!(lexer.keywords.contains_key("ret"));
-        assert!(lexer.keywords.contains_key("syscall"));
-        assert!(lexer.keywords.contains_key("subq"));
     }
 
     #[test]

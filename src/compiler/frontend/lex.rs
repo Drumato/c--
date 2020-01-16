@@ -68,6 +68,7 @@ impl Lexer {
             '+' => Some(self.scan_symbol(TokenKind::PLUS)),
             '-' => Some(self.scan_symbol(TokenKind::MINUS)),
             '*' => Some(self.scan_symbol(TokenKind::ASTERISK)),
+            '/' => Some(self.scan_symbol(TokenKind::SLASH)),
             ';' => Some(self.scan_symbol(TokenKind::SEMICOLON)),
             '(' => Some(self.scan_symbol(TokenKind::LPAREN)),
             ')' => Some(self.scan_symbol(TokenKind::RPAREN)),

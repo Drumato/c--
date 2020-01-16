@@ -12,7 +12,6 @@ pub struct Manager {
     // パース処理用
     pub cur_token: usize,
     pub next_token: usize,
-    pub priority: node::Priority,
 
     // 3番地コード列
     // 単一関数のみ許容するように変更
@@ -33,7 +32,6 @@ impl Manager {
             entry_func: node::Function::init("none".to_string(), (0, 0)),
             cur_token: 0,
             next_token: 1,
-            priority: node::Priority::ADDSUB,
             ir_func: IRFunction::new(entry_point),
             cur_bb: 0,
             virt: 0,

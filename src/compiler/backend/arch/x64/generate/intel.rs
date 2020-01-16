@@ -78,6 +78,39 @@ impl X64IR {
                 format!("sub {}, {}", dst_reg.to_string(), immediate.int_value())
             }
 
+            // mul
+            X64IRKind::MULREGTOREG(dst, src) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                let src_reg = Registers::from_number_ir(src.phys);
+                format!("imul {}, {}", dst_reg.to_string(), src_reg.to_string())
+            }
+            X64IRKind::MULIMMTOREG(dst, immediate) => {
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                format!("imul {}, {}", dst_reg.to_string(), immediate.int_value())
+            }
+
+            // div
+            X64IRKind::DIVREGTOREG(dst, src) => {
+                let mut output = String::new();
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                let src_reg = Registers::from_number_ir(src.phys);
+                output += &(format!("mov rax, {}\n", dst_reg.to_string()).as_str());
+                output += "  cqo\n";
+                output += &(format!("  idiv {}\n", src_reg.to_string()).as_str());
+                output += &(format!("  mov {}, rax", dst_reg.to_string()).as_str());
+                output
+            }
+            X64IRKind::DIVIMMTOREG(dst, immediate) => {
+                let mut output = String::new();
+                let dst_reg = Registers::from_number_ir(dst.phys);
+                output += &(format!("mov rax, {}\n", dst_reg.to_string()).as_str());
+                output += &(format!("  mov rcx, {}\n", immediate.int_value()).as_str());
+                output += "  cqo\n";
+                output += "  idiv rcx\n";
+                output += &(format!("  mov {}, rax", dst_reg.to_string()).as_str());
+                output
+            }
+
             // ret
             X64IRKind::RETREG(return_op) => {
                 let return_reg = Registers::from_number_ir(return_op.phys);

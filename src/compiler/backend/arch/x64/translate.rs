@@ -27,21 +27,44 @@ impl HighOptimizer {
                         let opcode: X64IRKind = Self::opcode_from_operator(operator_bf);
                         let dst = Self::tac_operand_to_x64(var_bf);
 
-                        // 左が数値リテラル -> 先にdstにロードしてから,演算
+                        // 左が数値リテラル -> (右がレジスタであれば) raxにロードしてから演算
+                        //                  -> (そうでなければ)先にdstにロードしてから,演算
                         // それ以外         -> 演算してからdstにロード
                         if let X64OpeKind::INTLIT(_) = &left.kind {
-                            let load_ir = X64IR::new_mov(dst.clone(), left.clone());
-                            low_irs.push(load_ir);
+                            if let X64OpeKind::REG = &right.kind {
+                                // r.g. t1 <- 2 + t1
+                                // -----------------
+                                // rax <- 2
+                                // rax <- rax + t1
+                                // t1 <- rax
+                                let load_ir = X64IR::new_mov(X64Operand::new_rax(), left.clone());
+                                low_irs.push(load_ir);
 
-                            // 演算命令
-                            Self::add_ir_matching_opcode(&mut low_irs, opcode, dst, right);
-                        } else {
-                            // 演算命令
-                            Self::add_ir_matching_opcode(&mut low_irs, opcode, left.clone(), right);
+                                // 演算命令
+                                Self::add_ir_matching_opcode(
+                                    &mut low_irs,
+                                    opcode,
+                                    X64Operand::new_rax(),
+                                    right,
+                                );
 
-                            let load_ir = X64IR::new_mov(dst, left);
-                            low_irs.push(load_ir);
+                                let load_ir = X64IR::new_mov(dst, X64Operand::new_rax());
+                                low_irs.push(load_ir);
+                            } else {
+                                let load_ir = X64IR::new_mov(dst.clone(), left.clone());
+                                low_irs.push(load_ir);
+
+                                // 演算命令
+                                Self::add_ir_matching_opcode(&mut low_irs, opcode, dst, right);
+                            }
+                            continue;
                         }
+
+                        // 左が非数値リテラル
+                        Self::add_ir_matching_opcode(&mut low_irs, opcode, left.clone(), right);
+
+                        let load_ir = X64IR::new_mov(dst, left);
+                        low_irs.push(load_ir);
                     }
                     tac_kind::TacKind::RET(return_bf) => {
                         let return_op = Self::tac_operand_to_x64(return_bf);
@@ -71,6 +94,12 @@ impl HighOptimizer {
             X64IRKind::SUB(_, _) => {
                 low_irs.push(X64IR::new_sub(left, right));
             }
+            X64IRKind::MUL(_, _) => {
+                low_irs.push(X64IR::new_mul(left, right));
+            }
+            X64IRKind::DIV(_, _) => {
+                low_irs.push(X64IR::new_div(left, right));
+            }
             _ => {}
         }
     }
@@ -82,6 +111,12 @@ impl HighOptimizer {
             }
             tac_kind::Operator::MINUS => {
                 X64IRKind::SUB(X64Operand::new_inv(), X64Operand::new_inv())
+            }
+            tac_kind::Operator::ASTERISK => {
+                X64IRKind::MUL(X64Operand::new_inv(), X64Operand::new_inv())
+            }
+            tac_kind::Operator::SLASH => {
+                X64IRKind::DIV(X64Operand::new_inv(), X64Operand::new_inv())
             }
         }
     }

@@ -95,21 +95,14 @@ impl Manager {
         Node::new_return(current_position, return_expr)
     }
     fn parse_expression(&mut self) -> Node {
-        // expr -> term | expr_1 (`+`/`-` term)+
-        // 最初はPriority::ADDSUBで始まる
-        self.parse_node_current_prio()
+        // expr -> primary | expr_1 (`+`/`-` primary)+
+        self.parse_additive()
     }
-    fn parse_node_current_prio(&mut self) -> Node {
-        // 現在の優先順位に対応した関数を呼ぶ
-        match self.priority {
-            Priority::ADDSUB => self.parse_binary_node(),
-        }
-    }
-    fn parse_binary_node(&mut self) -> Node {
-        // 現在の優先順位よりひとつ上の関数を呼ぶ
-        let mut left_node: Node = self.parse_node_next_prio();
+    fn parse_additive(&mut self) -> Node {
+        let mut left_node: Node = self.parse_multiplicative();
+
         // チェックする演算子の列挙
-        let operators = self.current_prio_operators();
+        let operators = self.current_prio_operators(Priority::ADDITIVE);
         loop {
             // いずれにも合致しなければ終了
             if !self.current_token_is_in(&operators) {
@@ -119,20 +112,37 @@ impl Manager {
             // 演算子トークンを退避
             let cur_token = self.looking_token_clone();
             self.read_token();
-            let right_node = self.parse_node_next_prio();
+            let right_node = self.parse_multiplicative();
 
             // コンストラクト
             left_node = Node::new_binary_node(&cur_token, left_node, right_node);
         }
+
         left_node
     }
-    fn parse_node_next_prio(&mut self) -> Node {
-        // 各関数におけるより優先度の高い関数を定義しておく
-        match self.priority {
-            Priority::ADDSUB => self.parse_term(),
+    fn parse_multiplicative(&mut self) -> Node {
+        let mut left_node: Node = self.parse_primary();
+
+        // チェックする演算子の列挙
+        let operators = self.current_prio_operators(Priority::MULTIPLICATIVE);
+        loop {
+            // いずれにも合致しなければ終了
+            if !self.current_token_is_in(&operators) {
+                break;
+            }
+
+            // 演算子トークンを退避
+            let cur_token = self.looking_token_clone();
+            self.read_token();
+            let right_node = self.parse_primary();
+
+            // コンストラクト
+            left_node = Node::new_binary_node(&cur_token, left_node, right_node);
         }
+
+        left_node
     }
-    fn parse_term(&mut self) -> Node {
+    fn parse_primary(&mut self) -> Node {
         let cur = self.looking_token_clone();
         self.read_token();
         match cur.kind {
@@ -196,9 +206,11 @@ impl Manager {
         }
         false
     }
-    fn current_prio_operators(&mut self) -> Vec<TokenKind> {
-        match self.priority {
-            Priority::ADDSUB => vec![TokenKind::PLUS, TokenKind::MINUS],
+    fn current_prio_operators(&mut self, priority: Priority) -> Vec<TokenKind> {
+        match priority {
+            Priority::ADDITIVE => vec![TokenKind::PLUS, TokenKind::MINUS],
+            // TODO: '%' を足す
+            Priority::MULTIPLICATIVE => vec![TokenKind::ASTERISK, TokenKind::SLASH],
         }
     }
     fn consume(&mut self, tk: TokenKind) -> bool {
@@ -210,8 +222,12 @@ impl Manager {
         true
     }
     fn expect(&mut self, tk: TokenKind) {
-        if self.looking_token_clone().kind != tk {
-            panic!("unexpected token");
+        let cur = self.looking_token_clone();
+        if cur.kind != tk {
+            panic!(
+                "unexpected token -> expected {:?} but got {:?}",
+                tk, cur.position
+            );
         }
 
         self.read_token();
@@ -248,7 +264,7 @@ mod parser_tests {
         let right_node = Node::new((2, 16), NodeKind::INTEGER(100));
         let expr = Node::new(
             (2, 14),
-            NodeKind::SUB(Box::new(left_node), Box::new(right_node)),
+            NodeKind::MUL(Box::new(left_node), Box::new(right_node)),
         );
         let return_stmt = Node::new_return((2, 3), expr);
 
@@ -258,16 +274,16 @@ mod parser_tests {
             stmts: vec![return_stmt],
         };
 
-        integration_test_parser("int main(){\n  return 200 - 100;\n}", func);
+        integration_test_parser("int main(){\n  return 200 * 100;\n}", func);
     }
 
     #[test]
-    fn test_parse_term() {
+    fn test_parse_primar() {
         let expected = Node::new((1, 1), NodeKind::INTEGER(100));
         let mut manager = preprocess("100");
 
         // 整数ノードをパースできているか
-        let actual = manager.parse_term();
+        let actual = manager.parse_primary();
         assert_eq!(expected, actual);
 
         // 次のトークンを指すことができているか
@@ -276,12 +292,12 @@ mod parser_tests {
     }
 
     #[test]
-    fn test_parse_term_without_integer() {
+    fn test_parse_primary_without_integer() {
         let expected = Node::new((0, 0), NodeKind::INVALID);
         let mut manager = preprocess("+");
 
         // エラーを出せているか
-        let actual = manager.parse_term();
+        let actual = manager.parse_primary();
         assert_eq!(expected, actual);
     }
 

@@ -32,14 +32,20 @@ pub enum AsmTokenKind {
 
     // 命令
     // AT&T記法
-    MOVQ, // movq命令
-    ADDQ, // addq命令
-    SUBQ, // subq命令
+    MOVQ,  // movq命令
+    ADDQ,  // addq命令
+    CLTD,  // cltd命令
+    SUBQ,  // subq命令
+    IMULQ, // imulq命令
+    IDIVQ, // idivq命令
 
     // intel記法
-    MOV, // mov命令
-    ADD, // add命令
-    SUB, // sub命令
+    MOV,  // mov命令
+    ADD,  // add命令
+    CQO,  // cqo命令
+    SUB,  // sub命令
+    IMUL, // imul命令
+    IDIV, // idiv命令
 
     // 汎用記法
     CALL,    // call命令
@@ -60,6 +66,12 @@ impl AsmTokenKind {
         match self {
             Self::ADD | Self::ADDQ => X64InstName::ADD,
             Self::SUB | Self::SUBQ => X64InstName::SUB,
+            Self::IMUL | Self::IMULQ => X64InstName::IMUL,
+            Self::IDIV | Self::IDIVQ => X64InstName::IDIV,
+            Self::CALL => X64InstName::CALL,
+            Self::SYSCALL => X64InstName::SYSCALL,
+            Self::RET => X64InstName::RET,
+            Self::CQO | Self::CLTD => X64InstName::CQO,
             Self::MOV | Self::MOVQ => X64InstName::MOV,
             _ => panic!("can't translate to X64InstName"),
         }

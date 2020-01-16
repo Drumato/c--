@@ -22,6 +22,16 @@ impl X64IR {
             kind: X64IRKind::SUB(dst, src),
         }
     }
+    pub fn new_mul(dst: X64Operand, src: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::MUL(dst, src),
+        }
+    }
+    pub fn new_div(dst: X64Operand, src: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::DIV(dst, src),
+        }
+    }
     pub fn new_ret(return_op: X64Operand) -> Self {
         Self {
             kind: X64IRKind::RET(return_op),

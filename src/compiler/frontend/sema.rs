@@ -31,7 +31,9 @@ impl Manager {
 
             // 二項演算
             NodeKind::ADD(ref mut left, ref mut right)
-            | NodeKind::SUB(ref mut left, ref mut right) => {
+            | NodeKind::SUB(ref mut left, ref mut right)
+            | NodeKind::MUL(ref mut left, ref mut right)
+            | NodeKind::DIV(ref mut left, ref mut right) => {
                 let left_type = self.walk_expression(left);
                 let right_type = self.walk_expression(right);
                 if left_type == right_type {

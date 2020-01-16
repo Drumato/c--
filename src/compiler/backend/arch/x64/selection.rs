@@ -66,7 +66,36 @@ impl X64Optimizer {
                         _ => panic!("not implemented in sub selection"),
                     }
                 }
+                // 今はレジスタに対するmulしかない
+                X64IRKind::MUL(dst, src) => {
+                    match &src.kind {
+                        // mul reg, reg
+                        X64OpeKind::REG => {
+                            ir.kind = X64IRKind::MULREGTOREG(dst.clone(), src.clone());
+                        }
 
+                        // mul reg, imm
+                        X64OpeKind::INTLIT(_value) => {
+                            ir.kind = X64IRKind::MULIMMTOREG(dst.clone(), src.clone());
+                        }
+                        _ => panic!("not implemented in mul selection"),
+                    }
+                }
+                // 今はレジスタに対するdivしかない
+                X64IRKind::DIV(dst, src) => {
+                    match &src.kind {
+                        // div reg, reg
+                        X64OpeKind::REG => {
+                            ir.kind = X64IRKind::DIVREGTOREG(dst.clone(), src.clone());
+                        }
+
+                        // div reg, imm
+                        X64OpeKind::INTLIT(_value) => {
+                            ir.kind = X64IRKind::DIVIMMTOREG(dst.clone(), src.clone());
+                        }
+                        _ => panic!("not implemented in div selection"),
+                    }
+                }
                 X64IRKind::RET(return_op) => {
                     match &return_op.kind {
                         // return reg

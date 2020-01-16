@@ -41,7 +41,7 @@ impl X64Assembler {
         let cur = self.looking_token_clone();
         match cur.kind {
             // 2つのオペランドを持つ命令
-            AsmTokenKind::ADDQ | AsmTokenKind::SUBQ | AsmTokenKind::MOVQ => {
+            AsmTokenKind::ADDQ | AsmTokenKind::SUBQ | AsmTokenKind::MOVQ | AsmTokenKind::IMULQ => {
                 self.read_token();
 
                 // 2つのオペランドを取得
@@ -51,19 +51,22 @@ impl X64Assembler {
                 let inst_name = cur.kind.to_inst_name();
                 Some(X64Instruction::new_binary_inst(inst_name, src_op, dst_op))
             }
-            AsmTokenKind::CALL => {
+
+            // 1つのオペランドを持つ命令
+            AsmTokenKind::CALL | AsmTokenKind::IDIVQ => {
                 self.read_token();
+
                 // 1つのオペランドを取得
-                let call_op = self.consume_operand();
-                Some(X64Instruction::new_call(call_op))
+                let unop = self.consume_operand();
+                let inst_name = cur.kind.to_inst_name();
+                Some(X64Instruction::new_unary_inst(inst_name, unop))
             }
-            AsmTokenKind::RET => {
+
+            // オペランドを持たない命令
+            AsmTokenKind::CQO | AsmTokenKind::RET | AsmTokenKind::SYSCALL => {
                 self.read_token();
-                Some(X64Instruction::new_ret())
-            }
-            AsmTokenKind::SYSCALL => {
-                self.read_token();
-                Some(X64Instruction::new_syscall())
+                let inst_name = cur.kind.to_inst_name();
+                Some(X64Instruction::new_noop_inst(inst_name))
             }
             _ => None,
         }

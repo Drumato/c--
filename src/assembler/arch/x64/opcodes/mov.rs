@@ -2,17 +2,25 @@ use crate::assembler::arch::x64::analyze::OperandSize;
 use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::codegen::*;
 use crate::assembler::arch::x64::inst::{
-    inst_kind::X64Operand, inst_name::X64InstName, X64Instruction,
+    inst_kind::{X64InstKind, X64Operand},
+    inst_name::X64InstName,
+    X64Instruction,
 };
 
+impl X64Instruction {
+    pub fn new_mov(src: X64Operand, dst: X64Operand) -> Self {
+        Self::new(X64InstName::MOV, X64InstKind::BINARY(src, dst))
+    }
+}
+
 pub const MODRM_REGISTER_REGISTER: u8 = 0xc0;
+
 impl X64Assembler {
     pub fn generate_movrm64imm32_inst(codes: &mut Vec<u8>, inst: &X64Instruction) {
         // e.g. mov rax, 30
-        // dst-operand -> r/m field in ModR/M and related r-bit in REX
-        // 本当はb-bitだけど,Op/En がMI なので r-bitに関係する
+        // dst-operand -> r/m field in ModR/M and related b-bit in REX
         // rex-prefix
-        let dst_expanded_bit = Self::rex_prefix_rbit(inst.dst_expanded);
+        let dst_expanded_bit = Self::rex_prefix_bbit(inst.dst_expanded);
         codes.push(REX_PREFIX_BASE | REX_PREFIX_WBIT | dst_expanded_bit);
 
         // opcode
@@ -29,11 +37,11 @@ impl X64Assembler {
     }
     pub fn generate_movrm64r64_inst(codes: &mut Vec<u8>, inst: &X64Instruction) {
         // e.g. mov rax, r15
-        // dst-operand -> r/m field in ModR/M and related r-bit in REX cuz ModR/M(MR)
-        // src-operand -> reg field in ModR/M and related b-bit in REX cuz ModR/M(MR)
+        // dst-operand -> r/m field in ModR/M and related b-bit
+        // src-operand -> reg field in ModR/M and related r-bit
         // rex-prefix
-        let dst_expanded_bit = Self::rex_prefix_rbit(inst.dst_expanded);
-        let src_expanded_bit = Self::rex_prefix_bbit(inst.src_expanded);
+        let dst_expanded_bit = Self::rex_prefix_bbit(inst.dst_expanded);
+        let src_expanded_bit = Self::rex_prefix_rbit(inst.src_expanded);
         codes.push(REX_PREFIX_BASE | REX_PREFIX_WBIT | dst_expanded_bit | src_expanded_bit);
 
         // opcode

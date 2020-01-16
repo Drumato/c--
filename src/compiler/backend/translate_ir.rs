@@ -12,6 +12,8 @@ impl NodeKind {
         match self {
             Self::ADD(_left, _right) => Some(Operator::PLUS),
             Self::SUB(_left, _right) => Some(Operator::MINUS),
+            Self::MUL(_left, _right) => Some(Operator::ASTERISK),
+            Self::DIV(_left, _right) => Some(Operator::SLASH),
             _ => None,
         }
     }
@@ -38,7 +40,10 @@ impl Manager {
     }
     fn gen_expr(&mut self, n: Node) -> Operand {
         match n.kind.clone() {
-            NodeKind::ADD(left, right) | NodeKind::SUB(left, right) => {
+            NodeKind::ADD(left, right)
+            | NodeKind::SUB(left, right)
+            | NodeKind::MUL(left, right)
+            | NodeKind::DIV(left, right) => {
                 // 左右の子ノードを変換
                 let left_op = self.gen_expr(*left);
                 let right_op = self.gen_expr(*right);
