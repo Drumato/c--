@@ -48,6 +48,7 @@ pub enum AsmTokenKind {
     IDIV, // idiv命令
 
     // 汎用記法
+    JMP,     // jmp命令
     CALL,    // call命令
     RET,     // ret命令
     SYSCALL, // syscall命令
@@ -66,6 +67,7 @@ impl AsmTokenKind {
         match self {
             Self::ADD | Self::ADDQ => X64InstName::ADD,
             Self::SUB | Self::SUBQ => X64InstName::SUB,
+            Self::JMP => X64InstName::JMP,
             Self::IMUL | Self::IMULQ => X64InstName::IMUL,
             Self::IDIV | Self::IDIVQ => X64InstName::IDIV,
             Self::CALL => X64InstName::CALL,

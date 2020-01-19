@@ -18,6 +18,10 @@ pub fn lexing_atandt_syntax(assembler: &mut X64Assembler) {
 impl AsmLexer {
     pub fn build_tokens_for_atandt_syntax(&mut self) -> Vec<AsmToken> {
         let mut tokens: Vec<AsmToken> = Vec::new();
+        // 先に.intel_syntaxなどを全部パースしてしまう
+        while let Some(t) = self.scan_directive() {
+            tokens.push(t);
+        }
         while let Some(t) = self.scan_one_atandt_token() {
             // コメントとか改行文字とか
             if t.should_ignore() {
@@ -50,7 +54,7 @@ impl AsmLexer {
             }
 
             // アルファベットの場合 -> 命令かシンボル/ラベル
-            '_' => Some(self.scan_word()),
+            '_' | '.' => Some(self.scan_word()),
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),
 
             // $の場合 -> 数値リテラル
@@ -72,9 +76,6 @@ impl AsmLexer {
                 }
             }
 
-            // .text 等のディレクティブ
-            '.' => Some(self.scan_directive()),
-
             // 空白類文字
             ',' | ' ' | '\t' => Some(self.skip_whitespace()),
             '\n' => {
@@ -90,6 +91,7 @@ impl AsmLexer {
     pub fn build_atandt_keywords(&mut self) {
         // 命令
         self.keywords.insert("addq".to_string(), AsmTokenKind::ADDQ);
+        self.keywords.insert("jmp".to_string(), AsmTokenKind::JMP);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
         self.keywords.insert("cltd".to_string(), AsmTokenKind::CLTD);
         self.keywords.insert("movq".to_string(), AsmTokenKind::MOVQ);

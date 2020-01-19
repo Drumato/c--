@@ -17,6 +17,10 @@ impl Manager {
             NodeKind::RETURNSTMT(ref mut return_expr) => {
                 self.walk_expression(return_expr);
             }
+            NodeKind::LABELEDSTMT(ref mut _label_name, ref mut any_stmt) => {
+                self.walk_statement(any_stmt);
+            }
+            NodeKind::GOTOSTMT(ref mut _label_name) => {}
             _ => {
                 self.output_invalid_node_type_error(stmt.position);
             }

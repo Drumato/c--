@@ -1,7 +1,14 @@
+type Label = String;
+
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum TacKind {
     EXPR(Operand, Operator, Operand, Operand),
     RET(Operand),
+    GOTO(Label),
+
+    // ラベルを必要とするのは,CFG構築などで存在すると便利だから.
+    // BasicBlockがこの情報を保持しているので,Low-IRに変換したときに捨てる.
+    LABEL(Label),
 }
 
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]

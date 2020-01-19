@@ -1,6 +1,5 @@
 type SrcOperand = X64Operand;
 type DstOperand = X64Operand;
-#[allow(dead_code)]
 #[derive(PartialEq, Debug, Clone)]
 pub enum X64InstKind {
     // オペランドを取らないもの

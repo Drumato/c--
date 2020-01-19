@@ -40,6 +40,7 @@ pub enum TokenKind {
     RPAREN,    // )記号
     LBRACKET,  // {記号
     RBRACKET,  // }記号
+    COLON,     // :記号
     SEMICOLON, // ;記号
     BLANK,     // 空白類文字
     NEWLINE,   // 改行
@@ -47,6 +48,7 @@ pub enum TokenKind {
 
     // 予約語
     INT,    // int
+    GOTO,   // goto
     VOID,   // void
     RETURN, // return
 }

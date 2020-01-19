@@ -3,6 +3,7 @@ pub mod call;
 pub mod cqo;
 pub mod idiv;
 pub mod imul;
+pub mod jmp;
 pub mod mov;
 pub mod ret;
 pub mod sub;

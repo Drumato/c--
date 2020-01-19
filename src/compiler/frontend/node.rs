@@ -36,8 +36,14 @@ impl Node {
             ctype: Type::new_unknown(),
         }
     }
-    pub fn new_return(pos: Position, child: Node) -> Self {
-        Self::new(pos, NodeKind::RETURNSTMT(Box::new(child)))
+    pub fn new_labeled(pos: Position, label_name: String, stmt: Node) -> Self {
+        Self::new(pos, NodeKind::LABELEDSTMT(label_name, Box::new(stmt)))
+    }
+    pub fn new_goto(pos: Position, label_name: String) -> Self {
+        Self::new(pos, NodeKind::GOTOSTMT(label_name))
+    }
+    pub fn new_return(pos: Position, expr: Node) -> Self {
+        Self::new(pos, NodeKind::RETURNSTMT(Box::new(expr)))
     }
     pub fn new_binary_node(tok: &Token, left: Node, right: Node) -> Self {
         let node_kind = match tok.kind {
@@ -51,17 +57,21 @@ impl Node {
     }
 }
 
-type Child = Box<Node>;
+type Expr = Box<Node>;
+type Stmt = Box<Node>;
+type Label = String;
 #[derive(Debug, PartialEq, Clone)]
 pub enum NodeKind {
     // statement
-    RETURNSTMT(Child),
+    RETURNSTMT(Expr),
+    GOTOSTMT(Label),
+    LABELEDSTMT(Label, Stmt),
 
     // expression
-    ADD(Child, Child),
-    SUB(Child, Child),
-    MUL(Child, Child),
-    DIV(Child, Child),
+    ADD(Expr, Expr),
+    SUB(Expr, Expr),
+    MUL(Expr, Expr),
+    DIV(Expr, Expr),
     INTEGER(i128),
     INVALID,
 }

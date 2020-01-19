@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::three_address_code::{tac::ThreeAddressCode, tac_kind::TacKind};
@@ -32,24 +32,69 @@ impl HighOptimizer {
         }
     }
     pub fn build_cfg_with_bb(&mut self, tacs: Vec<ThreeAddressCode>) -> ControlFlowGraphInBB {
+        // jump-statement系にエッジを追加するときのために利用
+        let label_map: BTreeMap<String, usize> = self.build_labelmap(&tacs);
+
+        // 各ベーシックブロックに対応したCFG
         let mut cfg_inbb = ControlFlowGraphInBB::new(tacs.len());
+
+        // 一つ前の文がgotoであるとき,をチェックする
+        let mut prev_inst_is_goto = false;
         for (i, t) in tacs.iter().enumerate() {
             match &t.kind {
                 TacKind::EXPR(_var, _operator, _left, _right) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
-                    if i != 0 {
+
+                    if i != 0 && !prev_inst_is_goto {
                         self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
                 TacKind::RET(_return_op) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
-                    if i != 0 {
+
+                    if i != 0 && !prev_inst_is_goto {
                         self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
+                TacKind::LABEL(_label_name) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+                }
+                TacKind::GOTO(label_name) => {
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+
+                    if let Some(label_idx) = label_map.get(label_name) {
+                        // goto-statement -> labeled-statement
+                        self.add_succ(&mut cfg_inbb, tacs.len(), i, *label_idx);
+
+                        // labeled-statementから見たエッジ
+                        self.add_prev(&mut cfg_inbb, *label_idx, i);
+                    }
+
+                    prev_inst_is_goto = true;
+                    continue;
+                }
             }
+
+            // TacKind::GOTO 以外はここを経由
+            prev_inst_is_goto = false;
         }
         cfg_inbb
+    }
+    fn build_labelmap(&mut self, tacs: &Vec<ThreeAddressCode>) -> BTreeMap<String, usize> {
+        let mut label_map: BTreeMap<String, usize> = BTreeMap::new();
+        for (i, t) in tacs.iter().enumerate() {
+            if let TacKind::LABEL(label_name) = t.kind.clone() {
+                label_map.insert(label_name.to_string(), i);
+            }
+        }
+
+        label_map
     }
     fn add_succ(
         &mut self,

@@ -20,6 +20,18 @@ impl HighOptimizer {
             // TAC列のイテレーション
             for t in bb.tacs.iter() {
                 match t.kind.clone() {
+                    tac_kind::TacKind::LABEL(_label_name) => {
+                        // この時点でBasicBlockに分けられているのでラベルは生成する必要はない.
+                        // (3番地コードのときはCFG構築などにラベル情報があると便利だったため利用)
+                    }
+                    tac_kind::TacKind::GOTO(label_name) => {
+                        low_irs.push(X64IR::new_jump(label_name));
+                    }
+                    tac_kind::TacKind::RET(return_bf) => {
+                        let return_op = Self::tac_operand_to_x64(return_bf);
+                        // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
+                        low_irs.push(X64IR::new_ret(return_op));
+                    }
                     tac_kind::TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
                         // 各構成要素を変換
                         let left = Self::tac_operand_to_x64(left_bf);
@@ -65,11 +77,6 @@ impl HighOptimizer {
 
                         let load_ir = X64IR::new_mov(dst, left);
                         low_irs.push(load_ir);
-                    }
-                    tac_kind::TacKind::RET(return_bf) => {
-                        let return_op = Self::tac_operand_to_x64(return_bf);
-                        // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
-                        low_irs.push(X64IR::new_ret(return_op));
                     }
                 }
             }

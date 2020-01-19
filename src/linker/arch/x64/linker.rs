@@ -23,12 +23,12 @@ impl X64StaticLinker {
         // これはgccもやっている方法.
         self.padding_null_byte_to_null_section();
 
-        // 調整をかける
-        self.conditioning_section_offset();
-
         // 実際のリンク
         self.link_symbols();
         self.resolve_symbols();
+
+        // 調整をかける
+        self.conditioning_section_offset();
     }
     // 定義済みシンボルにアドレスを割り当てる
     fn link_symbols(&mut self) {
@@ -123,8 +123,12 @@ impl X64StaticLinker {
             .iter_mut()
             .map(|section| {
                 section.header.sh_offset =
-                    PAGE_SIZE - ehdr::Ehdr64::size() as u64 + section.header.sh_offset
+                    PAGE_SIZE - ehdr::Ehdr64::size() as u64 + section.header.sh_offset;
             })
             .collect::<()>();
+
+        // .textセクションのアドレスをエントリポイントになおしておく.
+        let text_number: usize = self.exec_file.get_section_number(".text");
+        self.exec_file.sections[text_number].header.sh_addr = self.exec_file.ehdr.e_entry;
     }
 }

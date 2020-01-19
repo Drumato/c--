@@ -31,9 +31,25 @@ impl Manager {
     }
     fn gen_stmt(&mut self, stmt: Node) {
         match stmt.kind.clone() {
+            NodeKind::GOTOSTMT(label_name) => {
+                let ir_label = format!(".L{}", label_name);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_goto(ir_label.to_string()));
+
+                // 新しいベーシックブロックに向ける
+                let goto_bb = BasicBlock::new(ir_label);
+                self.ir_func.blocks.push(goto_bb);
+                self.cur_bb += 1;
+            }
             NodeKind::RETURNSTMT(child) => {
                 let return_operand = self.gen_expr(*child);
-                self.add_ir_to_current_bb(ThreeAddressCode::new_return_code(return_operand));
+                self.add_ir_to_current_bb(ThreeAddressCode::new_return(return_operand));
+            }
+            NodeKind::LABELEDSTMT(label_name, any_stmt) => {
+                // goto時に新しいBasicBlockを向いた状態になっている
+                // IRを生成するのはCFG構築などに必要な為.
+                let ir_label = format!(".L{}", label_name);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(ir_label));
+                self.gen_stmt(*any_stmt);
             }
             _ => (),
         }
@@ -100,7 +116,7 @@ mod generate_tac_tests {
                 Operand::new_int_literal(100),
                 Operand::new_int_literal(200),
             ),
-            ThreeAddressCode::new_return_code(Operand::new_virtreg(0)),
+            ThreeAddressCode::new_return(Operand::new_virtreg(0)),
         ];
         let expected = IRFunction {
             name: "main".to_string(),

@@ -1,6 +1,8 @@
 use crate::assembler::arch::x64::assembler::X64Assembler;
 use crate::assembler::arch::x64::inst::{inst_kind::X64InstKind, inst_name::X64InstName};
 
+use std::collections::BTreeMap;
+
 pub const REX_PREFIX_BASE: u8 = 0x40;
 pub const REX_PREFIX_WBIT: u8 = 0x08;
 pub const REX_PREFIX_RBIT: u8 = 0x04;
@@ -10,6 +12,8 @@ pub const REX_PREFIX_BBIT: u8 = 0x01;
 pub const MODRM_REGISTER_REGISTER: u8 = 0xc0;
 impl X64Assembler {
     pub fn codegen(&mut self) {
+        // BTreeMap<LabelName, (CodeIndex, Offset)>
+        let mut jump_map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
         for (_name, symbol) in self.src_file.symbols_map.iter_mut() {
             // コードの初期化
             let mut codes: Vec<u8> = Vec::new();
@@ -17,10 +21,47 @@ impl X64Assembler {
             // 各命令を機械語に変換
             for inst in symbol.insts.iter() {
                 match &inst.name {
+                    X64InstName::LABEL => {
+                        if let X64InstKind::LABEL(name) = &inst.kind {
+                            // jump系命令がラベルの前に存在した場合
+                            if let Some(tup) = jump_map.get_mut(name) {
+                                // jump系命令の位置 - 現在位置 - 1 => 相対オフセット
+                                tup.1 = codes.len() - tup.1 - 1;
+                                continue;
+                            }
+
+                            // ラベルがjump系命令の前に存在した場合
+                            jump_map.insert(name.to_string(), (0, codes.len()));
+                        }
+                    }
+                    X64InstName::JMPREL32 => {
+                        // opcode
+                        codes.push(0xe9);
+                        if let X64InstKind::UNARY(op) = &inst.kind {
+                            let label_name = op.label_name();
+
+                            if let Some(tup) = jump_map.get_mut(&label_name) {
+                                // ラベルがjump系命令の前に存在した場合
+                                tup.0 = codes.len();
+                                tup.1 = !(codes.len() + 4 - tup.1) + 1;
+                            } else {
+                                // jump系命令がラベルの前に存在した場合
+                                jump_map
+                                    .insert(label_name.to_string(), (codes.len(), codes.len() + 3));
+                            }
+                        }
+
+                        // immediate-value
+                        for b in (0x00 as u32).to_le_bytes().to_vec().iter() {
+                            codes.push(*b);
+                        }
+                    }
+                    // add
                     X64InstName::ADDRM64R64 => Self::generate_addrm64r64_inst(&mut codes, &inst),
                     X64InstName::ADDRM64IMM32 => {
                         Self::generate_addrm64imm32_inst(&mut codes, &inst)
                     }
+                    // call
                     X64InstName::CALLRM64 => {
                         /* ただのcallではなく,raxにアドレス即値をmovしてからcallするやつに変換 */
                         // mov-rex-prefix
@@ -67,6 +108,24 @@ impl X64Assembler {
                     _ => {
                         eprintln!("not generate ... {:?}", inst.name);
                     }
+                }
+            }
+
+            // ジャンプ系命令のオフセットを解決する
+            for inst in symbol.insts.iter() {
+                match &inst.name {
+                    X64InstName::JMPREL32 => {
+                        if let X64InstKind::UNARY(op) = &inst.kind {
+                            let label_name = op.label_name();
+
+                            if let Some(tup) = jump_map.get(&label_name) {
+                                for (idx, b) in (tup.1 as u32).to_le_bytes().iter().enumerate() {
+                                    codes[idx + tup.0] = *b;
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
                 }
             }
 

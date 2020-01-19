@@ -69,6 +69,7 @@ impl Lexer {
             '-' => Some(self.scan_symbol(TokenKind::MINUS)),
             '*' => Some(self.scan_symbol(TokenKind::ASTERISK)),
             '/' => Some(self.scan_symbol(TokenKind::SLASH)),
+            ':' => Some(self.scan_symbol(TokenKind::COLON)),
             ';' => Some(self.scan_symbol(TokenKind::SEMICOLON)),
             '(' => Some(self.scan_symbol(TokenKind::LPAREN)),
             ')' => Some(self.scan_symbol(TokenKind::RPAREN)),
@@ -155,6 +156,7 @@ impl Lexer {
             .insert("return".to_string(), TokenKind::RETURN);
         self.keywords.insert("int".to_string(), TokenKind::INT);
         self.keywords.insert("void".to_string(), TokenKind::VOID);
+        self.keywords.insert("goto".to_string(), TokenKind::GOTO);
     }
 
     fn skip_offset(&mut self, len: usize) {
@@ -276,9 +278,10 @@ mod lexer_tests {
         let mut lexer = create_lexer("");
         lexer.build_keywords();
 
-        assert_eq!(3, lexer.keywords.len());
+        assert_eq!(4, lexer.keywords.len());
 
         assert!(lexer.keywords.contains_key("return"));
+        assert!(lexer.keywords.contains_key("goto"));
         assert!(lexer.keywords.contains_key("int"));
         assert!(lexer.keywords.contains_key("void"));
     }

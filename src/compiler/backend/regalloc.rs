@@ -72,6 +72,7 @@ impl HighOptimizer {
                         }
                     }
                 }
+                _ => (),
             }
 
             // レジスタ数の削減

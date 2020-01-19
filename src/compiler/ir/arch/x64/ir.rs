@@ -7,6 +7,11 @@ pub struct X64IR {
 }
 
 impl X64IR {
+    pub fn new_jump(label_name: String) -> Self {
+        Self {
+            kind: X64IRKind::JMP(label_name),
+        }
+    }
     pub fn new_mov(dst: X64Operand, src: X64Operand) -> Self {
         Self {
             kind: X64IRKind::MOV(dst, src),

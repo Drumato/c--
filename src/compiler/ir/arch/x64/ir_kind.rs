@@ -1,3 +1,4 @@
+type LabelName = String;
 #[derive(Debug, Clone)]
 pub enum X64IRKind {
     // 抽象的なIR
@@ -7,6 +8,7 @@ pub enum X64IRKind {
     SUB(X64Operand, X64Operand),
     MUL(X64Operand, X64Operand),
     DIV(X64Operand, X64Operand),
+    JMP(LabelName),
 
     // 1つオペランドを持つ系
     RET(X64Operand),

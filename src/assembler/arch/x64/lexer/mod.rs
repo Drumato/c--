@@ -22,7 +22,17 @@ impl AsmLexer {
         }
     }
     // 文字列を切り取って,ディレクティブトークンを返す
-    pub fn scan_directive(&mut self) -> AsmToken {
+    pub fn scan_directive(&mut self) -> Option<AsmToken> {
+        if self.contents.len() == 0 {
+            return None;
+        }
+
+        let head_char = self.contents.as_bytes()[0] as char;
+
+        if head_char != '.' {
+            return None;
+        }
+
         // 現在のオフセットを退避
         let cur_position = self.current_position();
 
@@ -33,10 +43,15 @@ impl AsmLexer {
         // 取得した文字列は後で好きなようにパースする
         let directive = Self::take_conditional_string(&self.contents, |c| c != &'\n');
 
-        // 文字列のオフセットを進める
-        self.skip_offset(directive.len());
+        // 文字列のオフセットを進める (+1 -> 改行)
+        self.skip_offset(directive.len() + 1);
+        self.column = 1;
+        self.row += 1;
 
-        AsmToken::new(cur_position, AsmTokenKind::DIRECTIVE(directive))
+        Some(AsmToken::new(
+            cur_position,
+            AsmTokenKind::DIRECTIVE(directive),
+        ))
     }
 
     // 文字列を切り取って,レジスタ/命令/ラベルトークンを返す
@@ -182,9 +197,9 @@ mod general_lexer_tests {
             (1, 1),
             AsmTokenKind::DIRECTIVE("intel_syntax noprefix".to_string()),
         );
-        let mut lexer = create_lexer(".intel_syntax noprefix");
+        let mut lexer = create_lexer(".intel_syntax noprefix\n");
         let actual = lexer.scan_directive();
-        assert_eq!(expected, actual);
+        assert_eq!(expected, actual.unwrap());
     }
 
     #[test]

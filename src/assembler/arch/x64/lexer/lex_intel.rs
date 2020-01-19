@@ -15,6 +15,10 @@ pub fn lexing_intel_syntax(assembler: &mut X64Assembler) {
 impl AsmLexer {
     fn build_tokens_for_intel_syntax(&mut self) -> Vec<AsmToken> {
         let mut tokens: Vec<AsmToken> = Vec::new();
+        // 先に.intel_syntaxなどを全部パースしてしまう
+        while let Some(t) = self.scan_directive() {
+            tokens.push(t);
+        }
         while let Some(t) = self.scan_one_intel_token() {
             // コメントとか改行文字とか
             if t.should_ignore() {
@@ -43,12 +47,10 @@ impl AsmLexer {
         match head_char {
             // アルファベットの場合
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),
-            '_' => Some(self.scan_word()),
+            '_' | '.' => Some(self.scan_word()),
+
             // 数字の場合
             number if number.is_ascii_digit() => Some(self.scan_number()),
-
-            // .intel_syntax等のディレクティブ
-            '.' => Some(self.scan_directive()),
 
             // 空白類文字
             ' ' | '\t' => Some(self.skip_whitespace()),
@@ -67,6 +69,7 @@ impl AsmLexer {
         // 命令
         self.keywords.insert("add".to_string(), AsmTokenKind::ADD);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
+        self.keywords.insert("jmp".to_string(), AsmTokenKind::JMP);
         self.keywords.insert("cqo".to_string(), AsmTokenKind::CQO);
         self.keywords.insert("imul".to_string(), AsmTokenKind::IMUL);
         self.keywords.insert("idiv".to_string(), AsmTokenKind::IDIV);

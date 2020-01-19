@@ -71,6 +71,7 @@ impl HighOptimizer {
                         bb.cfg_inbb.used[i].insert(return_op.virt);
                     }
                 }
+                _ => (),
             }
         }
     }

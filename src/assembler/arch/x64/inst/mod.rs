@@ -47,6 +47,7 @@ impl X64Instruction {
     pub fn new_unary_inst(name: inst_name::X64InstName, unop: inst_kind::X64Operand) -> Self {
         match name {
             inst_name::X64InstName::CALL => Self::new_call(unop),
+            inst_name::X64InstName::JMP => Self::new_jmp(unop),
             inst_name::X64InstName::IDIV => Self::new_idiv(unop),
             _ => panic!("no such an unary instruction"),
         }
@@ -62,6 +63,18 @@ impl X64Instruction {
             inst_name::X64InstName::IMUL => Self::new_imul(src, dst),
             inst_name::X64InstName::MOV => Self::new_mov(src, dst),
             _ => panic!("no such a binary instruction"),
+        }
+    }
+    pub fn new_label(label_name: String) -> Self {
+        Self {
+            name: inst_name::X64InstName::LABEL,
+            kind: inst_kind::X64InstKind::LABEL(label_name),
+            operand_size: OperandSize::UNKNOWN,
+            src_expanded: false,
+            dst_expanded: false,
+            src_regnumber: 0,
+            dst_regnumber: 0,
+            immediate_value: 0,
         }
     }
     pub fn to_string(&self) -> String {

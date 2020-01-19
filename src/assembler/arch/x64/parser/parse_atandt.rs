@@ -53,7 +53,7 @@ impl X64Assembler {
             }
 
             // 1つのオペランドを持つ命令
-            AsmTokenKind::CALL | AsmTokenKind::IDIVQ => {
+            AsmTokenKind::CALL | AsmTokenKind::IDIVQ | AsmTokenKind::JMP => {
                 self.read_token();
 
                 // 1つのオペランドを取得
@@ -67,6 +67,16 @@ impl X64Assembler {
                 self.read_token();
                 let inst_name = cur.kind.to_inst_name();
                 Some(X64Instruction::new_noop_inst(inst_name))
+            }
+            // ラベルはシンボルと違って命令列に含める
+            AsmTokenKind::LABEL(name) => {
+                // ラベルかどうかを先頭で判定
+                if name.starts_with(".") {
+                    self.read_token();
+                    Some(X64Instruction::new_label(name.to_string()))
+                } else {
+                    None
+                }
             }
             _ => None,
         }

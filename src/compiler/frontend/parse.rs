@@ -78,8 +78,30 @@ impl Manager {
         let cur = self.looking_token_clone();
         match cur.kind {
             TokenKind::RETURN => self.parse_return_stmt(),
-            _ => panic!("statement must start with return"),
+            TokenKind::GOTO => self.parse_goto_stmt(),
+            TokenKind::IDENTIFIER(_name) => self.parse_labeled_stmt(),
+            _ => panic!("can't parse statement"),
         }
+    }
+    fn parse_goto_stmt(&mut self) -> Node {
+        // goto_stmt -> goto + identifier + `;`
+        // gotol文開始位置を保存
+        let current_position = self.looking_token_clone().position;
+        self.expect(TokenKind::GOTO);
+        let label_name = self.expect_ident();
+        self.expect(TokenKind::SEMICOLON);
+
+        Node::new_goto(current_position, label_name)
+    }
+    fn parse_labeled_stmt(&mut self) -> Node {
+        // labeled_stmt -> identifier + `:` + statement
+        // label文開始位置を保存
+        let current_position = self.looking_token_clone().position;
+        let label_name = self.expect_ident();
+        self.expect(TokenKind::COLON);
+        let any_statement = self.parse_statement();
+
+        Node::new_labeled(current_position, label_name, any_statement)
     }
     fn parse_return_stmt(&mut self) -> Node {
         // return_stmt -> return + expr + `;`
@@ -278,7 +300,22 @@ mod parser_tests {
     }
 
     #[test]
-    fn test_parse_primar() {
+    fn test_parse_labeled_statement() {
+        let goto_stmt = Node::new_goto((2, 1), "fin".to_string());
+        let return_stmt = Node::new_return((3, 7), Node::new((3, 14), NodeKind::INTEGER(2)));
+        let labeled_stmt = Node::new_labeled((3, 1), "fin".to_string(), return_stmt);
+
+        let func = Function {
+            name: "main".to_string(),
+            def_position: (1, 1),
+            stmts: vec![goto_stmt, labeled_stmt],
+        };
+
+        integration_test_parser("int main(){\ngoto fin;\nfin:  return 2;\n}", func);
+    }
+
+    #[test]
+    fn test_parse_primary() {
         let expected = Node::new((1, 1), NodeKind::INTEGER(100));
         let mut manager = preprocess("100");
 

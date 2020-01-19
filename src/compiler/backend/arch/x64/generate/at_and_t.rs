@@ -115,8 +115,9 @@ impl X64IR {
             }
             X64IRKind::RETIMM(return_op) => {
                 let return_value = return_op.int_value();
-                format!("movq %{}, %rax\n  ret", return_value)
+                format!("movq ${}, %rax\n  ret", return_value)
             }
+            X64IRKind::JMP(label_name) => format!("jmp {}", label_name),
             _ => {
                 eprintln!("can't emit with invalid ir -> {:?}", self.kind);
                 String::new()
