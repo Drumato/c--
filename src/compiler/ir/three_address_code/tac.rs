@@ -18,6 +18,9 @@ impl ThreeAddressCode {
     pub fn new_return(return_op: Operand) -> Self {
         Self::new(TacKind::RET(return_op))
     }
+    pub fn new_assign_code(lv: Operand, rv: Operand) -> Self {
+        Self::new(TacKind::ASSIGN(lv, rv))
+    }
     pub fn new_binop_code(
         variable_op: Operand,
         operator: Operator,
@@ -31,6 +34,7 @@ impl ThreeAddressCode {
         match &self.kind {
             TacKind::LABEL(label_name) => format!("{}:", label_name),
             TacKind::GOTO(label_name) => format!("goto {}", label_name),
+            TacKind::ASSIGN(lv, rv) => format!("{} <- {}", lv.to_string(), rv.to_string()),
             TacKind::EXPR(var, op, left, right) => format!(
                 "{} <- {} {} {}",
                 var.to_string(),

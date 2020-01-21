@@ -27,6 +27,11 @@ impl HighOptimizer {
                     tac_kind::TacKind::GOTO(label_name) => {
                         low_irs.push(X64IR::new_jump(label_name));
                     }
+                    tac_kind::TacKind::ASSIGN(lv_bf, rv_bf) => {
+                        let src_op = Self::tac_operand_to_x64(rv_bf);
+                        let dst_op = Self::tac_operand_to_x64(lv_bf);
+                        low_irs.push(X64IR::new_store(dst_op, src_op));
+                    }
                     tac_kind::TacKind::RET(return_bf) => {
                         let return_op = Self::tac_operand_to_x64(return_bf);
                         // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
@@ -85,7 +90,11 @@ impl HighOptimizer {
             x64_blocks.push(x64_bb);
         }
 
-        X64Optimizer::new(high_opt.entry_func.name, x64_blocks)
+        X64Optimizer::new(
+            high_opt.entry_func.name,
+            x64_blocks,
+            high_opt.entry_func.frame_size,
+        )
     }
 
     fn add_ir_matching_opcode(
@@ -134,6 +143,9 @@ impl HighOptimizer {
     fn tac_opekind_to_x64(kind: tac_kind::OpeKind) -> X64OpeKind {
         match kind {
             tac_kind::OpeKind::INTLIT(val) => X64OpeKind::INTLIT(val),
+            tac_kind::OpeKind::AUTOVARIABLE(name, offset) => {
+                X64OpeKind::AUTOVAR(name.to_string(), offset)
+            }
             tac_kind::OpeKind::REG => X64OpeKind::REG,
             tac_kind::OpeKind::INVALID => X64OpeKind::INVALID,
         }

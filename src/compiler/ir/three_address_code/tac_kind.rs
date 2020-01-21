@@ -5,6 +5,7 @@ pub enum TacKind {
     EXPR(Operand, Operator, Operand, Operand),
     RET(Operand),
     GOTO(Label),
+    ASSIGN(Operand, Operand),
 
     // ラベルを必要とするのは,CFG構築などで存在すると便利だから.
     // BasicBlockがこの情報を保持しているので,Low-IRに変換したときに捨てる.
@@ -51,6 +52,9 @@ impl Operand {
     pub fn new_int_literal(val: i128) -> Self {
         Self::new(OpeKind::INTLIT(val))
     }
+    pub fn new_auto_var(name: String, offset: usize) -> Self {
+        Self::new(OpeKind::AUTOVARIABLE(name, offset))
+    }
     pub fn new_virtreg(virt: usize) -> Self {
         let mut base_reg = Self::new(OpeKind::REG);
         base_reg.virt = virt;
@@ -66,24 +70,28 @@ impl Operand {
         }
     }
     pub fn to_string(&self) -> String {
-        match self.kind {
+        match &self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
+            OpeKind::AUTOVARIABLE(name, _offset) => format!("{}", name),
             OpeKind::REG => format!("t{}", self.virt),
             OpeKind::INVALID => "invalid".to_string(),
         }
     }
     pub fn to_string_physical(&self) -> String {
-        match self.kind {
+        match &self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
+            OpeKind::AUTOVARIABLE(name, offset) => format!("{}[sp-{}]", name, offset),
             OpeKind::REG => format!("t{}", self.phys),
             OpeKind::INVALID => "invalid".to_string(),
         }
     }
 }
 
+type Offset = usize;
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum OpeKind {
     INTLIT(i128),
     REG,
+    AUTOVARIABLE(String, Offset),
     INVALID,
 }

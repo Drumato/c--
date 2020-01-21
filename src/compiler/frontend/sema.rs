@@ -20,7 +20,11 @@ impl Manager {
             NodeKind::LABELEDSTMT(ref mut _label_name, ref mut any_stmt) => {
                 self.walk_statement(any_stmt);
             }
+            NodeKind::EXPRSTMT(ref mut expr) => {
+                self.walk_expression(expr);
+            }
             NodeKind::GOTOSTMT(ref mut _label_name) => {}
+            NodeKind::DECLARATION(ref mut _name, ref mut _type) => {}
             _ => {
                 self.output_invalid_node_type_error(stmt.position);
             }
@@ -31,6 +35,23 @@ impl Manager {
             NodeKind::INTEGER(_val) => {
                 n.ctype = Type::new_integer();
                 n.ctype.clone()
+            }
+            NodeKind::IDENTIFIER(ref name) => {
+                if let Some(var) = self.var_map.get(name) {
+                    return var.ctype.clone();
+                }
+                Type::new_unknown()
+            }
+
+            NodeKind::ASSIGN(ref mut lv, ref mut rv) => {
+                let left_type = self.walk_expression(lv);
+                let right_type = self.walk_expression(rv);
+                if left_type == right_type {
+                    n.ctype = left_type;
+                    return right_type;
+                }
+                self.output_type_difference_error(lv.position);
+                Type::new_unknown()
             }
 
             // 二項演算
@@ -90,6 +111,7 @@ mod walk_tests {
             name: "main".to_string(),
             stmts: vec![return_stmt],
             def_position: (1, 1),
+            frame_size: 0,
         };
 
         integration_test_semantics("int main() { return 100 - 200; }", expected);

@@ -9,6 +9,7 @@ pub enum X64IRKind {
     MUL(X64Operand, X64Operand),
     DIV(X64Operand, X64Operand),
     JMP(LabelName),
+    STORE(X64Operand, X64Operand),
 
     // 1つオペランドを持つ系
     RET(X64Operand),
@@ -26,6 +27,9 @@ pub enum X64IRKind {
     DIVREGTOREG(X64Operand, X64Operand),
     RETREG(X64Operand),
     RETIMM(X64Operand),
+    RETMEM(X64Operand),
+    STOREREG(X64Operand, X64Operand),
+    STOREIMM(X64Operand, X64Operand),
 }
 #[derive(Debug, Clone)]
 pub struct X64Operand {
@@ -62,11 +66,24 @@ impl X64Operand {
             _ => panic!("can't get immediate-value without intlit-kind"),
         }
     }
+    pub fn var_name(&self) -> &String {
+        match &self.kind {
+            X64OpeKind::AUTOVAR(name, _offset) => &name,
+            _ => panic!("can't get variable-name without autovar"),
+        }
+    }
+    pub fn var_offset(&self) -> usize {
+        match &self.kind {
+            X64OpeKind::AUTOVAR(_name, offset) => *offset,
+            _ => panic!("can't get variable-offset without autovar"),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
 pub enum X64OpeKind {
     INTLIT(i128),
+    AUTOVAR(String, usize),
     REG,
     INVALID,
 }

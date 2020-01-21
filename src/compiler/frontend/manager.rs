@@ -1,7 +1,11 @@
 use crate::compiler::file;
 use crate::compiler::frontend::node;
 use crate::compiler::frontend::token;
+use crate::compiler::frontend::variable;
 use crate::compiler::ir::three_address_code::function::IRFunction;
+
+use std::collections::BTreeMap;
+
 pub struct Manager {
     pub src_file: file::SrcFile,
     pub tokens: Vec<token::Token>,
@@ -12,6 +16,7 @@ pub struct Manager {
     // パース処理用
     pub cur_token: usize,
     pub next_token: usize,
+    pub var_map: BTreeMap<String, variable::Variable>,
 
     // 3番地コード列
     // 単一関数のみ許容するように変更
@@ -32,6 +37,7 @@ impl Manager {
             entry_func: node::Function::init("none".to_string(), (0, 0)),
             cur_token: 0,
             next_token: 1,
+            var_map: BTreeMap::new(),
             ir_func: IRFunction::new(entry_point),
             cur_bb: 0,
             virt: 0,

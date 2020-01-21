@@ -49,6 +49,13 @@ impl HighOptimizer {
                         self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
+                TacKind::ASSIGN(_lv, _rv) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+                }
                 TacKind::RET(_return_op) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
 

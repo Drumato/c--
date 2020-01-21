@@ -40,7 +40,7 @@ impl HighOptimizer {
                         if let Some(allocated_number) = register_map.get(&left.virt) {
                             left.phys = *allocated_number;
                         } else {
-                            eprintln!("spill occured!(not implemented)");
+                            panic!("spill occured!(not implemented)");
                         }
                     }
 
@@ -52,7 +52,7 @@ impl HighOptimizer {
                         if let Some(allocated_number) = register_map.get(&right.virt) {
                             right.phys = *allocated_number;
                         } else {
-                            eprintln!("spill occued!(not implemented)");
+                            panic!("spill occured!(not implemented)");
                         }
                     }
 
@@ -63,12 +63,22 @@ impl HighOptimizer {
                     var_op.phys = register_map.len();
                     register_map.insert(var_op.virt, var_op.phys);
                 }
+                TacKind::ASSIGN(ref mut _var_op, ref mut src_op) => {
+                    if let OpeKind::REG = src_op.kind {
+                        if let Some(allocated_number) = register_map.get(&src_op.virt) {
+                            src_op.phys = *allocated_number;
+                        } else {
+                            eprintln!("before spill -> {:?}", src_op);
+                            panic!("spill occured!(not implemented)");
+                        }
+                    }
+                }
                 TacKind::RET(ref mut return_op) => {
                     if let OpeKind::REG = return_op.kind {
                         if let Some(allocated_number) = register_map.get(&return_op.virt) {
                             return_op.phys = *allocated_number;
                         } else {
-                            eprintln!("spill occued!(not implemented)");
+                            panic!("spill occured!(not implemented)");
                         }
                     }
                 }

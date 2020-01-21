@@ -19,6 +19,15 @@ impl X64Function {
     fn to_at_and_t_code(&self) -> String {
         let mut output = String::new();
         output += &(format!("{}:\n", self.func_name).as_str());
+
+        // 関数プロローグ
+        output += &(format!("  push %rbp\n").as_str());
+        output += &(format!("  movq %rsp, %rbp\n").as_str());
+        if self.frame_size != 0 {
+            output += &(format!("  subq ${}, %rsp\n", !7 & self.frame_size + 7).as_str());
+        }
+
+        // 関数本体
         for block in self.blocks.iter() {
             output += &block.to_at_and_t_code();
         }
@@ -108,14 +117,59 @@ impl X64IR {
                 output
             }
 
+            // store
+            X64IRKind::STOREREG(dst, src) => {
+                let src_reg = Registers::from_number_ir(src.phys);
+                let dst_name = dst.var_name();
+                let dst_offset = dst.var_offset();
+                format!(
+                    "movq %{}, -{}(rbp) # {}",
+                    src_reg.to_string(),
+                    dst_offset,
+                    dst_name
+                )
+            }
+            X64IRKind::STOREIMM(dst, src) => {
+                let src_value = src.int_value();
+                let dst_name = dst.var_name();
+                let dst_offset = dst.var_offset();
+                format!("movq ${}, -{}(%rbp) # {}", src_value, dst_offset, dst_name)
+            }
             // ret
             X64IRKind::RETREG(return_op) => {
+                let mut output = String::new();
                 let return_reg = Registers::from_number_ir(return_op.phys);
-                format!("movq %{}, %rax\n  ret", return_reg.to_string())
+                format!("movq %{}, %rax\n", return_reg.to_string());
+
+                // 関数エピローグ
+                output += &(format!("  movq %rbp, %rsp\n").as_str());
+                output += &(format!("  pop %rbp\n").as_str());
+                output += &(format!("  ret").as_str());
+                output
             }
             X64IRKind::RETIMM(return_op) => {
+                let mut output = String::new();
                 let return_value = return_op.int_value();
-                format!("movq ${}, %rax\n  ret", return_value)
+                format!("movq ${}, %rax\n", return_value);
+
+                // 関数エピローグ
+                output += &(format!("  movq %rbp, %rsp\n").as_str());
+                output += &(format!("  pop %rbp\n").as_str());
+                output += &(format!("  ret").as_str());
+                output
+            }
+            X64IRKind::RETMEM(return_op) => {
+                let mut output = String::new();
+                let return_name = return_op.var_name();
+                let return_off = return_op.var_offset();
+                output +=
+                    &(format!("movq -{}(%rbp), %rax # {}\n", return_off, return_name).as_str());
+
+                // 関数エピローグ
+                output += &(format!("  movq %rbp, %rsp\n").as_str());
+                output += &(format!("  pop %rbp\n").as_str());
+                output += &(format!("  ret").as_str());
+                output
             }
             X64IRKind::JMP(label_name) => format!("jmp {}", label_name),
             _ => {

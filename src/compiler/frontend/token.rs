@@ -42,6 +42,7 @@ pub enum TokenKind {
     RBRACKET,  // }記号
     COLON,     // :記号
     SEMICOLON, // ;記号
+    ASSIGN,    // =記号
     BLANK,     // 空白類文字
     NEWLINE,   // 改行
     EOF,

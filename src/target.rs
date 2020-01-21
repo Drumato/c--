@@ -11,6 +11,12 @@ impl Target {
             arch: Architecture::new(),
         }
     }
+    pub fn is_x86_64(&self) -> bool {
+        if let Architecture::X86_64 = self.arch {
+            return true;
+        }
+        false
+    }
 }
 
 pub enum OS {

@@ -4,6 +4,7 @@ use crate::compiler::ir::three_address_code::basicblock::BasicBlock;
 pub struct IRFunction {
     pub name: String,
     pub blocks: Vec<BasicBlock>,
+    pub frame_size: usize,
 }
 
 impl IRFunction {
@@ -11,6 +12,7 @@ impl IRFunction {
         Self {
             name: name,
             blocks: Vec::new(),
+            frame_size: 0,
         }
     }
 }

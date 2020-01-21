@@ -9,6 +9,8 @@ pub struct Function {
     // args
     // pub args: BTreeMap<String, Node>,
     pub stmts: Vec<Node>,
+
+    pub frame_size: usize,
 }
 
 impl Function {
@@ -17,6 +19,7 @@ impl Function {
             name: name,
             def_position: pos,
             stmts: Vec::new(),
+            frame_size: 0,
         }
     }
 }
@@ -42,6 +45,15 @@ impl Node {
     pub fn new_goto(pos: Position, label_name: String) -> Self {
         Self::new(pos, NodeKind::GOTOSTMT(label_name))
     }
+    pub fn new_exprstmt(pos: Position, expr: Node) -> Self {
+        Self::new(pos, NodeKind::EXPRSTMT(Box::new(expr)))
+    }
+    pub fn new_declaration(pos: Position, name: String, ty: Type) -> Self {
+        Self::new(pos, NodeKind::DECLARATION(name, ty))
+    }
+    pub fn new_assign(pos: Position, lvalue: Node, rvalue: Node) -> Self {
+        Self::new(pos, NodeKind::ASSIGN(Box::new(lvalue), Box::new(rvalue)))
+    }
     pub fn new_return(pos: Position, expr: Node) -> Self {
         Self::new(pos, NodeKind::RETURNSTMT(Box::new(expr)))
     }
@@ -66,13 +78,17 @@ pub enum NodeKind {
     RETURNSTMT(Expr),
     GOTOSTMT(Label),
     LABELEDSTMT(Label, Stmt),
+    EXPRSTMT(Expr),
+    DECLARATION(String, Type),
 
     // expression
+    ASSIGN(Expr, Expr),
     ADD(Expr, Expr),
     SUB(Expr, Expr),
     MUL(Expr, Expr),
     DIV(Expr, Expr),
     INTEGER(i128),
+    IDENTIFIER(String),
     INVALID,
 }
 

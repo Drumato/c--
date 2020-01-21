@@ -2,8 +2,8 @@ use crate::compiler::frontend::token::{Token, TokenKind};
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Type {
-    kind: TypeKind,
-    byte_size: usize, // メモリ上のサイズ
+    pub kind: TypeKind,
+    pub byte_size: usize, // メモリ上のサイズ
 }
 
 impl Type {

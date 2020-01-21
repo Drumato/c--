@@ -2,6 +2,7 @@ use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Function, Node, NodeKind, Priority};
 use crate::compiler::frontend::token;
 use crate::compiler::frontend::types::Type;
+use crate::compiler::frontend::variable::Variable;
 use crate::error::{Error, ErrorKind, ErrorMsg};
 use token::{Token, TokenKind};
 
@@ -20,29 +21,6 @@ impl Manager {
 
             self.entry_func = self.parse_function();
         }
-    }
-
-    // declarator = "*"* ("(" declarator ")" | ident) type-suffix
-    fn parse_declarator(&mut self, base_type: Type) -> (String, Type) {
-        let mut covered_type = base_type;
-
-        // *がある間ポインタ型にくるむ
-        loop {
-            if !self.consume(TokenKind::ASTERISK) {
-                break;
-            }
-            covered_type = Type::pointer_to(covered_type);
-        }
-
-        if self.consume(TokenKind::LPAREN) {
-            let placeholder = Type::new_unknown();
-            let (name, new_type) = self.parse_declarator(placeholder);
-            self.expect(TokenKind::RPAREN);
-            return (name, new_type);
-        }
-
-        let name = self.expect_ident();
-        (name, covered_type)
     }
 
     // function = basetype declarator "(" params? ")" ("{" stmt* "}" | ";")
@@ -75,14 +53,76 @@ impl Manager {
         func
     }
     fn parse_statement(&mut self) -> Node {
+        if self.is_typename() {
+            return self.parse_declaration();
+        }
         let cur = self.looking_token_clone();
         match cur.kind {
+            // return-statement
             TokenKind::RETURN => self.parse_return_stmt(),
+            // goto-statement
             TokenKind::GOTO => self.parse_goto_stmt(),
-            TokenKind::IDENTIFIER(_name) => self.parse_labeled_stmt(),
-            _ => panic!("can't parse statement"),
+            // labeled-statement
+            TokenKind::IDENTIFIER(_name) if self.next_token_is(TokenKind::COLON) => {
+                eprintln!("next token -> {}", self.next_token_is(TokenKind::COLON));
+                self.parse_labeled_stmt()
+            }
+            // expression-statement
+            _ => {
+                let current_position = self.looking_token_clone().position;
+                let expression = self.parse_expression();
+                self.expect(TokenKind::SEMICOLON);
+                Node::new_exprstmt(current_position, expression)
+            }
         }
     }
+
+    // declaration =  basetype declarator type-suffix ("=" lvar-initializer)? ";"
+    //              | basetype ";"
+    fn parse_declaration(&mut self) -> Node {
+        let current_position = self.looking_token_clone().position;
+        let base_type = self.consume_base_type().unwrap();
+
+        let (var_name, var_type) = self.parse_declarator(base_type);
+
+        // TODO: type-suffix は考えない
+
+        // TODO: 今は初期化を実装する必要はない.
+        // if self.consume(TokenKind::ASSIGN) {
+        // ASTノードに意味を持たせない実装もあるが,ここでは持たせている.
+        // return Node::new_declaration(current_position, base_type);
+        // }
+
+        // マップにエントリを登録
+        let local_var = Variable::init_local(var_type.clone());
+        self.var_map.insert(var_name.to_string(), local_var);
+        self.expect(TokenKind::SEMICOLON);
+        Node::new_declaration(current_position, var_name, var_type)
+    }
+
+    // declarator = "*"* ("(" declarator ")" | ident) type-suffix
+    fn parse_declarator(&mut self, base_type: Type) -> (String, Type) {
+        let mut covered_type = base_type;
+
+        // *がある間ポインタ型にくるむ
+        loop {
+            if !self.consume(TokenKind::ASTERISK) {
+                break;
+            }
+            covered_type = Type::pointer_to(covered_type);
+        }
+
+        if self.consume(TokenKind::LPAREN) {
+            let placeholder = Type::new_unknown();
+            let (name, new_type) = self.parse_declarator(placeholder);
+            self.expect(TokenKind::RPAREN);
+            return (name, new_type);
+        }
+
+        let name = self.expect_ident();
+        (name, covered_type)
+    }
+
     fn parse_goto_stmt(&mut self) -> Node {
         // goto_stmt -> goto + identifier + `;`
         // gotol文開始位置を保存
@@ -116,9 +156,27 @@ impl Manager {
 
         Node::new_return(current_position, return_expr)
     }
+    // expr -> assign ("," assign)*
     fn parse_expression(&mut self) -> Node {
-        // expr -> primary | expr_1 (`+`/`-` primary)+
-        self.parse_additive()
+        let assign_node = self.parse_assign();
+        assign_node
+    }
+    // assign -> conditional (assign-op assign)?
+    // assign-op = "=" | "+=" | "-=" | "*=" | "/=" | "<<=" | ">>="
+    //           | "&=" | "|=" | "^="
+    #[allow(unconditional_recursion)]
+    fn parse_assign(&mut self) -> Node {
+        // TODO: 今はconditionalをパースできない
+        // 現状最も優先度の低いadditiveを呼び出しておく
+        let lvalue_node = self.parse_additive();
+
+        // TODO: 今は `=` のみサポート
+        let current_position = self.looking_token_clone().position;
+        if self.consume(TokenKind::ASSIGN) {
+            return Node::new_assign(current_position, lvalue_node, self.parse_assign());
+        }
+
+        lvalue_node
     }
     fn parse_additive(&mut self) -> Node {
         let mut left_node: Node = self.parse_multiplicative();
@@ -169,6 +227,10 @@ impl Manager {
         self.read_token();
         match cur.kind {
             TokenKind::INTEGER(val) => Node::new(cur.position, NodeKind::INTEGER(val)),
+            // TODO: 関数コール等をチェックすべき
+            TokenKind::IDENTIFIER(name) => {
+                Node::new(cur.position, NodeKind::IDENTIFIER(name.to_string()))
+            }
             // エラーを吐いてINVALIDを返す
             _ => {
                 let err = Error::new(ErrorKind::Parse, cur.position, ErrorMsg::MustBeInteger);
@@ -268,7 +330,12 @@ impl Manager {
         }
         self.tokens[self.cur_token].clone()
     }
-
+    fn next_token_is(&mut self, tk: TokenKind) -> bool {
+        if self.tokens.len() <= self.next_token {
+            return false;
+        }
+        self.tokens[self.next_token].clone().kind == tk
+    }
     fn read_token(&mut self) {
         self.cur_token += 1;
         self.next_token += 1;
@@ -294,9 +361,27 @@ mod parser_tests {
             name: "main".to_string(),
             def_position: (1, 1),
             stmts: vec![return_stmt],
+            frame_size: 0,
         };
 
         integration_test_parser("int main(){\n  return 200 * 100;\n}", func);
+    }
+    #[test]
+    fn test_parse_assign_expression() {
+        let declaration = Node::new_declaration((2, 3), "x".to_string(), Type::new_integer());
+        let var = Node::new((3, 3), NodeKind::IDENTIFIER("x".to_string()));
+        let rvalue = Node::new((3, 7), NodeKind::INTEGER(30));
+        let assign = Node::new_assign((3, 5), var, rvalue);
+        let expr_stmt = Node::new_exprstmt((3, 3), assign);
+
+        let func = Function {
+            name: "main".to_string(),
+            def_position: (1, 1),
+            stmts: vec![declaration, expr_stmt],
+            frame_size: 0,
+        };
+
+        integration_test_parser("int main(){\n  int x;\n  x = 30;\n}", func);
     }
 
     #[test]
@@ -309,6 +394,7 @@ mod parser_tests {
             name: "main".to_string(),
             def_position: (1, 1),
             stmts: vec![goto_stmt, labeled_stmt],
+            frame_size: 0,
         };
 
         integration_test_parser("int main(){\ngoto fin;\nfin:  return 2;\n}", func);

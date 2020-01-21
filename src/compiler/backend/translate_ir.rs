@@ -1,5 +1,6 @@
 use crate::compiler::frontend::manager::Manager;
 use crate::compiler::frontend::node::{Node, NodeKind};
+use crate::compiler::frontend::variable::VarKind;
 use crate::compiler::ir::three_address_code;
 use three_address_code::{
     basicblock::BasicBlock,
@@ -24,6 +25,9 @@ impl Manager {
         // 単一関数
         let entry_bb = BasicBlock::new("entry".to_string());
         self.ir_func.blocks.push(entry_bb);
+        self.ir_func.frame_size = self.entry_func.frame_size;
+
+        // 全文を生成
         let statements = self.entry_func.stmts.clone();
         for stmt in statements.iter() {
             self.gen_stmt(stmt.clone());
@@ -51,11 +55,24 @@ impl Manager {
                 self.add_ir_to_current_bb(ThreeAddressCode::new_label(ir_label));
                 self.gen_stmt(*any_stmt);
             }
+            NodeKind::EXPRSTMT(child) => {
+                let _ = self.gen_expr(*child);
+            }
             _ => (),
         }
     }
+    #[allow(irrefutable_let_patterns)]
     fn gen_expr(&mut self, n: Node) -> Operand {
         match n.kind.clone() {
+            NodeKind::ASSIGN(lv, rv) => {
+                let right_op = self.gen_expr(*rv);
+                let left_op = self.gen_expr(*lv);
+
+                let assign_code = ThreeAddressCode::new_assign_code(left_op, right_op.clone());
+
+                self.add_ir_to_current_bb(assign_code);
+                right_op
+            }
             NodeKind::ADD(left, right)
             | NodeKind::SUB(left, right)
             | NodeKind::MUL(left, right)
@@ -80,6 +97,15 @@ impl Manager {
                 variable_reg
             }
             NodeKind::INTEGER(val) => Operand::new_int_literal(val),
+            NodeKind::IDENTIFIER(name) => {
+                if let Some(var) = self.var_map.get(&name) {
+                    if let VarKind::LOCAL(offset) = var.kind {
+                        return Operand::new_auto_var(name.to_string(), offset);
+                    }
+                }
+                eprintln!("not found such an var -> {}", name);
+                Operand::new_invalid()
+            }
 
             // NodeKind::INVALID => Operand::new_invalid(),
             _ => Operand::new_invalid(),
@@ -121,6 +147,7 @@ mod generate_tac_tests {
         let expected = IRFunction {
             name: "main".to_string(),
             blocks: vec![entry_bb],
+            frame_size: 0,
         };
 
         integration_test_genir("int main(){ return 100 - 200; }", expected);

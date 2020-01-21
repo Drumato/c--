@@ -65,6 +65,12 @@ impl HighOptimizer {
                         bb.cfg_inbb.used[i].insert(right.virt);
                     }
                 }
+                TacKind::ASSIGN(_dst_op, src_op) => {
+                    // 使用オペランドがレジスタなら使用集合に
+                    if src_op.is_register() {
+                        bb.cfg_inbb.used[i].insert(src_op.virt);
+                    }
+                }
                 TacKind::RET(return_op) => {
                     // 返すオペランドがレジスタなら使用集合に
                     if return_op.is_register() {
