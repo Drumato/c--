@@ -49,6 +49,8 @@ impl X64Instruction {
             inst_name::X64InstName::CALL => Self::new_call(unop),
             inst_name::X64InstName::JMP => Self::new_jmp(unop),
             inst_name::X64InstName::IDIV => Self::new_idiv(unop),
+            inst_name::X64InstName::PUSH => Self::new_push(unop),
+            inst_name::X64InstName::POP => Self::new_pop(unop),
             _ => panic!("no such an unary instruction"),
         }
     }

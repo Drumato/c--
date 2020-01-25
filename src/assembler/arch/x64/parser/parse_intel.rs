@@ -54,7 +54,11 @@ impl X64Assembler {
             }
 
             // 1つのオペランドを持つ命令
-            AsmTokenKind::CALL | AsmTokenKind::IDIV | AsmTokenKind::JMP => {
+            AsmTokenKind::CALL
+            | AsmTokenKind::IDIV
+            | AsmTokenKind::JMP
+            | AsmTokenKind::PUSH
+            | AsmTokenKind::POP => {
                 self.read_token();
 
                 // 1つのオペランドを取得

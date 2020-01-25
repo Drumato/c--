@@ -52,6 +52,8 @@ pub enum AsmTokenKind {
     CALL,    // call命令
     RET,     // ret命令
     SYSCALL, // syscall命令
+    PUSH,    // push命令
+    POP,     // pop命令
 
     // その他
     LABEL(String),     // ラベル
@@ -75,6 +77,8 @@ impl AsmTokenKind {
             Self::RET => X64InstName::RET,
             Self::CQO | Self::CLTD => X64InstName::CQO,
             Self::MOV | Self::MOVQ => X64InstName::MOV,
+            Self::PUSH => X64InstName::PUSH,
+            Self::POP => X64InstName::POP,
             _ => panic!("can't translate to X64InstName"),
         }
     }

@@ -96,6 +96,8 @@ impl X64Instruction {
             X64InstName::CALL => Self::change_call_opcode(size, op),
             X64InstName::JMP => Self::change_jmp_opcode(size, op),
             X64InstName::IDIV => Self::change_idiv_opcode(size, op),
+            X64InstName::PUSH => Self::change_push_opcode(size, op),
+            X64InstName::POP => Self::change_pop_opcode(size, op),
             // 何も変化させない
             _ => X64InstName::CALL,
         }

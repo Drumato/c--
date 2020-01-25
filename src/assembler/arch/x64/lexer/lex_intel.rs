@@ -76,6 +76,8 @@ impl AsmLexer {
         self.keywords.insert("mov".to_string(), AsmTokenKind::MOV);
         self.keywords.insert("ret".to_string(), AsmTokenKind::RET);
         self.keywords.insert("sub".to_string(), AsmTokenKind::SUB);
+        self.keywords.insert("push".to_string(), AsmTokenKind::PUSH);
+        self.keywords.insert("pop".to_string(), AsmTokenKind::POP);
         self.keywords
             .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
     }

@@ -11,6 +11,8 @@ pub enum X64InstName {
     MOV,
     RET,
     SYSCALL,
+    PUSH,
+    POP,
 
     // 具体的なオペコード
     ADDRM64IMM32,
@@ -24,6 +26,8 @@ pub enum X64InstName {
     MOVRM64IMM32,
     MOVRM64R64,
     JMPREL32,
+    PUSHR64,
+    POPR64,
 
     // その他
     LABEL,
@@ -40,6 +44,8 @@ impl X64InstName {
             Self::JMP => "jmp".to_string(),
             Self::MOV => "mov".to_string(),
             Self::RET => "ret".to_string(),
+            Self::PUSH => "push".to_string(),
+            Self::POP => "pop".to_string(),
             Self::SYSCALL => "syscall".to_string(),
             Self::ADDRM64IMM32 => "add(r/m64 imm32)".to_string(),
             Self::ADDRM64R64 => "add(r/m64 r64)".to_string(),
@@ -52,6 +58,8 @@ impl X64InstName {
             Self::MOVRM64IMM32 => "mov(r/m64 imm32)".to_string(),
             Self::MOVRM64R64 => "mov(r/m64 r64)".to_string(),
             Self::JMPREL32 => "jmp (rel32)".to_string(),
+            Self::PUSHR64 => "push (r64)".to_string(),
+            Self::POPR64 => "pop (r64)".to_string(),
             Self::LABEL => "label".to_string(),
         }
     }

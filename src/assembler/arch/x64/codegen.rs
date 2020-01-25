@@ -105,6 +105,8 @@ impl X64Assembler {
                     X64InstName::CQO => Self::generate_cqo_inst(&mut codes, &inst),
                     X64InstName::RET => Self::generate_ret_inst(&mut codes, &inst),
                     X64InstName::SYSCALL => Self::generate_syscall_inst(&mut codes),
+                    X64InstName::PUSHR64 => Self::generate_pushr64_inst(&mut codes, &inst),
+                    X64InstName::POPR64 => Self::generate_popr64_inst(&mut codes, &inst),
                     _ => {
                         eprintln!("not generate ... {:?}", inst.name);
                     }
