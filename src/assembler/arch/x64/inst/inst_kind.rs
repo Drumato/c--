@@ -34,9 +34,9 @@ impl X64Operand {
             kind: X64OpeKind::INTEGER(value),
         }
     }
-    pub fn new_invalid() -> Self {
+    pub fn new_addressing(offset: i128, name: String) -> Self {
         Self {
-            kind: X64OpeKind::INVALID,
+            kind: X64OpeKind::ADDRESSING(offset, name),
         }
     }
     pub fn to_string(&self) -> String {
@@ -44,7 +44,7 @@ impl X64Operand {
             X64OpeKind::REG(name) => name.to_string(),
             X64OpeKind::INTEGER(val) => format!("{}", val),
             X64OpeKind::LABEL(name) => name.to_string(),
-            _ => "invalid".to_string(),
+            X64OpeKind::ADDRESSING(offset, name) => format!("-{}[{}]", offset, name),
         }
     }
 }
@@ -60,5 +60,7 @@ pub enum X64OpeKind {
     // jump命令とか,ラベルをオペランドに持つ場合も
     LABEL(String),
 
-    INVALID,
+    // メモリアドレッシング
+    // 簡易実装なので,後々良くする.
+    ADDRESSING(i128, String), // offset, RegisterName
 }

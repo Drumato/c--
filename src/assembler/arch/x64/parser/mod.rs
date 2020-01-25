@@ -12,14 +12,31 @@ impl X64Assembler {
     pub fn consume_operand(&mut self) -> X64Operand {
         let cur = self.looking_token_clone();
         let cur_operand = match cur.kind {
+            AsmTokenKind::MINUS => {
+                // - <offset> [ <register> ]
+                self.read_token();
+                let offset_token = self.looking_token_clone();
+                if let AsmTokenKind::INTEGER(offset) = offset_token.kind {
+                    self.read_token();
+                    self.read_token(); // [
+
+                    let reg_token = self.looking_token_clone();
+                    if let AsmTokenKind::REG(name) = reg_token.kind {
+                        self.read_token();
+                        X64Operand::new_addressing(offset, name.to_string())
+                    } else {
+                        panic!("invalid register in memory addressing");
+                    }
+                } else {
+                    panic!("offset must be integer in memory addressing");
+                }
+            }
             AsmTokenKind::REG(name) => X64Operand::new_register(name),
             AsmTokenKind::LABEL(name) => X64Operand::new_label(name),
             AsmTokenKind::INTEGER(val) => X64Operand::new_integer(val),
             // エラー生成
             _ => {
-                let err = Error::new(ErrorKind::AsmParse, cur.position, ErrorMsg::InvalidOperand);
-                err.found();
-                X64Operand::new_invalid()
+                panic!("invalid operand found -> {:?}", cur);
             }
         };
         // オフセットを進める

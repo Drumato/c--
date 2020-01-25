@@ -13,7 +13,12 @@ pub struct AsmToken {
 impl AsmToken {
     pub fn should_ignore(&self) -> bool {
         match self.kind {
-            AsmTokenKind::BLANK | AsmTokenKind::NEWLINE => true,
+            AsmTokenKind::BLANK
+            | AsmTokenKind::NEWLINE
+            | AsmTokenKind::QWORD
+            | AsmTokenKind::COMMA
+            | AsmTokenKind::COMMENT
+            | AsmTokenKind::PTR => true,
             _ => false,
         }
     }
@@ -56,11 +61,18 @@ pub enum AsmTokenKind {
     POP,     // pop命令
 
     // その他
+    QWORD,
+    PTR,
+    COMMA,             // , 記号
+    LBRACKET,          // [ 記号
+    RBRACKET,          // [ 記号
+    MINUS,             // - 記号
     LABEL(String),     // ラベル
     INTEGER(i128),     // 整数
     DIRECTIVE(String), // ディレクティブ
     BLANK,             // 空白類文字
     NEWLINE,           // 改行
+    COMMENT,           // コメント
     EOF,
 }
 

@@ -64,7 +64,6 @@ impl Manager {
             TokenKind::GOTO => self.parse_goto_stmt(),
             // labeled-statement
             TokenKind::IDENTIFIER(_name) if self.next_token_is(TokenKind::COLON) => {
-                eprintln!("next token -> {}", self.next_token_is(TokenKind::COLON));
                 self.parse_labeled_stmt()
             }
             // expression-statement

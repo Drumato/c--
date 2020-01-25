@@ -52,6 +52,15 @@ impl AsmLexer {
             // 数字の場合
             number if number.is_ascii_digit() => Some(self.scan_number()),
 
+            // 記号の場合
+            '[' => Some(self.scan_symbol(AsmTokenKind::LBRACKET)),
+            ']' => Some(self.scan_symbol(AsmTokenKind::RBRACKET)),
+            '-' => Some(self.scan_symbol(AsmTokenKind::MINUS)),
+            ',' => Some(self.scan_symbol(AsmTokenKind::COMMA)),
+
+            // comment
+            '#' => Some(self.scan_comment()),
+
             // 空白類文字
             ' ' | '\t' => Some(self.skip_whitespace()),
             '\n' => {
@@ -80,6 +89,9 @@ impl AsmLexer {
         self.keywords.insert("pop".to_string(), AsmTokenKind::POP);
         self.keywords
             .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
+        self.keywords
+            .insert("QWORD".to_string(), AsmTokenKind::QWORD);
+        self.keywords.insert("PTR".to_string(), AsmTokenKind::PTR);
     }
 }
 

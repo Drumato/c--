@@ -19,8 +19,10 @@ pub struct X64Instruction {
     pub src_regnumber: usize,
     pub dst_regnumber: usize,
 
-    // 即値も取ってしまう
+    // 即値,オフセッも取ってしまう
     pub immediate_value: i128,
+    pub load_offset: i128,
+    pub store_offset: i128,
 }
 
 impl X64Instruction {
@@ -34,6 +36,8 @@ impl X64Instruction {
             src_regnumber: 0,
             dst_regnumber: 0,
             immediate_value: 0,
+            load_offset: 0,
+            store_offset: 0,
         }
     }
     pub fn new_noop_inst(name: inst_name::X64InstName) -> Self {
@@ -77,6 +81,8 @@ impl X64Instruction {
             src_regnumber: 0,
             dst_regnumber: 0,
             immediate_value: 0,
+            load_offset: 0,
+            store_offset: 0,
         }
     }
     pub fn to_string(&self) -> String {

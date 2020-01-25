@@ -67,8 +67,10 @@ impl X64Instruction {
                 self.src_regnumber = src.register_number();
                 self.dst_regnumber = dst.register_number();
 
-                // 即値も取得しておく
+                // 即値, オフセットも取得しておく
                 self.immediate_value = src.immediate_value();
+                self.load_offset = src.memory_offset();
+                self.store_offset = dst.memory_offset();
 
                 // オペランドの種類からオペコードを一意にする.
                 self.name = Self::change_binary_opcode(&self.name, &self.operand_size, src, dst);
@@ -114,6 +116,7 @@ impl X64Operand {
     pub fn check_operand_size(&self) -> OperandSize {
         match &self.kind {
             X64OpeKind::REG(name) => Self::check_register_name(name),
+            X64OpeKind::ADDRESSING(_offset, name) => Self::check_register_name(name),
             _ => OperandSize::UNKNOWN,
         }
     }
@@ -126,6 +129,12 @@ impl X64Operand {
     pub fn is_immediate(&self) -> bool {
         match &self.kind {
             X64OpeKind::INTEGER(_v) => true,
+            _ => false,
+        }
+    }
+    pub fn is_addressing(&self) -> bool {
+        match &self.kind {
+            X64OpeKind::ADDRESSING(_name, _offset) => true,
             _ => false,
         }
     }
@@ -171,21 +180,31 @@ impl X64Operand {
             0
         }
     }
-    fn register_number(&self) -> usize {
-        if let X64OpeKind::REG(name) = &self.kind {
-            match name.as_str() {
-                "al" | "ax" | "eax" | "rax" | "r8" => 0,
-                "cl" | "cx" | "ecx" | "rcx" | "r9" => 1,
-                "dl" | "dx" | "edx" | "rdx" | "r10" => 2,
-                "bl" | "bx" | "ebx" | "rbx" | "r11" => 3,
-                "ah" | "sp" | "esp" | "rsp" | "r12" => 4,
-                "ch" | "bp" | "ebp" | "rbp" | "r13" => 5,
-                "dh" | "si" | "esi" | "rsi" | "r14" => 6,
-                "bh" | "di" | "edi" | "rdi" | "r15" => 7,
-                _ => 0,
-            }
+    fn memory_offset(&self) -> i128 {
+        if let X64OpeKind::ADDRESSING(offset, _name) = &self.kind {
+            *offset
         } else {
             0
+        }
+    }
+    fn check_register_number(name: &String) -> usize {
+        match name.as_str() {
+            "al" | "ax" | "eax" | "rax" | "r8" => 0,
+            "cl" | "cx" | "ecx" | "rcx" | "r9" => 1,
+            "dl" | "dx" | "edx" | "rdx" | "r10" => 2,
+            "bl" | "bx" | "ebx" | "rbx" | "r11" => 3,
+            "ah" | "sp" | "esp" | "rsp" | "r12" => 4,
+            "ch" | "bp" | "ebp" | "rbp" | "r13" => 5,
+            "dh" | "si" | "esi" | "rsi" | "r14" => 6,
+            "bh" | "di" | "edi" | "rdi" | "r15" => 7,
+            _ => 0,
+        }
+    }
+    fn register_number(&self) -> usize {
+        match &self.kind {
+            X64OpeKind::REG(name) => Self::check_register_number(name),
+            X64OpeKind::ADDRESSING(_offset, name) => Self::check_register_number(name),
+            _ => 0,
         }
     }
 }

@@ -60,7 +60,14 @@ impl AsmLexer {
         let cur_position = self.current_position();
 
         // 空白,改行までの文字列を読み取る
-        let word = Self::take_conditional_string(&self.contents, |c| c != &' ' && c != &'\n');
+        let word = Self::take_conditional_string(&self.contents, |c| {
+            c.is_ascii_digit()
+                || c.is_alphabetic()
+                || c == &','
+                || c == &':'
+                || c == &'_'
+                || c == &'.'
+        });
 
         // オフセットを進める
         self.skip_offset(word.len());
@@ -82,6 +89,17 @@ impl AsmLexer {
         AsmToken::new(cur_position, AsmTokenKind::LABEL(word_trimmed.to_string()))
     }
 
+    // 記号を切り取って,トークンを返す.
+    fn scan_symbol(&mut self, kind: AsmTokenKind) -> AsmToken {
+        // 現在のオフセットを退避
+        let cur_position = self.current_position();
+
+        // 文字列のオフセットを進める.
+        self.skip_offset(1);
+
+        AsmToken::new(cur_position, kind)
+    }
+
     // 数字を切り取って,整数トークンを返す
     pub fn scan_number(&mut self) -> AsmToken {
         // 数字の範囲を切り取る
@@ -97,6 +115,19 @@ impl AsmLexer {
         self.skip_offset(number_length);
 
         AsmToken::new(cur_position, AsmTokenKind::INTEGER(decimal_value))
+    }
+
+    // コメントトークンを返す
+    pub fn scan_comment(&mut self) -> AsmToken {
+        let comment_length = Self::count_length(&self.contents, |c| c != &'\n');
+
+        // 現在のオフセットを退避
+        let cur_position = self.current_position();
+
+        // 文字列のオフセットを進める
+        self.skip_offset(comment_length + 1);
+
+        AsmToken::new(cur_position, AsmTokenKind::COMMENT)
     }
 
     // 空白類文字を読み飛ばす.

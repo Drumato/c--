@@ -10,6 +10,7 @@ pub const REX_PREFIX_RBIT: u8 = 0x04;
 pub const REX_PREFIX_BBIT: u8 = 0x01;
 
 pub const MODRM_REGISTER_REGISTER: u8 = 0xc0;
+pub const MODRM_REGISTER_DISPLACEMENT8: u8 = 0x40;
 impl X64Assembler {
     pub fn codegen(&mut self) {
         // BTreeMap<LabelName, (CodeIndex, Offset)>
@@ -93,6 +94,7 @@ impl X64Assembler {
                     X64InstName::MOVRM64IMM32 => {
                         Self::generate_movrm64imm32_inst(&mut codes, &inst)
                     }
+                    X64InstName::MOVR64RM64 => Self::generate_movr64rm64_inst(&mut codes, &inst),
                     X64InstName::IMULR64RM64IMM32 => {
                         Self::generate_imulr64rm64imm32_inst(&mut codes, &inst)
                     }

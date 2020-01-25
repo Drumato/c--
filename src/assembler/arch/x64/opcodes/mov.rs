@@ -28,7 +28,20 @@ impl X64Assembler {
 
         // modr/m (MI)
         let rm_field = Self::modrm_rm_field(inst.dst_regnumber);
-        codes.push(MODRM_REGISTER_REGISTER | rm_field);
+
+        // オフセットが設定されている -> アドレッシング方法が異なる
+        if inst.store_offset != 0 {
+            codes.push(MODRM_REGISTER_DISPLACEMENT8 | rm_field);
+        } else {
+            codes.push(MODRM_REGISTER_REGISTER | rm_field);
+        }
+
+        // displacement
+        // もしoffsetが設定されていれば加える
+        // TODO: 今はマイナスに決め打ち
+        if inst.store_offset != 0 {
+            codes.push((-inst.store_offset) as u8);
+        }
 
         // immediate-value
         for b in (inst.immediate_value as u32).to_le_bytes().to_vec().iter() {
@@ -51,6 +64,37 @@ impl X64Assembler {
         let rm_field = Self::modrm_rm_field(inst.dst_regnumber);
         let reg_field = Self::modrm_reg_field(inst.src_regnumber);
         codes.push(MODRM_REGISTER_REGISTER | reg_field | rm_field);
+
+        // displacement
+        // もしoffsetが設定されていれば加える
+        // TODO: 今はマイナスに決め打ち
+        if inst.store_offset != 0 {
+            codes.push((-inst.store_offset) as u8);
+        }
+    }
+    pub fn generate_movr64rm64_inst(codes: &mut Vec<u8>, inst: &X64Instruction) {
+        // e.g. mov rax, -4[rbp]
+        // dst-operand -> reg field in ModR/M and related r-bit
+        // src-operand -> r/m field in ModR/M and related b-bit
+        // rex-prefix
+        let dst_expanded_bit = Self::rex_prefix_rbit(inst.dst_expanded);
+        let src_expanded_bit = Self::rex_prefix_bbit(inst.src_expanded);
+        codes.push(REX_PREFIX_BASE | REX_PREFIX_WBIT | dst_expanded_bit | src_expanded_bit);
+
+        // opcode
+        codes.push(0x8b);
+
+        // modr/m (RM)
+        let rm_field = Self::modrm_rm_field(inst.src_regnumber);
+        let reg_field = Self::modrm_reg_field(inst.dst_regnumber);
+        codes.push(MODRM_REGISTER_DISPLACEMENT8 | reg_field | rm_field);
+
+        // displacement
+        // もしoffsetが設定されていれば加える
+        // TODO: 今はマイナスに決め打ち
+        if inst.load_offset != 0 {
+            codes.push((-inst.load_offset) as u8);
+        }
     }
 }
 
@@ -62,14 +106,22 @@ impl X64Instruction {
     ) -> X64InstName {
         match op_size {
             OperandSize::QUADWORD => {
-                if dst.is_register() && src.is_immediate() {
+                if dst.is_register() && src.is_immediate()
+                    || dst.is_addressing() && src.is_immediate()
+                {
                     // mov r/m64, imm32
                     return X64InstName::MOVRM64IMM32;
                 }
 
-                if dst.is_register() && src.is_register() {
+                if dst.is_register() && src.is_register()
+                    || dst.is_addressing() && src.is_register()
+                {
                     // mov r/m64, r64
                     return X64InstName::MOVRM64R64;
+                }
+                if dst.is_register() && src.is_addressing() {
+                    // mov r64, r/m64
+                    return X64InstName::MOVR64RM64;
                 }
                 X64InstName::MOV
             }
