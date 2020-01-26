@@ -221,6 +221,7 @@ impl Manager {
 
         left_node
     }
+    // primary -> identifier | constant | ( expression ) | string-literal | generic_selection
     fn parse_primary(&mut self) -> Node {
         let cur = self.looking_token_clone();
         self.read_token();
@@ -229,6 +230,11 @@ impl Manager {
             // TODO: 関数コール等をチェックすべき
             TokenKind::IDENTIFIER(name) => {
                 Node::new(cur.position, NodeKind::IDENTIFIER(name.to_string()))
+            }
+            TokenKind::LPAREN => {
+                let paren_expr = self.parse_expression();
+                self.expect(TokenKind::RPAREN);
+                paren_expr
             }
             // エラーを吐いてINVALIDを返す
             _ => {

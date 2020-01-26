@@ -61,9 +61,14 @@ impl X64Assembler {
         codes.push(0x89);
 
         // modr/m (MR)
+        // オフセットが設定されている -> アドレッシング方法が異なる
         let rm_field = Self::modrm_rm_field(inst.dst_regnumber);
         let reg_field = Self::modrm_reg_field(inst.src_regnumber);
-        codes.push(MODRM_REGISTER_REGISTER | reg_field | rm_field);
+        if inst.store_offset != 0 {
+            codes.push(MODRM_REGISTER_DISPLACEMENT8 | reg_field | rm_field);
+        } else {
+            codes.push(MODRM_REGISTER_REGISTER | reg_field | rm_field);
+        }
 
         // displacement
         // もしoffsetが設定されていれば加える
