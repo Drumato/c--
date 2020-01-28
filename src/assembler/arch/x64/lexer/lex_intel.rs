@@ -87,6 +87,7 @@ impl AsmLexer {
         self.keywords.insert("sub".to_string(), AsmTokenKind::SUB);
         self.keywords.insert("push".to_string(), AsmTokenKind::PUSH);
         self.keywords.insert("pop".to_string(), AsmTokenKind::POP);
+        self.keywords.insert("neg".to_string(), AsmTokenKind::NEG);
         self.keywords
             .insert("syscall".to_string(), AsmTokenKind::SYSCALL);
         self.keywords

@@ -142,6 +142,11 @@ impl X64IR {
                     dst_offset, src_value, dst_name
                 )
             }
+            // negative
+            X64IRKind::NEGREG(inner_op) => {
+                let negative_reg = Registers::from_number_ir(inner_op.phys);
+                format!("neg {}", negative_reg.to_string())
+            }
             // ret
             X64IRKind::RETREG(return_op) => {
                 let mut output = String::new();

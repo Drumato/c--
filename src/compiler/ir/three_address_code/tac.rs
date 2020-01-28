@@ -29,6 +29,9 @@ impl ThreeAddressCode {
     ) -> Self {
         Self::new(TacKind::EXPR(variable_op, operator, left, right))
     }
+    pub fn new_unop_code(variable_op: Operand, operator: Operator, inner: Operand) -> Self {
+        Self::new(TacKind::UNARYEXPR(variable_op, operator, inner))
+    }
 
     pub fn to_string(&self) -> String {
         match &self.kind {
@@ -41,6 +44,12 @@ impl ThreeAddressCode {
                 left.to_string(),
                 op.to_string(),
                 right.to_string()
+            ),
+            TacKind::UNARYEXPR(var, op, inner) => format!(
+                "{} <- {} {}",
+                var.to_string(),
+                op.to_string(),
+                inner.to_string(),
             ),
             TacKind::RET(return_op) => format!("return {}", return_op.to_string()),
         }

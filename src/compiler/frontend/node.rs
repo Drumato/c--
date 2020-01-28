@@ -67,6 +67,13 @@ impl Node {
         };
         Self::new(tok.position, node_kind)
     }
+    pub fn new_unary_node(tok: &Token, inner: Node) -> Self {
+        let node_kind = match tok.kind {
+            TokenKind::MINUS => NodeKind::NEGATIVE(Box::new(inner)),
+            _ => panic!("not found such an operator"),
+        };
+        Self::new(tok.position, node_kind)
+    }
 }
 
 type Expr = Box<Node>;
@@ -87,6 +94,7 @@ pub enum NodeKind {
     SUB(Expr, Expr),
     MUL(Expr, Expr),
     DIV(Expr, Expr),
+    NEGATIVE(Expr),
     INTEGER(i128),
     IDENTIFIER(String),
     INVALID,

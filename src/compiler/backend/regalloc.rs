@@ -34,6 +34,23 @@ impl HighOptimizer {
         // 各IRのレジスタに物理レジスタを割り当てる
         for (now_looking, t) in block.tacs.iter_mut().enumerate() {
             match t.kind {
+                TacKind::UNARYEXPR(ref mut var_op, ref mut _operator, ref mut inner) => {
+                    // オペランド
+                    if let OpeKind::REG = inner.kind {
+                        if let Some(allocated_number) = register_map.get(&inner.virt) {
+                            inner.phys = *allocated_number;
+                        } else {
+                            panic!("spill occured!(not implemented)");
+                        }
+                    }
+
+                    // レジスタ数の削減
+                    Self::reduce_register_number(&living, &mut register_map, now_looking);
+
+                    // 実際の割付
+                    var_op.phys = register_map.len();
+                    register_map.insert(var_op.virt, var_op.phys);
+                }
                 TacKind::EXPR(ref mut var_op, ref mut _operator, ref mut left, ref mut right) => {
                     // 左オペランド
                     if let OpeKind::REG = left.kind {

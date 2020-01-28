@@ -43,8 +43,10 @@ pub enum AsmTokenKind {
     SUBQ,  // subq命令
     IMULQ, // imulq命令
     IDIVQ, // idivq命令
+    NEGQ,  // negq命令
 
     // intel記法
+    NEG,  // neg命令
     MOV,  // mov命令
     ADD,  // add命令
     CQO,  // cqo命令
@@ -82,6 +84,7 @@ impl AsmTokenKind {
             Self::ADD | Self::ADDQ => X64InstName::ADD,
             Self::SUB | Self::SUBQ => X64InstName::SUB,
             Self::JMP => X64InstName::JMP,
+            Self::NEG | Self::NEGQ => X64InstName::NEG,
             Self::IMUL | Self::IMULQ => X64InstName::IMUL,
             Self::IDIV | Self::IDIVQ => X64InstName::IDIV,
             Self::CALL => X64InstName::CALL,

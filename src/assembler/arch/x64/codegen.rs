@@ -109,6 +109,7 @@ impl X64Assembler {
                     X64InstName::SYSCALL => Self::generate_syscall_inst(&mut codes),
                     X64InstName::PUSHR64 => Self::generate_pushr64_inst(&mut codes, &inst),
                     X64InstName::POPR64 => Self::generate_popr64_inst(&mut codes, &inst),
+                    X64InstName::NEGRM64 => Self::generate_negrm64_inst(&mut codes, &inst),
                     _ => {
                         eprintln!("not generate ... {:?}", inst.name);
                     }

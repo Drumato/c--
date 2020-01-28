@@ -37,11 +37,23 @@ impl HighOptimizer {
                         // new_ret -> 最終的に mov rax, <return_op> ; ret を生成
                         low_irs.push(X64IR::new_ret(return_op));
                     }
+                    tac_kind::TacKind::UNARYEXPR(var_bf, operator_bf, inner_bf) => {
+                        // 各構成要素を変換
+                        let inner = Self::tac_operand_to_x64(inner_bf);
+                        let opcode: X64IRKind = Self::unary_opcode_from_operator(operator_bf);
+                        let dst = Self::tac_operand_to_x64(var_bf);
+
+                        // movしてから演算
+                        let load_ir = X64IR::new_mov(dst.clone(), inner);
+                        low_irs.push(load_ir);
+
+                        Self::add_unary_ir_matching_opcode(&mut low_irs, opcode, dst);
+                    }
                     tac_kind::TacKind::EXPR(var_bf, operator_bf, left_bf, right_bf) => {
                         // 各構成要素を変換
                         let left = Self::tac_operand_to_x64(left_bf);
                         let right = Self::tac_operand_to_x64(right_bf);
-                        let opcode: X64IRKind = Self::opcode_from_operator(operator_bf);
+                        let opcode: X64IRKind = Self::binary_opcode_from_operator(operator_bf);
                         let dst = Self::tac_operand_to_x64(var_bf);
 
                         // 左が数値リテラル -> (右がレジスタであれば) raxにロードしてから演算
@@ -58,7 +70,7 @@ impl HighOptimizer {
                                 low_irs.push(load_ir);
 
                                 // 演算命令
-                                Self::add_ir_matching_opcode(
+                                Self::add_binary_ir_matching_opcode(
                                     &mut low_irs,
                                     opcode,
                                     X64Operand::new_rax(),
@@ -72,13 +84,23 @@ impl HighOptimizer {
                                 low_irs.push(load_ir);
 
                                 // 演算命令
-                                Self::add_ir_matching_opcode(&mut low_irs, opcode, dst, right);
+                                Self::add_binary_ir_matching_opcode(
+                                    &mut low_irs,
+                                    opcode,
+                                    dst,
+                                    right,
+                                );
                             }
                             continue;
                         }
 
                         // 左が非数値リテラル
-                        Self::add_ir_matching_opcode(&mut low_irs, opcode, left.clone(), right);
+                        Self::add_binary_ir_matching_opcode(
+                            &mut low_irs,
+                            opcode,
+                            left.clone(),
+                            right,
+                        );
 
                         let load_ir = X64IR::new_mov(dst, left);
                         low_irs.push(load_ir);
@@ -97,7 +119,19 @@ impl HighOptimizer {
         )
     }
 
-    fn add_ir_matching_opcode(
+    fn add_unary_ir_matching_opcode(
+        low_irs: &mut Vec<X64IR>,
+        opcode: X64IRKind,
+        inner: X64Operand,
+    ) {
+        match opcode {
+            X64IRKind::NEGATIVE(_) => {
+                low_irs.push(X64IR::new_neg(inner));
+            }
+            _ => {}
+        }
+    }
+    fn add_binary_ir_matching_opcode(
         low_irs: &mut Vec<X64IR>,
         opcode: X64IRKind,
         left: X64Operand,
@@ -119,7 +153,14 @@ impl HighOptimizer {
             _ => {}
         }
     }
-    fn opcode_from_operator(operator: tac_kind::Operator) -> X64IRKind {
+    fn unary_opcode_from_operator(operator: tac_kind::Operator) -> X64IRKind {
+        // 返すIRKindの中身は全てINVALID
+        match operator {
+            tac_kind::Operator::MINUS => X64IRKind::NEGATIVE(X64Operand::new_inv()),
+            _ => panic!("can't traslate opcode from operator"),
+        }
+    }
+    fn binary_opcode_from_operator(operator: tac_kind::Operator) -> X64IRKind {
         // 返すIRKindの中身は全てINVALID
         match operator {
             tac_kind::Operator::PLUS => {

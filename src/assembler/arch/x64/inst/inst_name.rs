@@ -13,6 +13,7 @@ pub enum X64InstName {
     SYSCALL,
     PUSH,
     POP,
+    NEG,
 
     // 具体的なオペコード
     ADDRM64IMM32,
@@ -29,6 +30,7 @@ pub enum X64InstName {
     JMPREL32,
     PUSHR64,
     POPR64,
+    NEGRM64,
 
     // その他
     LABEL,
@@ -59,6 +61,9 @@ impl X64InstName {
             // jmp
             Self::JMP => "jmp".to_string(),
             Self::JMPREL32 => "jmp (rel32)".to_string(),
+            // neg
+            Self::NEG => "neg".to_string(),
+            Self::NEGRM64 => "neg (r/m64)".to_string(),
             // push
             Self::PUSH => "push".to_string(),
             Self::PUSHR64 => "push (r64)".to_string(),

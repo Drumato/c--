@@ -15,6 +15,7 @@ impl NodeKind {
             Self::SUB(_left, _right) => Some(Operator::MINUS),
             Self::MUL(_left, _right) => Some(Operator::ASTERISK),
             Self::DIV(_left, _right) => Some(Operator::SLASH),
+            Self::NEGATIVE(_left) => Some(Operator::MINUS),
             _ => None,
         }
     }
@@ -65,6 +66,7 @@ impl Manager {
     fn gen_expr(&mut self, n: Node) -> Operand {
         match n.kind.clone() {
             NodeKind::ASSIGN(lv, rv) => {
+                // 左右の子ノードを変換
                 let right_op = self.gen_expr(*rv);
                 let left_op = self.gen_expr(*lv);
 
@@ -73,6 +75,22 @@ impl Manager {
                 self.add_ir_to_current_bb(assign_code);
                 right_op
             }
+            // 単項演算
+            NodeKind::NEGATIVE(inner) => {
+                let inner_op = self.gen_expr(*inner);
+
+                // 次に作るべき番号を持つ仮想レジスタを作成
+                let variable_reg = self.use_current_virt_reg();
+
+                let unary_code = ThreeAddressCode::new_unop_code(
+                    variable_reg.clone(),
+                    n.kind.to_operator().unwrap(),
+                    inner_op,
+                );
+                self.add_ir_to_current_bb(unary_code);
+                variable_reg
+            }
+            // 二項演算
             NodeKind::ADD(left, right)
             | NodeKind::SUB(left, right)
             | NodeKind::MUL(left, right)
@@ -84,14 +102,14 @@ impl Manager {
                 // 次に作るべき番号を持つ仮想レジスタを作成
                 let variable_reg = self.use_current_virt_reg();
 
-                // 加算コード生成
-                let add_code = ThreeAddressCode::new_binop_code(
+                // 二項演算コード生成
+                let binary_code = ThreeAddressCode::new_binop_code(
                     variable_reg.clone(),
                     n.kind.to_operator().unwrap(),
                     left_op,
                     right_op,
                 );
-                self.add_ir_to_current_bb(add_code);
+                self.add_ir_to_current_bb(binary_code);
 
                 // 式が代入されたレジスタを上位に返す
                 variable_reg

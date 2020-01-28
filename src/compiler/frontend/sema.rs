@@ -53,7 +53,12 @@ impl Manager {
                 self.output_type_difference_error(lv.position);
                 Type::new_unknown()
             }
-
+            // 単項演算
+            NodeKind::NEGATIVE(ref mut inner) => {
+                let inner_type = self.walk_expression(inner);
+                n.ctype = inner_type.clone();
+                return inner_type;
+            }
             // 二項演算
             NodeKind::ADD(ref mut left, ref mut right)
             | NodeKind::SUB(ref mut left, ref mut right)

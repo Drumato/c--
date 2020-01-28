@@ -3,6 +3,7 @@ type Label = String;
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum TacKind {
     EXPR(Operand, Operator, Operand, Operand),
+    UNARYEXPR(Operand, Operator, Operand),
     RET(Operand),
     GOTO(Label),
     ASSIGN(Operand, Operand),

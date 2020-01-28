@@ -12,6 +12,7 @@ pub enum X64IRKind {
     STORE(X64Operand, X64Operand),
 
     // 1つオペランドを持つ系
+    NEGATIVE(X64Operand),
     RET(X64Operand),
 
     // 具体的的なIR
@@ -25,6 +26,7 @@ pub enum X64IRKind {
     MULREGTOREG(X64Operand, X64Operand),
     DIVIMMTOREG(X64Operand, X64Operand),
     DIVREGTOREG(X64Operand, X64Operand),
+    NEGREG(X64Operand),
     RETREG(X64Operand),
     RETIMM(X64Operand),
     RETMEM(X64Operand),

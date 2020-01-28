@@ -42,6 +42,11 @@ impl X64IR {
             kind: X64IRKind::DIV(dst, src),
         }
     }
+    pub fn new_neg(inner: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::NEGATIVE(inner),
+        }
+    }
     pub fn new_ret(return_op: X64Operand) -> Self {
         Self {
             kind: X64IRKind::RET(return_op),

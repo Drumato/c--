@@ -135,6 +135,11 @@ impl X64IR {
                 let dst_offset = dst.var_offset();
                 format!("movq ${}, -{}(%rbp) # {}", src_value, dst_offset, dst_name)
             }
+            // negative
+            X64IRKind::NEGREG(inner_op) => {
+                let negative_reg = Registers::from_number_ir(inner_op.phys);
+                format!("negl %{}", negative_reg.to_string())
+            }
             // ret
             X64IRKind::RETREG(return_op) => {
                 let mut output = String::new();

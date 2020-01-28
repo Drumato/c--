@@ -42,6 +42,13 @@ impl HighOptimizer {
         let mut prev_inst_is_goto = false;
         for (i, t) in tacs.iter().enumerate() {
             match &t.kind {
+                TacKind::UNARYEXPR(_var, _operator, _inner) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+                }
                 TacKind::EXPR(_var, _operator, _left, _right) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
 

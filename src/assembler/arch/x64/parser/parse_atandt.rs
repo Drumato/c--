@@ -55,6 +55,7 @@ impl X64Assembler {
             // 1つのオペランドを持つ命令
             AsmTokenKind::CALL
             | AsmTokenKind::IDIVQ
+            | AsmTokenKind::NEGQ
             | AsmTokenKind::JMP
             | AsmTokenKind::PUSH
             | AsmTokenKind::POP => {

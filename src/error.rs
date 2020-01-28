@@ -70,11 +70,11 @@ impl ErrorKind {
 
 pub enum ErrorMsg {
     // コンパイラのエラー
-    MustBeInteger, // パーサが整数を期待する場所で整数ではなかった.後々使わなくなるかも.
+    MustBePrimary,           // パーサがPrimaryを期待する場所でPrimaryではなかった.後
     InvalidNodeCantHaveType, // 意味解析器がInvalidなASTノードを確認した
     MustBeSameTypeInBinaryOperation, // 二項演算時,暗黙の型変換が適用されない組み合わせだった
     CantSupportSuchAnArchitecture, // 意図しないアーキテクチャ上でコンパイラが実行された
-    CantUseNoMoreRegisters, // レジスタ割付時エラー
+    CantUseNoMoreRegisters,  // レジスタ割付時エラー
     InvalidCFileOrDirectory, // ファイルが見つからない or ディレクトリであった
 
     // アセンブラのエラー
@@ -87,7 +87,9 @@ impl ErrorMsg {
     fn string(&self) -> &str {
         match self {
             // コンパイラのエラー
-            Self::MustBeInteger => "must be integer",
+            Self::MustBePrimary => {
+                "must be (identifier | constant-expr | paren-expr | string_literal | `_Generic`)"
+            }
             Self::InvalidNodeCantHaveType => "invalid node can't have any types",
             Self::MustBeSameTypeInBinaryOperation => {
                 "two expression must be same type in binary operation"

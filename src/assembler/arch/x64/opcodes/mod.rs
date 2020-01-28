@@ -5,6 +5,7 @@ pub mod idiv;
 pub mod imul;
 pub mod jmp;
 pub mod mov;
+pub mod neg;
 pub mod pop;
 pub mod push;
 pub mod ret;

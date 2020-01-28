@@ -62,6 +62,7 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
             "sub.c" => 1,
             "four_arith.c" => 8,
             "auto_variable.c" => 30,
+            "negative.c" => 9,
             _ => {
                 eprintln!("not found such a test case -> {}", final_name);
                 0

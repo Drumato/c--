@@ -177,6 +177,7 @@ impl Manager {
 
         lvalue_node
     }
+    // additive -> multiplicative | additive-expression (+|-) multiplicative-expression
     fn parse_additive(&mut self) -> Node {
         let mut left_node: Node = self.parse_multiplicative();
 
@@ -199,8 +200,9 @@ impl Manager {
 
         left_node
     }
+    // multiplicative -> unary-expression | multiplicative-expression (*|/) unary-expression
     fn parse_multiplicative(&mut self) -> Node {
-        let mut left_node: Node = self.parse_primary();
+        let mut left_node: Node = self.parse_unary();
 
         // チェックする演算子の列挙
         let operators = self.current_prio_operators(Priority::MULTIPLICATIVE);
@@ -213,13 +215,24 @@ impl Manager {
             // 演算子トークンを退避
             let cur_token = self.looking_token_clone();
             self.read_token();
-            let right_node = self.parse_primary();
+            let right_node = self.parse_unary();
 
             // コンストラクト
             left_node = Node::new_binary_node(&cur_token, left_node, right_node);
         }
 
         left_node
+    }
+    // unary -> primary-expression | ("+" | "-")? unary-expression
+    fn parse_unary(&mut self) -> Node {
+        let cur = self.looking_token_clone();
+        match cur.kind {
+            TokenKind::MINUS => {
+                self.read_token();
+                Node::new_unary_node(&cur, self.parse_unary())
+            }
+            _ => self.parse_primary(),
+        }
     }
     // primary -> identifier | constant | ( expression ) | string-literal | generic_selection
     fn parse_primary(&mut self) -> Node {
@@ -238,7 +251,7 @@ impl Manager {
             }
             // エラーを吐いてINVALIDを返す
             _ => {
-                let err = Error::new(ErrorKind::Parse, cur.position, ErrorMsg::MustBeInteger);
+                let err = Error::new(ErrorKind::Parse, cur.position, ErrorMsg::MustBePrimary);
                 err.found();
                 Node::new((0, 0), NodeKind::INVALID)
             }

@@ -20,7 +20,7 @@ impl X64Optimizer {
     fn change_ir_with_bb(&mut self, mut block: X64BasicBlock) -> X64BasicBlock {
         for ir in block.irs.iter_mut() {
             match &ir.kind {
-                // 今はレジスタに対するmovしかない
+                // mov
                 X64IRKind::MOV(dst, src) => {
                     match &src.kind {
                         // mov reg, reg
@@ -35,7 +35,7 @@ impl X64Optimizer {
                         _ => panic!("not implemented in mov selection"),
                     }
                 }
-                // 今はレジスタに対するaddしかない
+                // add
                 X64IRKind::ADD(dst, src) => {
                     match &src.kind {
                         // add reg, reg
@@ -51,7 +51,7 @@ impl X64Optimizer {
                     }
                 }
 
-                // 今はレジスタに対するsubしかない
+                // sub
                 X64IRKind::SUB(dst, src) => {
                     match &src.kind {
                         // sub reg, reg
@@ -66,7 +66,7 @@ impl X64Optimizer {
                         _ => panic!("not implemented in sub selection"),
                     }
                 }
-                // 今はレジスタに対するmulしかない
+                // mul
                 X64IRKind::MUL(dst, src) => {
                     match &src.kind {
                         // mul reg, reg
@@ -81,7 +81,7 @@ impl X64Optimizer {
                         _ => panic!("not implemented in mul selection"),
                     }
                 }
-                // 今はレジスタに対するdivしかない
+                // div
                 X64IRKind::DIV(dst, src) => {
                     match &src.kind {
                         // div reg, reg
@@ -96,6 +96,17 @@ impl X64Optimizer {
                         _ => panic!("not implemented in div selection"),
                     }
                 }
+                // TODO: 今はレジスタに対するnegしかしない
+                X64IRKind::NEGATIVE(inner_op) => {
+                    match &inner_op.kind {
+                        // negative reg
+                        X64OpeKind::REG => {
+                            ir.kind = X64IRKind::NEGREG(inner_op.clone());
+                        }
+                        _ => panic!("not implemented in negative selection"),
+                    }
+                }
+                // ret
                 X64IRKind::RET(return_op) => {
                     match &return_op.kind {
                         // return reg
@@ -115,6 +126,7 @@ impl X64Optimizer {
                         _ => panic!("not implemented in ret selection"),
                     }
                 }
+                // store
                 X64IRKind::STORE(dst_op, src_op) => {
                     match &src_op.kind {
                         // store reg

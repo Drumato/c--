@@ -91,6 +91,7 @@ impl AsmLexer {
     pub fn build_atandt_keywords(&mut self) {
         // 命令
         self.keywords.insert("addq".to_string(), AsmTokenKind::ADDQ);
+        self.keywords.insert("negq".to_string(), AsmTokenKind::NEGQ);
         self.keywords.insert("jmp".to_string(), AsmTokenKind::JMP);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
         self.keywords.insert("cltd".to_string(), AsmTokenKind::CLTD);

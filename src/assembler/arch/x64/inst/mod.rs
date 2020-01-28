@@ -51,6 +51,7 @@ impl X64Instruction {
     pub fn new_unary_inst(name: inst_name::X64InstName, unop: inst_kind::X64Operand) -> Self {
         match name {
             inst_name::X64InstName::CALL => Self::new_call(unop),
+            inst_name::X64InstName::NEG => Self::new_neg(unop),
             inst_name::X64InstName::JMP => Self::new_jmp(unop),
             inst_name::X64InstName::IDIV => Self::new_idiv(unop),
             inst_name::X64InstName::PUSH => Self::new_push(unop),
