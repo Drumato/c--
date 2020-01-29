@@ -24,7 +24,17 @@ impl Manager {
                         }
                     }
                 }
-                _ => (),
+                NodeKind::LABELEDSTMT(_label, inner_st) => {
+                    if let NodeKind::DECLARATION(var_name, var_type) = &inner_st.kind {
+                        if let Some(local_symbol) = self.var_map.get_mut(var_name) {
+                            if let VarKind::LOCAL(ref mut offset) = local_symbol.kind {
+                                stack_offset += var_type.byte_size;
+                                *offset = stack_offset;
+                            }
+                        }
+                    }
+                }
+                _ => {}
             }
         }
         func.frame_size = stack_offset;

@@ -22,6 +22,13 @@ impl Function {
             frame_size: 0,
         }
     }
+    pub fn dump_ast(&self) {
+        eprintln!("function {}() {{ ", self.name);
+        for st in self.stmts.iter() {
+            eprintln!("  {}", st.to_string());
+        }
+        eprintln!("}}");
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -73,6 +80,28 @@ impl Node {
             _ => panic!("not found such an operator"),
         };
         Self::new(tok.position, node_kind)
+    }
+
+    pub fn to_string(&self) -> String {
+        match &self.kind {
+            // statement
+            NodeKind::RETURNSTMT(expr) => format!("return {};", expr.to_string()),
+            NodeKind::GOTOSTMT(label) => format!("goto {};", label),
+            NodeKind::LABELEDSTMT(label, st) => format!("{}: {}", label, st.to_string()),
+            NodeKind::EXPRSTMT(expr) => format!("{};", expr.to_string()),
+            NodeKind::DECLARATION(name, ty) => format!("{} {};", ty.to_string(), name),
+
+            // expression
+            NodeKind::ASSIGN(lv, rv) => format!("{} = {}", lv.to_string(), rv.to_string()),
+            NodeKind::ADD(left, right) => format!("{} + {}", left.to_string(), right.to_string()),
+            NodeKind::SUB(left, right) => format!("{} - {}", left.to_string(), right.to_string()),
+            NodeKind::MUL(left, right) => format!("{} * {}", left.to_string(), right.to_string()),
+            NodeKind::DIV(left, right) => format!("{} / {}", left.to_string(), right.to_string()),
+            NodeKind::NEGATIVE(ex) => format!("- {}", ex.to_string()),
+            NodeKind::INTEGER(v) => format!("{}", v),
+            NodeKind::IDENTIFIER(name) => name.to_string(),
+            NodeKind::INVALID => "invalid".to_string(),
+        }
     }
 }
 

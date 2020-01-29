@@ -43,4 +43,7 @@ impl Manager {
             virt: 0,
         }
     }
+    pub fn dump_ast_to_stderr(&self) {
+        self.entry_func.dump_ast();
+    }
 }

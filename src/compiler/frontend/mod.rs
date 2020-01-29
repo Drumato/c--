@@ -27,6 +27,11 @@ pub fn frontend_process(
     // 構文解析
     manager.parse();
 
+    if matches.is_present("d-ast") {
+        util::colored_prefix_to_stderr("dump AST");
+        manager.dump_ast_to_stderr();
+    }
+
     // 意味解析
     manager.semantics();
 

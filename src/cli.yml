@@ -8,6 +8,9 @@ args:
         required: true
         index: 1
         multiple: true
+    - d-ast:
+        long: d-ast
+        help: dump AST to stderr
     - d-higher-ir:
         long: d-higher-ir
         help: dump higher-IR( three-address-code ) to stderr

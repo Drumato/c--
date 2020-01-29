@@ -38,6 +38,14 @@ impl Type {
             byte_size: 4,
         }
     }
+    pub fn to_string(&self) -> String {
+        match &self.kind {
+            TypeKind::INTEGER => "int".to_string(),
+            TypeKind::VOID => "void".to_string(),
+            TypeKind::POINTER(inner) => format!("Ptr<{}>", inner.to_string()),
+            TypeKind::UNKNOWN => "unknown".to_string(),
+        }
+    }
 }
 
 type Base = Box<Type>;
