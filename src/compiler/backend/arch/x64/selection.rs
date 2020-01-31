@@ -126,6 +126,7 @@ impl X64Optimizer {
                         _ => panic!("not implemented in ret selection"),
                     }
                 }
+
                 // store
                 X64IRKind::STORE(dst_op, src_op) => {
                     match &src_op.kind {
@@ -137,6 +138,11 @@ impl X64Optimizer {
                         // store imm
                         X64OpeKind::INTLIT(_value) => {
                             ir.kind = X64IRKind::STOREIMM(dst_op.clone(), src_op.clone());
+                        }
+
+                        // store var
+                        X64OpeKind::AUTOVAR(_name, _offset) => {
+                            ir.kind = X64IRKind::STOREMEM(dst_op.clone(), src_op.clone());
                         }
 
                         _ => panic!("not implemented in store selection"),

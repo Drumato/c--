@@ -32,6 +32,7 @@ pub enum X64IRKind {
     RETMEM(X64Operand),
     STOREREG(X64Operand, X64Operand),
     STOREIMM(X64Operand, X64Operand),
+    STOREMEM(X64Operand, X64Operand),
 }
 #[derive(Debug, Clone)]
 pub struct X64Operand {

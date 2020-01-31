@@ -142,6 +142,21 @@ impl X64IR {
                     dst_offset, src_value, dst_name
                 )
             }
+            X64IRKind::STOREMEM(dst, src) => {
+                let mut output = String::new();
+
+                // メモリからメモリに直接movする命令はない.
+                // ここではraxにロードし,そこから対象アドレスにロードする.
+                let src_name = src.var_name();
+                let src_offset = src.var_offset();
+                output += &(format!("mov rax, -{}[rbp] # {}\n", src_offset, src_name).as_str());
+
+                let dst_name = dst.var_name();
+                let dst_offset = dst.var_offset();
+                output += &(format!("  mov -{}[rbp], rax # {}", dst_offset, dst_name).as_str());
+
+                output
+            }
             // negative
             X64IRKind::NEGREG(inner_op) => {
                 let negative_reg = Registers::from_number_ir(inner_op.phys);
