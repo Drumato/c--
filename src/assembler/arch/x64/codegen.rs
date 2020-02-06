@@ -35,6 +35,29 @@ impl X64Assembler {
                             jump_map.insert(name.to_string(), (0, codes.len()));
                         }
                     }
+                    X64InstName::JZREL32 => {
+                        // opcode
+                        codes.push(0x0f);
+                        codes.push(0x84);
+                        if let X64InstKind::UNARY(op) = &inst.kind {
+                            let label_name = op.label_name();
+
+                            if let Some(tup) = jump_map.get_mut(&label_name) {
+                                // ラベルがjump系命令の前に存在した場合
+                                tup.0 = codes.len();
+                                tup.1 = !(codes.len() + 4 - tup.1) + 1;
+                            } else {
+                                // jump系命令がラベルの前に存在した場合
+                                jump_map
+                                    .insert(label_name.to_string(), (codes.len(), codes.len() + 3));
+                            }
+                        }
+
+                        // immediate-value
+                        for b in (0x00 as u32).to_le_bytes().to_vec().iter() {
+                            codes.push(*b);
+                        }
+                    }
                     X64InstName::JMPREL32 => {
                         // opcode
                         codes.push(0xe9);
@@ -104,6 +127,10 @@ impl X64Assembler {
                     X64InstName::SUBRM64IMM32 => {
                         Self::generate_subrm64imm32_inst(&mut codes, &inst)
                     }
+                    X64InstName::CMPRM64R64 => Self::generate_cmprm64r64_inst(&mut codes, &inst),
+                    X64InstName::CMPRM64IMM32 => {
+                        Self::generate_cmprm64imm32_inst(&mut codes, &inst)
+                    }
                     X64InstName::CQO => Self::generate_cqo_inst(&mut codes, &inst),
                     X64InstName::RET => Self::generate_ret_inst(&mut codes, &inst),
                     X64InstName::SYSCALL => Self::generate_syscall_inst(&mut codes),
@@ -120,6 +147,17 @@ impl X64Assembler {
             for inst in symbol.insts.iter() {
                 match &inst.name {
                     X64InstName::JMPREL32 => {
+                        if let X64InstKind::UNARY(op) = &inst.kind {
+                            let label_name = op.label_name();
+
+                            if let Some(tup) = jump_map.get(&label_name) {
+                                for (idx, b) in (tup.1 as u32).to_le_bytes().iter().enumerate() {
+                                    codes[idx + tup.0] = *b;
+                                }
+                            }
+                        }
+                    }
+                    X64InstName::JZREL32 => {
                         if let X64InstKind::UNARY(op) = &inst.kind {
                             let label_name = op.label_name();
 

@@ -25,7 +25,7 @@ pub struct Manager {
 
     // レジスタ番号
     pub virt: usize,
-    // pub label: usize,
+    pub label: usize,
 }
 
 impl Manager {
@@ -41,6 +41,7 @@ impl Manager {
             ir_func: IRFunction::new(entry_point),
             cur_bb: 0,
             virt: 0,
+            label: 0,
         }
     }
     pub fn dump_ast_to_stderr(&self) {

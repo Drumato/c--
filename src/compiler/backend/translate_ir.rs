@@ -49,6 +49,26 @@ impl Manager {
                 let return_operand = self.gen_expr(*child);
                 self.add_ir_to_current_bb(ThreeAddressCode::new_return(return_operand));
             }
+            NodeKind::IFSTMT(cond_expr, any_stmt) => {
+                let cond_op = self.gen_expr(*cond_expr);
+                let lnum = self.use_current_label();
+                let in_label = format!(".L{}", lnum);
+
+                // 比較IR
+                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, in_label.clone()));
+
+                self.gen_stmt(*any_stmt);
+
+                // 新しいベーシックブロックに向ける
+                let succ_bb = BasicBlock::new(in_label.clone());
+                self.ir_func.blocks.push(succ_bb);
+                self.cur_bb += 1;
+
+                // if let Some(alt) = alter{ }
+                // else{
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(in_label));
+                // }
+            }
             NodeKind::LABELEDSTMT(label_name, any_stmt) => {
                 // goto時に新しいBasicBlockを向いた状態になっている
                 // IRを生成するのはCFG構築などに必要な為.
@@ -136,6 +156,11 @@ impl Manager {
         let current_reg = self.cur_virt_reg();
         self.virt += 1;
         current_reg
+    }
+    fn use_current_label(&mut self) -> usize {
+        let current_label = self.label;
+        self.label += 1;
+        current_label
     }
     fn cur_virt_reg(&mut self) -> Operand {
         Operand::new_virtreg(self.virt)

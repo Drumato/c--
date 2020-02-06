@@ -24,6 +24,11 @@ impl HighOptimizer {
                         // この時点でBasicBlockに分けられているのでラベルは生成する必要はない.
                         // (3番地コードのときはCFG構築などにラベル情報があると便利だったため利用)
                     }
+                    tac_kind::TacKind::IFF(op, label_name) => {
+                        let cmp_op = Self::tac_operand_to_x64(op);
+                        low_irs.push(X64IR::new_cmpzero(cmp_op));
+                        low_irs.push(X64IR::new_jumpzero(label_name));
+                    }
                     tac_kind::TacKind::GOTO(label_name) => {
                         low_irs.push(X64IR::new_jump(label_name));
                     }

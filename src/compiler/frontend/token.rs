@@ -48,6 +48,7 @@ pub enum TokenKind {
     EOF,
 
     // 予約語
+    IF,     // if
     INT,    // int
     GOTO,   // goto
     VOID,   // void

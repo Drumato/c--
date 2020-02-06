@@ -43,7 +43,11 @@ impl X64Assembler {
         let cur = self.looking_token_clone();
         match cur.kind {
             // 2つのオペランドを持つ命令
-            AsmTokenKind::ADD | AsmTokenKind::SUB | AsmTokenKind::MOV | AsmTokenKind::IMUL => {
+            AsmTokenKind::ADD
+            | AsmTokenKind::SUB
+            | AsmTokenKind::MOV
+            | AsmTokenKind::CMP
+            | AsmTokenKind::IMUL => {
                 self.read_token();
 
                 let dst_op = self.consume_operand();
@@ -58,6 +62,7 @@ impl X64Assembler {
             | AsmTokenKind::IDIV
             | AsmTokenKind::NEG
             | AsmTokenKind::JMP
+            | AsmTokenKind::JZ
             | AsmTokenKind::PUSH
             | AsmTokenKind::POP => {
                 self.read_token();

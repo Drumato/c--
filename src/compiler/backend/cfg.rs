@@ -63,6 +63,22 @@ impl HighOptimizer {
                         self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
+                TacKind::IFF(_lv, label) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+
+                    if let Some(label_idx) = label_map.get(label) {
+                        self.add_succ(&mut cfg_inbb, tacs.len(), i, *label_idx);
+
+                        self.add_prev(&mut cfg_inbb, *label_idx, i);
+                    }
+
+                    prev_inst_is_goto = true;
+                    continue;
+                }
                 TacKind::RET(_return_op) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
 

@@ -89,6 +89,7 @@ impl X64Instruction {
             X64InstName::SUB => Self::change_sub_opcode(size, src, dst),
             X64InstName::MOV => Self::change_mov_opcode(size, src, dst),
             X64InstName::IMUL => Self::change_imul_opcode(size, src, dst),
+            X64InstName::CMP => Self::change_cmp_opcode(size, src, dst),
             // 何も変化させない
             _ => X64InstName::ADD,
         }
@@ -97,6 +98,7 @@ impl X64Instruction {
         match name {
             X64InstName::CALL => Self::change_call_opcode(size, op),
             X64InstName::JMP => Self::change_jmp_opcode(size, op),
+            X64InstName::JZ => Self::change_jz_opcode(size, op),
             X64InstName::IDIV => Self::change_idiv_opcode(size, op),
             X64InstName::PUSH => Self::change_push_opcode(size, op),
             X64InstName::POP => Self::change_pop_opcode(size, op),

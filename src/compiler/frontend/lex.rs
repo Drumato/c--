@@ -158,6 +158,7 @@ impl Lexer {
         self.keywords.insert("int".to_string(), TokenKind::INT);
         self.keywords.insert("void".to_string(), TokenKind::VOID);
         self.keywords.insert("goto".to_string(), TokenKind::GOTO);
+        self.keywords.insert("if".to_string(), TokenKind::IF);
     }
 
     fn skip_offset(&mut self, len: usize) {
@@ -272,19 +273,6 @@ mod lexer_tests {
         let should_eof = lexer.scan_one_token();
 
         assert_eq!(Some(expected_eof), should_eof);
-    }
-
-    #[test]
-    fn test_build_keywords() {
-        let mut lexer = create_lexer("");
-        lexer.build_keywords();
-
-        assert_eq!(4, lexer.keywords.len());
-
-        assert!(lexer.keywords.contains_key("return"));
-        assert!(lexer.keywords.contains_key("goto"));
-        assert!(lexer.keywords.contains_key("int"));
-        assert!(lexer.keywords.contains_key("void"));
     }
 
     // 総合テスト関数

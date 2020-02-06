@@ -197,7 +197,18 @@ impl X64IR {
                 output += &(format!("  ret").as_str());
                 output
             }
+            // cmpzero
+            X64IRKind::CMPZEROREG(cmp_op) => {
+                let cmp_reg = Registers::from_number_ir(cmp_op.phys);
+                format!("cmp {}, 0", cmp_reg.to_string())
+            }
+            X64IRKind::CMPZEROMEM(cmp_op) => {
+                let cmp_name = cmp_op.var_name();
+                let cmp_off = cmp_op.var_offset();
+                format!("cmp QWORD PTR -{}[rbp], 0 # {}", cmp_off, cmp_name)
+            }
             X64IRKind::JMP(label_name) => format!("jmp {}", label_name),
+            X64IRKind::JZ(label_name) => format!("jz {}", label_name),
             _ => {
                 eprintln!("can't emit with invalid ir -> {:?}", self.kind);
                 String::new()

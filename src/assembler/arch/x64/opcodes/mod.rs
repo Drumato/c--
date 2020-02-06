@@ -1,9 +1,11 @@
 pub mod add;
 pub mod call;
+pub mod cmp;
 pub mod cqo;
 pub mod idiv;
 pub mod imul;
 pub mod jmp;
+pub mod jz;
 pub mod mov;
 pub mod neg;
 pub mod pop;

@@ -99,6 +99,15 @@ impl HighOptimizer {
                         }
                     }
                 }
+                TacKind::IFF(ref mut op, ref mut _label) => {
+                    if let OpeKind::REG = op.kind {
+                        if let Some(allocated_number) = register_map.get(&op.virt) {
+                            op.phys = *allocated_number;
+                        } else {
+                            panic!("spill occured!(not implemented)");
+                        }
+                    }
+                }
                 _ => (),
             }
 

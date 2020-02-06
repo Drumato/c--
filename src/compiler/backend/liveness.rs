@@ -77,6 +77,12 @@ impl HighOptimizer {
                         bb.cfg_inbb.used[i].insert(return_op.virt);
                     }
                 }
+                TacKind::IFF(op, _label) => {
+                    // 返すオペランドがレジスタなら使用集合に
+                    if op.is_register() {
+                        bb.cfg_inbb.used[i].insert(op.virt);
+                    }
+                }
                 _ => (),
             }
         }

@@ -49,6 +49,7 @@ pub enum AsmTokenKind {
     NEG,  // neg命令
     MOV,  // mov命令
     ADD,  // add命令
+    CMP,  // cmp命令
     CQO,  // cqo命令
     SUB,  // sub命令
     IMUL, // imul命令
@@ -56,6 +57,7 @@ pub enum AsmTokenKind {
 
     // 汎用記法
     JMP,     // jmp命令
+    JZ,      // jz命令
     CALL,    // call命令
     RET,     // ret命令
     SYSCALL, // syscall命令
@@ -84,12 +86,14 @@ impl AsmTokenKind {
             Self::ADD | Self::ADDQ => X64InstName::ADD,
             Self::SUB | Self::SUBQ => X64InstName::SUB,
             Self::JMP => X64InstName::JMP,
+            Self::JZ => X64InstName::JZ,
             Self::NEG | Self::NEGQ => X64InstName::NEG,
             Self::IMUL | Self::IMULQ => X64InstName::IMUL,
             Self::IDIV | Self::IDIVQ => X64InstName::IDIV,
             Self::CALL => X64InstName::CALL,
             Self::SYSCALL => X64InstName::SYSCALL,
             Self::RET => X64InstName::RET,
+            Self::CMP => X64InstName::CMP,
             Self::CQO | Self::CLTD => X64InstName::CQO,
             Self::MOV | Self::MOVQ => X64InstName::MOV,
             Self::PUSH => X64InstName::PUSH,

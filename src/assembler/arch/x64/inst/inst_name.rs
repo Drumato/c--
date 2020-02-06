@@ -6,8 +6,10 @@ pub enum X64InstName {
     IMUL,
     IDIV,
     CQO,
+    CMP,
     CALL,
     JMP,
+    JZ,
     MOV,
     RET,
     SYSCALL,
@@ -23,11 +25,14 @@ pub enum X64InstName {
     IMULR64RM64IMM32,
     IMULR64RM64,
     CALLRM64,
+    CMPRM64IMM32,
+    CMPRM64R64,
     IDIVRM64,
     MOVRM64IMM32,
     MOVR64RM64,
     MOVRM64R64,
     JMPREL32,
+    JZREL32,
     PUSHR64,
     POPR64,
     NEGRM64,
@@ -56,11 +61,18 @@ impl X64InstName {
             // call
             Self::CALL => "call".to_string(),
             Self::CALLRM64 => "call(r/m64)".to_string(),
+            // cmp
+            Self::CMP => "cmp".to_string(),
+            Self::CMPRM64IMM32 => "cmp(r/m64 imm32)".to_string(),
+            Self::CMPRM64R64 => "cmp(r/m64 r64)".to_string(),
             // cqo
             Self::CQO => "cqo".to_string(),
             // jmp
             Self::JMP => "jmp".to_string(),
             Self::JMPREL32 => "jmp (rel32)".to_string(),
+            // jz
+            Self::JZ => "jz".to_string(),
+            Self::JZREL32 => "jz (rel32)".to_string(),
             // neg
             Self::NEG => "neg".to_string(),
             Self::NEGRM64 => "neg (r/m64)".to_string(),

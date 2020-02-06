@@ -52,4 +52,14 @@ impl X64IR {
             kind: X64IRKind::RET(return_op),
         }
     }
+    pub fn new_cmpzero(cmp_op: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::CMPZERO(cmp_op),
+        }
+    }
+    pub fn new_jumpzero(label_name: String) -> Self {
+        Self {
+            kind: X64IRKind::JZ(label_name),
+        }
+    }
 }

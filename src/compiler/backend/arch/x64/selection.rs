@@ -148,6 +148,27 @@ impl X64Optimizer {
                         _ => panic!("not implemented in store selection"),
                     }
                 }
+                // cmpzero
+                X64IRKind::CMPZERO(cmp_op) => {
+                    match &cmp_op.kind {
+                        // cmpzero reg
+                        X64OpeKind::REG => {
+                            ir.kind = X64IRKind::CMPZEROREG(cmp_op.clone());
+                        }
+
+                        // cmpzero imm
+                        X64OpeKind::INTLIT(_value) => {
+                            ir.kind = X64IRKind::CMPZEROIMM(cmp_op.clone());
+                        }
+
+                        // cmpzero var
+                        X64OpeKind::AUTOVAR(_name, _offset) => {
+                            ir.kind = X64IRKind::CMPZEROMEM(cmp_op.clone());
+                        }
+
+                        _ => panic!("not implemented in cmpzero selection"),
+                    }
+                }
                 _ => (),
             }
         }

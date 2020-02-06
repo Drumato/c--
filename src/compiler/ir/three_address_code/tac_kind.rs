@@ -7,6 +7,7 @@ pub enum TacKind {
     RET(Operand),
     GOTO(Label),
     ASSIGN(Operand, Operand),
+    IFF(Operand, Label),
 
     // ラベルを必要とするのは,CFG構築などで存在すると便利だから.
     // BasicBlockがこの情報を保持しているので,Low-IRに変換したときに捨てる.

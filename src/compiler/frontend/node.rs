@@ -49,6 +49,9 @@ impl Node {
     pub fn new_labeled(pos: Position, label_name: String, stmt: Node) -> Self {
         Self::new(pos, NodeKind::LABELEDSTMT(label_name, Box::new(stmt)))
     }
+    pub fn new_if(pos: Position, cond_expr: Node, stmt: Node) -> Self {
+        Self::new(pos, NodeKind::IFSTMT(Box::new(cond_expr), Box::new(stmt)))
+    }
     pub fn new_goto(pos: Position, label_name: String) -> Self {
         Self::new(pos, NodeKind::GOTOSTMT(label_name))
     }
@@ -89,6 +92,9 @@ impl Node {
             NodeKind::GOTOSTMT(label) => format!("goto {};", label),
             NodeKind::LABELEDSTMT(label, st) => format!("{}: {}", label, st.to_string()),
             NodeKind::EXPRSTMT(expr) => format!("{};", expr.to_string()),
+            NodeKind::IFSTMT(expr, stmt) => {
+                format!("if ( {} ) {}", expr.to_string(), stmt.to_string())
+            }
             NodeKind::DECLARATION(name, ty) => format!("{} {};", ty.to_string(), name),
 
             // expression
@@ -113,6 +119,7 @@ pub enum NodeKind {
     // statement
     RETURNSTMT(Expr),
     GOTOSTMT(Label),
+    IFSTMT(Expr, Stmt),
     LABELEDSTMT(Label, Stmt),
     EXPRSTMT(Expr),
     DECLARATION(String, Type),

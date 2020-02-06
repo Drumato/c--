@@ -53,6 +53,7 @@ impl X64Instruction {
             inst_name::X64InstName::CALL => Self::new_call(unop),
             inst_name::X64InstName::NEG => Self::new_neg(unop),
             inst_name::X64InstName::JMP => Self::new_jmp(unop),
+            inst_name::X64InstName::JZ => Self::new_jz(unop),
             inst_name::X64InstName::IDIV => Self::new_idiv(unop),
             inst_name::X64InstName::PUSH => Self::new_push(unop),
             inst_name::X64InstName::POP => Self::new_pop(unop),
@@ -69,6 +70,7 @@ impl X64Instruction {
             inst_name::X64InstName::SUB => Self::new_sub(src, dst),
             inst_name::X64InstName::IMUL => Self::new_imul(src, dst),
             inst_name::X64InstName::MOV => Self::new_mov(src, dst),
+            inst_name::X64InstName::CMP => Self::new_cmp(src, dst),
             _ => panic!("no such a binary instruction"),
         }
     }

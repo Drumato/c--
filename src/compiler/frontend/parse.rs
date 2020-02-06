@@ -66,6 +66,8 @@ impl Manager {
             TokenKind::IDENTIFIER(_name) if self.next_token_is(TokenKind::COLON) => {
                 self.parse_labeled_stmt()
             }
+            // selection-statement
+            TokenKind::IF => self.parse_selection_stmt(),
             // expression-statement
             _ => {
                 let current_position = self.looking_token_clone().position;
@@ -122,9 +124,23 @@ impl Manager {
         (name, covered_type)
     }
 
+    fn parse_selection_stmt(&mut self) -> Node {
+        // selection_stmt -> if + `(` + expression `)` + statement
+        // if文開始位置を保存
+        let current_position = self.looking_token_clone().position;
+        self.expect(TokenKind::IF);
+        self.expect(TokenKind::LPAREN);
+        let cond_expr = self.parse_expression();
+        self.expect(TokenKind::RPAREN);
+
+        let any_statement = self.parse_statement();
+
+        Node::new_if(current_position, cond_expr, any_statement)
+    }
+
     fn parse_goto_stmt(&mut self) -> Node {
         // goto_stmt -> goto + identifier + `;`
-        // gotol文開始位置を保存
+        // goto文開始位置を保存
         let current_position = self.looking_token_clone().position;
         self.expect(TokenKind::GOTO);
         let label_name = self.expect_ident();

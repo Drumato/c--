@@ -9,13 +9,16 @@ pub enum X64IRKind {
     MUL(X64Operand, X64Operand),
     DIV(X64Operand, X64Operand),
     JMP(LabelName),
+    JZ(LabelName),
+    CMPZERO(X64Operand),
     STORE(X64Operand, X64Operand),
 
     // 1つオペランドを持つ系
     NEGATIVE(X64Operand),
     RET(X64Operand),
 
-    // 具体的的なIR
+    // 具体的なIR
+    // 2つオペランドを持つ系
     ADDIMMTOREG(X64Operand, X64Operand),
     ADDREGTOREG(X64Operand, X64Operand),
     MOVIMMTOREG(X64Operand, X64Operand),
@@ -26,6 +29,8 @@ pub enum X64IRKind {
     MULREGTOREG(X64Operand, X64Operand),
     DIVIMMTOREG(X64Operand, X64Operand),
     DIVREGTOREG(X64Operand, X64Operand),
+
+    // 1つオペランドを持つ系
     NEGREG(X64Operand),
     RETREG(X64Operand),
     RETIMM(X64Operand),
@@ -33,6 +38,9 @@ pub enum X64IRKind {
     STOREREG(X64Operand, X64Operand),
     STOREIMM(X64Operand, X64Operand),
     STOREMEM(X64Operand, X64Operand),
+    CMPZEROREG(X64Operand),
+    CMPZEROIMM(X64Operand),
+    CMPZEROMEM(X64Operand),
 }
 #[derive(Debug, Clone)]
 pub struct X64Operand {

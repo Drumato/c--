@@ -23,6 +23,10 @@ impl Manager {
             NodeKind::EXPRSTMT(ref mut expr) => {
                 self.walk_expression(expr);
             }
+            NodeKind::IFSTMT(ref mut expr, ref mut stmt) => {
+                self.walk_expression(expr);
+                self.walk_statement(stmt);
+            }
             NodeKind::GOTOSTMT(ref mut _label_name) => {}
             NodeKind::DECLARATION(ref mut _name, ref mut _type) => {}
             _ => {

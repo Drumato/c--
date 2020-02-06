@@ -79,6 +79,8 @@ impl AsmLexer {
         self.keywords.insert("add".to_string(), AsmTokenKind::ADD);
         self.keywords.insert("call".to_string(), AsmTokenKind::CALL);
         self.keywords.insert("jmp".to_string(), AsmTokenKind::JMP);
+        self.keywords.insert("jz".to_string(), AsmTokenKind::JZ);
+        self.keywords.insert("cmp".to_string(), AsmTokenKind::CMP);
         self.keywords.insert("cqo".to_string(), AsmTokenKind::CQO);
         self.keywords.insert("imul".to_string(), AsmTokenKind::IMUL);
         self.keywords.insert("idiv".to_string(), AsmTokenKind::IDIV);
