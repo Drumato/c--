@@ -52,6 +52,12 @@ impl Node {
     pub fn new_if(pos: Position, cond_expr: Node, stmt: Node) -> Self {
         Self::new(pos, NodeKind::IFSTMT(Box::new(cond_expr), Box::new(stmt)))
     }
+    pub fn new_if_else(pos: Position, cond_expr: Node, stmt: Node, alt: Node) -> Self {
+        Self::new(
+            pos,
+            NodeKind::IFELSESTMT(Box::new(cond_expr), Box::new(stmt), Box::new(alt)),
+        )
+    }
     pub fn new_goto(pos: Position, label_name: String) -> Self {
         Self::new(pos, NodeKind::GOTOSTMT(label_name))
     }
@@ -95,6 +101,12 @@ impl Node {
             NodeKind::IFSTMT(expr, stmt) => {
                 format!("if ( {} ) {}", expr.to_string(), stmt.to_string())
             }
+            NodeKind::IFELSESTMT(expr, stmt, alt) => format!(
+                "if ( {} ) {}\n  else {}",
+                expr.to_string(),
+                stmt.to_string(),
+                alt.to_string()
+            ),
             NodeKind::DECLARATION(name, ty) => format!("{} {};", ty.to_string(), name),
 
             // expression
@@ -120,6 +132,7 @@ pub enum NodeKind {
     RETURNSTMT(Expr),
     GOTOSTMT(Label),
     IFSTMT(Expr, Stmt),
+    IFELSESTMT(Expr, Stmt, Stmt),
     LABELEDSTMT(Label, Stmt),
     EXPRSTMT(Expr),
     DECLARATION(String, Type),

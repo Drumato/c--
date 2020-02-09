@@ -135,7 +135,13 @@ impl Manager {
 
         let any_statement = self.parse_statement();
 
-        Node::new_if(current_position, cond_expr, any_statement)
+        if !self.consume(TokenKind::ELSE) {
+            return Node::new_if(current_position, cond_expr, any_statement);
+        }
+
+        // if-else
+        let alter_statement = self.parse_statement();
+        Node::new_if_else(current_position, cond_expr, any_statement, alter_statement)
     }
 
     fn parse_goto_stmt(&mut self) -> Node {

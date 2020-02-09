@@ -159,6 +159,7 @@ impl Lexer {
         self.keywords.insert("void".to_string(), TokenKind::VOID);
         self.keywords.insert("goto".to_string(), TokenKind::GOTO);
         self.keywords.insert("if".to_string(), TokenKind::IF);
+        self.keywords.insert("else".to_string(), TokenKind::ELSE);
     }
 
     fn skip_offset(&mut self, len: usize) {

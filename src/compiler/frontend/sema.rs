@@ -27,6 +27,11 @@ impl Manager {
                 self.walk_expression(expr);
                 self.walk_statement(stmt);
             }
+            NodeKind::IFELSESTMT(ref mut expr, ref mut stmt, ref mut alt) => {
+                self.walk_expression(expr);
+                self.walk_statement(stmt);
+                self.walk_statement(alt);
+            }
             NodeKind::GOTOSTMT(ref mut _label_name) => {}
             NodeKind::DECLARATION(ref mut _name, ref mut _type) => {}
             _ => {

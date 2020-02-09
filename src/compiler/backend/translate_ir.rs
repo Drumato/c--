@@ -52,22 +52,47 @@ impl Manager {
             NodeKind::IFSTMT(cond_expr, any_stmt) => {
                 let cond_op = self.gen_expr(*cond_expr);
                 let lnum = self.use_current_label();
-                let in_label = format!(".L{}", lnum);
+                let fin_label = format!(".L{}", lnum);
 
-                // 比較IR
-                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, in_label.clone()));
+                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, fin_label.clone()));
 
                 self.gen_stmt(*any_stmt);
 
                 // 新しいベーシックブロックに向ける
-                let succ_bb = BasicBlock::new(in_label.clone());
+                let succ_bb = BasicBlock::new(fin_label.clone());
                 self.ir_func.blocks.push(succ_bb);
                 self.cur_bb += 1;
 
-                // if let Some(alt) = alter{ }
-                // else{
-                self.add_ir_to_current_bb(ThreeAddressCode::new_label(in_label));
-                // }
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(fin_label));
+            }
+            NodeKind::IFELSESTMT(cond_expr, stmt, alt_stmt) => {
+                let cond_op = self.gen_expr(*cond_expr);
+                let lnum = self.use_current_label();
+                let fin_label = format!(".L{}", lnum);
+
+                let lnum2 = self.use_current_label();
+                let else_label = format!(".L{}", lnum2);
+
+                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, else_label.clone()));
+
+                self.gen_stmt(*stmt);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_goto(fin_label.clone()));
+
+                // elseブロックに向ける
+                let else_bb = BasicBlock::new(else_label.clone());
+                self.ir_func.blocks.push(else_bb);
+                self.cur_bb += 1;
+
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(else_label));
+
+                self.gen_stmt(*alt_stmt);
+
+                // finブロックに向ける
+                let succ_bb = BasicBlock::new(fin_label.clone());
+                self.ir_func.blocks.push(succ_bb);
+                self.cur_bb += 1;
+
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(fin_label));
             }
             NodeKind::LABELEDSTMT(label_name, any_stmt) => {
                 // goto時に新しいBasicBlockを向いた状態になっている

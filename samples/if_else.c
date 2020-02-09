@@ -1,0 +1,9 @@
+int main() {
+  int x;
+  x = 0;
+  if (x) 
+    return 10;
+  else 
+    return 20;
+  
+}
