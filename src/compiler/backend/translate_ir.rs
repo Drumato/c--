@@ -54,20 +54,47 @@ impl Manager {
                 let loop_label = format!(".L{}", self.use_current_label());
                 let fin_label = format!(".L{}", self.use_current_label());
 
+                // ループラベルの生成
                 let loop_bb = BasicBlock::new(loop_label.clone());
                 self.ir_func.blocks.push(loop_bb);
                 self.cur_bb += 1;
-
                 self.add_ir_to_current_bb(ThreeAddressCode::new_label(loop_label.to_string()));
 
+                // 条件式の翻訳
                 let cond_op = self.gen_expr(*ex);
+
+                // ifジャンプの翻訳,body/gotoの翻訳
                 self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, fin_label.clone()));
 
                 self.gen_stmt(*stmt);
-
                 let _ = self.gen_expr(*ex2);
                 self.add_ir_to_current_bb(ThreeAddressCode::new_goto(loop_label));
 
+                // for終了後のラベル/BBを生成
+                let succ_bb = BasicBlock::new(fin_label.clone());
+                self.ir_func.blocks.push(succ_bb);
+                self.cur_bb += 1;
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(fin_label));
+            }
+            NodeKind::WHILESTMT(cond_expr, stmt) => {
+                // 条件式の翻訳
+                let cond_op = self.gen_expr(*cond_expr);
+                let loop_label = format!(".L{}", self.use_current_label());
+                let fin_label = format!(".L{}", self.use_current_label());
+
+                // ループラベルの生成
+                let loop_bb = BasicBlock::new(loop_label.clone());
+                self.ir_func.blocks.push(loop_bb);
+                self.cur_bb += 1;
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(loop_label.to_string()));
+
+                // ifジャンプの翻訳,body/gotoの翻訳
+                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, fin_label.clone()));
+
+                self.gen_stmt(*stmt);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_goto(loop_label));
+
+                // while終了後のラベル/BBを生成
                 let succ_bb = BasicBlock::new(fin_label.clone());
                 self.ir_func.blocks.push(succ_bb);
                 self.cur_bb += 1;

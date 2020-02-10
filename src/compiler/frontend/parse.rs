@@ -70,6 +70,7 @@ impl Manager {
             TokenKind::IF => self.parse_selection_stmt(),
             // iteration-statement
             TokenKind::FOR => self.parse_for_stmt(),
+            TokenKind::WHILE => self.parse_while_stmt(),
             // expression-statement
             _ => {
                 let current_position = self.looking_token_clone().position;
@@ -126,9 +127,23 @@ impl Manager {
         (name, covered_type)
     }
 
+    fn parse_while_stmt(&mut self) -> Node {
+        // while_stmt -> while `(` expression `)` statement
+        let current_position = self.looking_token_clone().position;
+        self.expect(TokenKind::WHILE);
+        self.expect(TokenKind::LPAREN);
+
+        let cond_expr = self.parse_expression();
+        self.expect(TokenKind::RPAREN);
+
+        let stmt = self.parse_statement();
+        Node::new_while(current_position, cond_expr, stmt)
+    }
+
     fn parse_for_stmt(&mut self) -> Node {
         // for_stmt -> for `(` clause_1 `;` expr_2 `;` expr_3 `)` statement
         let current_position = self.looking_token_clone().position;
+
         let mut clause = Node::new_nop();
         let mut expr_2 = Node::new_nop();
         self.expect(TokenKind::FOR);

@@ -61,6 +61,9 @@ impl Node {
             NodeKind::IFELSESTMT(Box::new(cond_expr), Box::new(stmt), Box::new(alt)),
         )
     }
+    pub fn new_while(pos: Position, expr: Node, stmt: Node) -> Self {
+        Self::new(pos, NodeKind::WHILESTMT(Box::new(expr), Box::new(stmt)))
+    }
     pub fn new_for(pos: Position, clause: Node, expr_2: Node, expr_3: Node, stmt: Node) -> Self {
         Self::new(
             pos,
@@ -119,6 +122,9 @@ impl Node {
                 expr_3.to_string(),
                 stmt.to_string()
             ),
+            NodeKind::WHILESTMT(expr, stmt) => {
+                format!("while ( {} ) {}", expr.to_string(), stmt.to_string())
+            }
             NodeKind::IFSTMT(expr, stmt) => {
                 format!("if ( {} ) {}", expr.to_string(), stmt.to_string())
             }
@@ -157,6 +163,7 @@ pub enum NodeKind {
     IFSTMT(Expr, Stmt),
     IFELSESTMT(Expr, Stmt, Stmt),
     FORSTMT(Clause, Expr, Expr, Stmt),
+    WHILESTMT(Expr, Stmt),
     LABELEDSTMT(Label, Stmt),
     EXPRSTMT(Expr),
     DECLARATION(String, Type),

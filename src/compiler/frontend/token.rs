@@ -51,6 +51,7 @@ pub enum TokenKind {
     IF,     // if
     ELSE,   // else
     FOR,    // for
+    WHILE,  // while
     INT,    // int
     GOTO,   // goto
     VOID,   // void
