@@ -68,6 +68,8 @@ impl Manager {
             }
             // selection-statement
             TokenKind::IF => self.parse_selection_stmt(),
+            // iteration-statement
+            TokenKind::FOR => self.parse_for_stmt(),
             // expression-statement
             _ => {
                 let current_position = self.looking_token_clone().position;
@@ -122,6 +124,29 @@ impl Manager {
 
         let name = self.expect_ident();
         (name, covered_type)
+    }
+
+    fn parse_for_stmt(&mut self) -> Node {
+        // for_stmt -> for `(` clause_1 `;` expr_2 `;` expr_3 `)` statement
+        let current_position = self.looking_token_clone().position;
+        let mut clause = Node::new_nop();
+        let mut expr_2 = Node::new_nop();
+        self.expect(TokenKind::FOR);
+        self.expect(TokenKind::LPAREN);
+
+        if !self.consume(TokenKind::SEMICOLON) {
+            clause = self.parse_expression();
+            self.expect(TokenKind::SEMICOLON);
+        }
+        if !self.consume(TokenKind::SEMICOLON) {
+            expr_2 = self.parse_expression();
+            self.expect(TokenKind::SEMICOLON);
+        }
+        let expr_3 = self.parse_expression();
+        self.expect(TokenKind::RPAREN);
+
+        let stmt = self.parse_statement();
+        Node::new_for(current_position, clause, expr_2, expr_3, stmt)
     }
 
     fn parse_selection_stmt(&mut self) -> Node {

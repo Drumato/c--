@@ -32,7 +32,14 @@ impl X64Optimizer {
                         X64OpeKind::INTLIT(_value) => {
                             ir.kind = X64IRKind::MOVIMMTOREG(dst.clone(), src.clone());
                         }
-                        _ => panic!("not implemented in mov selection"),
+                        // mov reg, var
+                        X64OpeKind::AUTOVAR(_name, _offset) => {
+                            ir.kind = X64IRKind::MOVMEMTOREG(dst.clone(), src.clone());
+                        }
+                        _ => {
+                            eprintln!("{:?}", ir);
+                            panic!("↑ not implemented in mov selection")
+                        }
                     }
                 }
                 // add

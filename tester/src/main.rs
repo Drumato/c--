@@ -66,6 +66,7 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
             "if_true.c" => 1,
             "if_false.c" => 0,
             "if_else.c" => 20,
+            "for.c" => 10,
             _ => {
                 eprintln!("not found such a test case -> {}", final_name);
                 0

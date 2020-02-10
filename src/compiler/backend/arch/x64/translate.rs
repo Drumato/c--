@@ -64,51 +64,69 @@ impl HighOptimizer {
                         // 左が数値リテラル -> (右がレジスタであれば) raxにロードしてから演算
                         //                  -> (そうでなければ)先にdstにロードしてから,演算
                         // それ以外         -> 演算してからdstにロード
-                        if let X64OpeKind::INTLIT(_) = &left.kind {
-                            if let X64OpeKind::REG = &right.kind {
-                                // r.g. t1 <- 2 + t1
-                                // -----------------
-                                // rax <- 2
-                                // rax <- rax + t1
-                                // t1 <- rax
-                                let load_ir = X64IR::new_mov(X64Operand::new_rax(), left.clone());
-                                low_irs.push(load_ir);
-
-                                // 演算命令
+                        match &left.kind {
+                            // 左がレジスタ
+                            X64OpeKind::REG => {
                                 Self::add_binary_ir_matching_opcode(
                                     &mut low_irs,
                                     opcode,
-                                    X64Operand::new_rax(),
+                                    left.clone(),
                                     right,
                                 );
 
-                                let load_ir = X64IR::new_mov(dst, X64Operand::new_rax());
+                                let load_ir = X64IR::new_mov(dst, left);
                                 low_irs.push(load_ir);
-                            } else {
-                                let load_ir = X64IR::new_mov(dst.clone(), left.clone());
+                            }
+                            X64OpeKind::AUTOVAR(_name, _offset) => {
+                                let load_ir = X64IR::new_mov(dst, left.clone());
                                 low_irs.push(load_ir);
-
-                                // 演算命令
                                 Self::add_binary_ir_matching_opcode(
                                     &mut low_irs,
                                     opcode,
-                                    dst,
+                                    left,
                                     right,
                                 );
                             }
-                            continue;
+                            // 左が整数値
+                            X64OpeKind::INTLIT(_) => {
+                                match &right.kind {
+                                    X64OpeKind::REG => {
+                                        // r.g. t1 <- 2 + t1
+                                        // -----------------
+                                        // rax <- 2
+                                        // rax <- rax + t1
+                                        // t1 <- rax
+                                        let load_ir =
+                                            X64IR::new_mov(X64Operand::new_rax(), left.clone());
+                                        low_irs.push(load_ir);
+
+                                        // 演算命令
+                                        Self::add_binary_ir_matching_opcode(
+                                            &mut low_irs,
+                                            opcode,
+                                            X64Operand::new_rax(),
+                                            right,
+                                        );
+
+                                        let load_ir = X64IR::new_mov(dst, X64Operand::new_rax());
+                                        low_irs.push(load_ir);
+                                    }
+                                    _ => {
+                                        let load_ir = X64IR::new_mov(dst.clone(), left.clone());
+                                        low_irs.push(load_ir);
+
+                                        // 演算命令
+                                        Self::add_binary_ir_matching_opcode(
+                                            &mut low_irs,
+                                            opcode,
+                                            dst,
+                                            right,
+                                        );
+                                    }
+                                }
+                            }
+                            X64OpeKind::INVALID => panic!("got invalid operand"),
                         }
-
-                        // 左が非数値リテラル
-                        Self::add_binary_ir_matching_opcode(
-                            &mut low_irs,
-                            opcode,
-                            left.clone(),
-                            right,
-                        );
-
-                        let load_ir = X64IR::new_mov(dst, left);
-                        low_irs.push(load_ir);
                     }
                 }
             }

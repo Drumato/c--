@@ -160,6 +160,7 @@ impl Lexer {
         self.keywords.insert("goto".to_string(), TokenKind::GOTO);
         self.keywords.insert("if".to_string(), TokenKind::IF);
         self.keywords.insert("else".to_string(), TokenKind::ELSE);
+        self.keywords.insert("for".to_string(), TokenKind::FOR);
     }
 
     fn skip_offset(&mut self, len: usize) {

@@ -76,6 +76,18 @@ impl X64IR {
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 format!("mov {}, {}", dst_reg.to_string(), immediate.int_value())
             }
+            X64IRKind::MOVMEMTOREG(dst, var) => {
+                let src_name = var.var_name();
+                let src_off = var.var_offset();
+                let dst_reg = Registers::from_number_ir(dst.phys);
+
+                format!(
+                    "mov {}, -{}[rbp] # {}",
+                    dst_reg.to_string(),
+                    src_off,
+                    src_name
+                )
+            }
 
             // sub
             X64IRKind::SUBREGTOREG(dst, src) => {

@@ -27,6 +27,12 @@ impl Manager {
                 self.walk_expression(expr);
                 self.walk_statement(stmt);
             }
+            NodeKind::FORSTMT(ref mut cl, ref mut ex, ref mut ex2, ref mut stmt) => {
+                self.walk_expression(cl);
+                self.walk_expression(ex);
+                self.walk_expression(ex2);
+                self.walk_statement(stmt);
+            }
             NodeKind::IFELSESTMT(ref mut expr, ref mut stmt, ref mut alt) => {
                 self.walk_expression(expr);
                 self.walk_statement(stmt);

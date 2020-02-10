@@ -49,6 +49,30 @@ impl Manager {
                 let return_operand = self.gen_expr(*child);
                 self.add_ir_to_current_bb(ThreeAddressCode::new_return(return_operand));
             }
+            NodeKind::FORSTMT(cl, ex, ex2, stmt) => {
+                let _ = self.gen_expr(*cl);
+                let loop_label = format!(".L{}", self.use_current_label());
+                let fin_label = format!(".L{}", self.use_current_label());
+
+                let loop_bb = BasicBlock::new(loop_label.clone());
+                self.ir_func.blocks.push(loop_bb);
+                self.cur_bb += 1;
+
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(loop_label.to_string()));
+
+                let cond_op = self.gen_expr(*ex);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_iff(cond_op, fin_label.clone()));
+
+                self.gen_stmt(*stmt);
+
+                let _ = self.gen_expr(*ex2);
+                self.add_ir_to_current_bb(ThreeAddressCode::new_goto(loop_label));
+
+                let succ_bb = BasicBlock::new(fin_label.clone());
+                self.ir_func.blocks.push(succ_bb);
+                self.cur_bb += 1;
+                self.add_ir_to_current_bb(ThreeAddressCode::new_label(fin_label));
+            }
             NodeKind::IFSTMT(cond_expr, any_stmt) => {
                 let cond_op = self.gen_expr(*cond_expr);
                 let lnum = self.use_current_label();

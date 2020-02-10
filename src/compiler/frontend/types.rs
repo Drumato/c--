@@ -23,7 +23,7 @@ impl Type {
     pub fn new_integer() -> Self {
         Self {
             kind: TypeKind::INTEGER,
-            byte_size: 4,
+            byte_size: 8,
         }
     }
     pub fn pointer_to(base: Self) -> Self {

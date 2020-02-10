@@ -46,6 +46,9 @@ impl Node {
             ctype: Type::new_unknown(),
         }
     }
+    pub fn new_nop() -> Self {
+        Self::new((0, 0), NodeKind::NOP)
+    }
     pub fn new_labeled(pos: Position, label_name: String, stmt: Node) -> Self {
         Self::new(pos, NodeKind::LABELEDSTMT(label_name, Box::new(stmt)))
     }
@@ -56,6 +59,17 @@ impl Node {
         Self::new(
             pos,
             NodeKind::IFELSESTMT(Box::new(cond_expr), Box::new(stmt), Box::new(alt)),
+        )
+    }
+    pub fn new_for(pos: Position, clause: Node, expr_2: Node, expr_3: Node, stmt: Node) -> Self {
+        Self::new(
+            pos,
+            NodeKind::FORSTMT(
+                Box::new(clause),
+                Box::new(expr_2),
+                Box::new(expr_3),
+                Box::new(stmt),
+            ),
         )
     }
     pub fn new_goto(pos: Position, label_name: String) -> Self {
@@ -98,6 +112,13 @@ impl Node {
             NodeKind::GOTOSTMT(label) => format!("goto {};", label),
             NodeKind::LABELEDSTMT(label, st) => format!("{}: {}", label, st.to_string()),
             NodeKind::EXPRSTMT(expr) => format!("{};", expr.to_string()),
+            NodeKind::FORSTMT(clause, expr_2, expr_3, stmt) => format!(
+                "for ( {}; {}; {} )\n    {}",
+                clause.to_string(),
+                expr_2.to_string(),
+                expr_3.to_string(),
+                stmt.to_string()
+            ),
             NodeKind::IFSTMT(expr, stmt) => {
                 format!("if ( {} ) {}", expr.to_string(), stmt.to_string())
             }
@@ -119,10 +140,12 @@ impl Node {
             NodeKind::INTEGER(v) => format!("{}", v),
             NodeKind::IDENTIFIER(name) => name.to_string(),
             NodeKind::INVALID => "invalid".to_string(),
+            NodeKind::NOP => "nop".to_string(),
         }
     }
 }
 
+type Clause = Box<Node>;
 type Expr = Box<Node>;
 type Stmt = Box<Node>;
 type Label = String;
@@ -133,6 +156,7 @@ pub enum NodeKind {
     GOTOSTMT(Label),
     IFSTMT(Expr, Stmt),
     IFELSESTMT(Expr, Stmt, Stmt),
+    FORSTMT(Clause, Expr, Expr, Stmt),
     LABELEDSTMT(Label, Stmt),
     EXPRSTMT(Expr),
     DECLARATION(String, Type),
@@ -147,6 +171,7 @@ pub enum NodeKind {
     INTEGER(i128),
     IDENTIFIER(String),
     INVALID,
+    NOP,
 }
 
 // 演算の優先順位を定義

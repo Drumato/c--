@@ -1,7 +1,7 @@
 use crate::compiler::ir::arch::x64::ir_kind;
 use ir_kind::{X64IRKind, X64Operand};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct X64IR {
     pub kind: X64IRKind,
 }

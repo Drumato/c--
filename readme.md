@@ -5,3 +5,7 @@
 - a static linker
 
 all implementations from scratch.
+
+## ABI
+
+- `sizeof(int)` ... 8

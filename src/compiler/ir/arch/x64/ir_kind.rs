@@ -23,6 +23,7 @@ pub enum X64IRKind {
     ADDREGTOREG(X64Operand, X64Operand),
     MOVIMMTOREG(X64Operand, X64Operand),
     MOVREGTOREG(X64Operand, X64Operand),
+    MOVMEMTOREG(X64Operand, X64Operand),
     SUBIMMTOREG(X64Operand, X64Operand),
     SUBREGTOREG(X64Operand, X64Operand),
     MULIMMTOREG(X64Operand, X64Operand),
