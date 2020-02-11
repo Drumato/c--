@@ -38,8 +38,8 @@ pub enum TokenKind {
     SLASH,     // /記号
     LPAREN,    // (記号
     RPAREN,    // )記号
-    LBRACKET,  // {記号
-    RBRACKET,  // }記号
+    LBRACE,    // {記号
+    RBRACE,    // }記号
     COLON,     // :記号
     SEMICOLON, // ;記号
     ASSIGN,    // =記号

@@ -20,6 +20,11 @@ impl Manager {
             NodeKind::LABELEDSTMT(ref mut _label_name, ref mut any_stmt) => {
                 self.walk_statement(any_stmt);
             }
+            NodeKind::COMPOUNDSTMT(ref mut stmts) => {
+                for st in stmts.iter_mut() {
+                    self.walk_statement(st);
+                }
+            }
             NodeKind::EXPRSTMT(ref mut expr) => {
                 self.walk_expression(expr);
             }

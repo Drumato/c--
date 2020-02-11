@@ -39,10 +39,10 @@ impl Manager {
         self.expect(TokenKind::RPAREN);
 
         // 関数のボディ
-        self.expect(TokenKind::LBRACKET);
+        self.expect(TokenKind::LBRACE);
 
         loop {
-            if self.consume(TokenKind::RBRACKET) {
+            if self.consume(TokenKind::RBRACE) {
                 break;
             }
 
@@ -66,6 +66,8 @@ impl Manager {
             TokenKind::IDENTIFIER(_name) if self.next_token_is(TokenKind::COLON) => {
                 self.parse_labeled_stmt()
             }
+            // compound-statement
+            TokenKind::LBRACE => self.parse_compound_stmt(),
             // selection-statement
             TokenKind::IF => self.parse_selection_stmt(),
             // iteration-statement
@@ -127,8 +129,22 @@ impl Manager {
         (name, covered_type)
     }
 
+    // compound_stmt -> `{` statement * n `}`
+    fn parse_compound_stmt(&mut self) -> Node {
+        let current_position = self.looking_token_clone().position;
+        self.expect(TokenKind::LBRACE);
+
+        let mut stmts: Vec<Node> = Vec::new();
+        loop {
+            if self.consume(TokenKind::RBRACE) {
+                break;
+            }
+            stmts.push(self.parse_statement());
+        }
+        Node::new_compound(current_position, stmts)
+    }
+    // while_stmt -> while `(` expression `)` statement
     fn parse_while_stmt(&mut self) -> Node {
-        // while_stmt -> while `(` expression `)` statement
         let current_position = self.looking_token_clone().position;
         self.expect(TokenKind::WHILE);
         self.expect(TokenKind::LPAREN);
@@ -140,8 +156,8 @@ impl Manager {
         Node::new_while(current_position, cond_expr, stmt)
     }
 
+    // for_stmt -> for `(` clause_1 `;` expr_2 `;` expr_3 `)` statement
     fn parse_for_stmt(&mut self) -> Node {
-        // for_stmt -> for `(` clause_1 `;` expr_2 `;` expr_3 `)` statement
         let current_position = self.looking_token_clone().position;
 
         let mut clause = Node::new_nop();

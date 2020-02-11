@@ -52,6 +52,9 @@ impl Node {
     pub fn new_labeled(pos: Position, label_name: String, stmt: Node) -> Self {
         Self::new(pos, NodeKind::LABELEDSTMT(label_name, Box::new(stmt)))
     }
+    pub fn new_compound(pos: Position, stmts: Vec<Node>) -> Self {
+        Self::new(pos, NodeKind::COMPOUNDSTMT(stmts))
+    }
     pub fn new_if(pos: Position, cond_expr: Node, stmt: Node) -> Self {
         Self::new(pos, NodeKind::IFSTMT(Box::new(cond_expr), Box::new(stmt)))
     }
@@ -122,6 +125,15 @@ impl Node {
                 expr_3.to_string(),
                 stmt.to_string()
             ),
+            NodeKind::COMPOUNDSTMT(stmts) => {
+                let mut output = String::new();
+                output += "{\n";
+                for st in stmts.iter() {
+                    output += &(format!("    {}\n", st.to_string()).as_str());
+                }
+                output += "  }\n";
+                output
+            }
             NodeKind::WHILESTMT(expr, stmt) => {
                 format!("while ( {} ) {}", expr.to_string(), stmt.to_string())
             }
@@ -154,10 +166,12 @@ impl Node {
 type Clause = Box<Node>;
 type Expr = Box<Node>;
 type Stmt = Box<Node>;
+type Stmts = Vec<Node>;
 type Label = String;
 #[derive(Debug, PartialEq, Clone)]
 pub enum NodeKind {
     // statement
+    COMPOUNDSTMT(Stmts),
     RETURNSTMT(Expr),
     GOTOSTMT(Label),
     IFSTMT(Expr, Stmt),

@@ -45,6 +45,11 @@ impl Manager {
                 self.ir_func.blocks.push(goto_bb);
                 self.cur_bb += 1;
             }
+            NodeKind::COMPOUNDSTMT(stmts) => {
+                for st in stmts.iter() {
+                    self.gen_stmt(st.clone());
+                }
+            }
             NodeKind::RETURNSTMT(child) => {
                 let return_operand = self.gen_expr(*child);
                 self.add_ir_to_current_bb(ThreeAddressCode::new_return(return_operand));

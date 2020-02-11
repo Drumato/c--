@@ -73,8 +73,8 @@ impl Lexer {
             ';' => Some(self.scan_symbol(TokenKind::SEMICOLON)),
             '(' => Some(self.scan_symbol(TokenKind::LPAREN)),
             ')' => Some(self.scan_symbol(TokenKind::RPAREN)),
-            '{' => Some(self.scan_symbol(TokenKind::LBRACKET)),
-            '}' => Some(self.scan_symbol(TokenKind::RBRACKET)),
+            '{' => Some(self.scan_symbol(TokenKind::LBRACE)),
+            '}' => Some(self.scan_symbol(TokenKind::RBRACE)),
             '=' => Some(self.scan_symbol(TokenKind::ASSIGN)),
 
             // アルファベットの場合
