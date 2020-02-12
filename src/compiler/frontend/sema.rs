@@ -36,6 +36,10 @@ impl Manager {
                 self.walk_expression(expr);
                 self.walk_statement(stmt);
             }
+            NodeKind::DOWHILESTMT(ref mut stmt, ref mut expr) => {
+                self.walk_statement(stmt);
+                self.walk_expression(expr);
+            }
             NodeKind::FORSTMT(ref mut cl, ref mut ex, ref mut ex2, ref mut stmt) => {
                 self.walk_expression(cl);
                 self.walk_expression(ex);

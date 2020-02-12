@@ -49,6 +49,7 @@ pub enum TokenKind {
 
     // 予約語
     IF,     // if
+    DO,     // do
     ELSE,   // else
     FOR,    // for
     WHILE,  // while

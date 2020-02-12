@@ -52,6 +52,12 @@ impl Node {
     pub fn new_labeled(pos: Position, label_name: String, stmt: Node) -> Self {
         Self::new(pos, NodeKind::LABELEDSTMT(label_name, Box::new(stmt)))
     }
+    pub fn new_do_while(pos: Position, stmt: Node, cond_expr: Node) -> Self {
+        Self::new(
+            pos,
+            NodeKind::DOWHILESTMT(Box::new(stmt), Box::new(cond_expr)),
+        )
+    }
     pub fn new_compound(pos: Position, stmts: Vec<Node>) -> Self {
         Self::new(pos, NodeKind::COMPOUNDSTMT(stmts))
     }
@@ -137,6 +143,9 @@ impl Node {
             NodeKind::WHILESTMT(expr, stmt) => {
                 format!("while ( {} ) {}", expr.to_string(), stmt.to_string())
             }
+            NodeKind::DOWHILESTMT(stmt, expr) => {
+                format!("do {} while ( {} )", stmt.to_string(), expr.to_string())
+            }
             NodeKind::IFSTMT(expr, stmt) => {
                 format!("if ( {} ) {}", expr.to_string(), stmt.to_string())
             }
@@ -177,6 +186,7 @@ pub enum NodeKind {
     IFSTMT(Expr, Stmt),
     IFELSESTMT(Expr, Stmt, Stmt),
     FORSTMT(Clause, Expr, Expr, Stmt),
+    DOWHILESTMT(Stmt, Expr),
     WHILESTMT(Expr, Stmt),
     LABELEDSTMT(Label, Stmt),
     EXPRSTMT(Expr),
