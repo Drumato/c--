@@ -207,11 +207,11 @@ mod lexer_tests {
             Token::new((1, 5), TokenKind::IDENTIFIER("main".to_string())),
             Token::new((1, 9), TokenKind::LPAREN),
             Token::new((1, 10), TokenKind::RPAREN),
-            Token::new((1, 11), TokenKind::LBRACKET),
+            Token::new((1, 11), TokenKind::LBRACE),
             Token::new((1, 13), TokenKind::RETURN),
             Token::new((1, 20), TokenKind::INTEGER(30)),
             Token::new((1, 22), TokenKind::SEMICOLON),
-            Token::new((1, 24), TokenKind::RBRACKET),
+            Token::new((1, 24), TokenKind::RBRACE),
             Token::new((1, 25), TokenKind::EOF),
         ];
 
