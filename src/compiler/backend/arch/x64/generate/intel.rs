@@ -6,14 +6,22 @@ use crate::compiler::ir::arch::x64::{
 
 impl X64Optimizer {
     pub fn generate_assembly_with_intel_syntax(&self) -> String {
+        let mut output = self.generate_intel_prefix_and_directive();
+
+        // Function本体
+        for func in self.functions.iter() {
+            output += &func.to_intel_code();
+        }
+        output
+    }
+
+    pub fn generate_intel_prefix_and_directive(&self) -> String {
         let mut output = String::new();
         // intel記法のprefix
         output += ".intel_syntax noprefix\n";
-
-        output += &(format!(".global {}\n", self.entry_func.func_name).as_str());
-
-        // Function本体
-        output += &self.entry_func.to_intel_code();
+        for func in self.functions.iter() {
+            &(format!(".global {}\n", func.func_name).as_str());
+        }
         output
     }
 }

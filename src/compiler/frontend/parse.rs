@@ -19,7 +19,8 @@ impl Manager {
                 break;
             }
 
-            self.entry_func = self.parse_function();
+            let func = self.parse_function();
+            self.functions.push(func);
         }
     }
 
@@ -456,102 +457,4 @@ impl Manager {
 }
 
 #[cfg(test)]
-mod parser_tests {
-    use super::*;
-    use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::lex;
-    #[test]
-    fn test_parse_main_func() {
-        let left_node = Node::new((2, 10), NodeKind::INTEGER(200));
-        let right_node = Node::new((2, 16), NodeKind::INTEGER(100));
-        let expr = Node::new(
-            (2, 14),
-            NodeKind::MUL(Box::new(left_node), Box::new(right_node)),
-        );
-        let return_stmt = Node::new_return((2, 3), expr);
-
-        let func = Function {
-            name: "main".to_string(),
-            def_position: (1, 1),
-            stmts: vec![return_stmt],
-            frame_size: 0,
-        };
-
-        integration_test_parser("int main(){\n  return 200 * 100;\n}", func);
-    }
-    #[test]
-    fn test_parse_assign_expression() {
-        let declaration = Node::new_declaration((2, 3), "x".to_string(), Type::new_integer());
-        let var = Node::new((3, 3), NodeKind::IDENTIFIER("x".to_string()));
-        let rvalue = Node::new((3, 7), NodeKind::INTEGER(30));
-        let assign = Node::new_assign((3, 5), var, rvalue);
-        let expr_stmt = Node::new_exprstmt((3, 3), assign);
-
-        let func = Function {
-            name: "main".to_string(),
-            def_position: (1, 1),
-            stmts: vec![declaration, expr_stmt],
-            frame_size: 0,
-        };
-
-        integration_test_parser("int main(){\n  int x;\n  x = 30;\n}", func);
-    }
-
-    #[test]
-    fn test_parse_labeled_statement() {
-        let goto_stmt = Node::new_goto((2, 1), "fin".to_string());
-        let return_stmt = Node::new_return((3, 7), Node::new((3, 14), NodeKind::INTEGER(2)));
-        let labeled_stmt = Node::new_labeled((3, 1), "fin".to_string(), return_stmt);
-
-        let func = Function {
-            name: "main".to_string(),
-            def_position: (1, 1),
-            stmts: vec![goto_stmt, labeled_stmt],
-            frame_size: 0,
-        };
-
-        integration_test_parser("int main(){\ngoto fin;\nfin:  return 2;\n}", func);
-    }
-
-    #[test]
-    fn test_parse_primary() {
-        let expected = Node::new((1, 1), NodeKind::INTEGER(100));
-        let mut manager = preprocess("100");
-
-        // 整数ノードをパースできているか
-        let actual = manager.parse_primary();
-        assert_eq!(expected, actual);
-
-        // 次のトークンを指すことができているか
-        assert_eq!(1, manager.cur_token);
-        assert_eq!(2, manager.next_token);
-    }
-
-    #[test]
-    fn test_parse_primary_without_integer() {
-        let expected = Node::new((0, 0), NodeKind::INVALID);
-        let mut manager = preprocess("+");
-
-        // エラーを出せているか
-        let actual = manager.parse_primary();
-        assert_eq!(expected, actual);
-    }
-
-    // 総合テスト用
-    fn integration_test_parser(input: &str, expected: Function) {
-        let mut manager = preprocess(input);
-        manager.parse();
-
-        assert_eq!(expected, manager.entry_func)
-    }
-
-    fn preprocess(input: &str) -> Manager {
-        let source_file = SrcFile {
-            abs_path: "testcase".to_string(),
-            contents: input.to_string(),
-        };
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager
-    }
-}
+mod parser_tests {}

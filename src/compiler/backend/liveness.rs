@@ -12,40 +12,54 @@ impl HighOptimizer {
         // 生存解析用の情報収集
         self.append_liveness_informations();
 
+        let mut functions = self.functions.clone();
+
         // iter_mut() では多段的に変更できないのでインデックス指定で
-        let block_number = self.entry_func.blocks.len();
+        let function_number = functions.len();
+        for func_idx in 0..function_number {
+            let block_number = functions[func_idx].blocks.len();
 
-        for blk_idx in 0..block_number {
-            let ir_number = self.entry_func.blocks[blk_idx].tacs.len();
+            for blk_idx in 0..block_number {
+                let ir_number = functions[func_idx].blocks[blk_idx].tacs.len();
 
-            // 生存情報の収集
-            let (live_in, live_out) =
-                self.liveness_analysis(self.entry_func.blocks[blk_idx].cfg_inbb.clone(), ir_number);
+                // 生存情報の収集
+                let (live_in, live_out) = self.liveness_analysis(
+                    functions[func_idx].blocks[blk_idx].cfg_inbb.clone(),
+                    ir_number,
+                );
 
-            // 生存情報の反映
-            for (reg_number, range) in self.entry_func.blocks[blk_idx].living.iter_mut() {
-                for ir_idx in 0..ir_number {
-                    if !live_in[ir_idx].contains(reg_number)
-                        && live_out[ir_idx].contains(reg_number)
-                    {
-                        range.0 = ir_idx;
-                    }
-                    if live_in[ir_idx].contains(reg_number)
-                        && !live_out[ir_idx].contains(reg_number)
-                    {
-                        range.1 = ir_idx;
+                // 生存情報の反映
+                for (reg_number, range) in functions[func_idx].blocks[blk_idx].living.iter_mut() {
+                    for ir_idx in 0..ir_number {
+                        if !live_in[ir_idx].contains(reg_number)
+                            && live_out[ir_idx].contains(reg_number)
+                        {
+                            range.0 = ir_idx;
+                        }
+                        if live_in[ir_idx].contains(reg_number)
+                            && !live_out[ir_idx].contains(reg_number)
+                        {
+                            range.1 = ir_idx;
+                        }
                     }
                 }
             }
         }
+
+        self.functions = functions;
     }
     pub fn append_liveness_informations(&mut self) {
-        let mut blocks = self.entry_func.blocks.clone();
-        let blocks_number = self.entry_func.blocks.len();
-        for blk_idx in 0..blocks_number {
-            self.liveness_analyze_to_bb(&mut blocks[blk_idx]);
+        let mut functions = self.functions.clone();
+        let functions_number = functions.len();
+        for func_idx in 0..functions_number {
+            let mut blocks = functions[func_idx].blocks.clone();
+            let blocks_number = functions[func_idx].blocks.len();
+            for blk_idx in 0..blocks_number {
+                self.liveness_analyze_to_bb(&mut blocks[blk_idx]);
+            }
+            functions[func_idx].blocks = blocks;
         }
-        self.entry_func.blocks = blocks;
+        self.functions = functions;
     }
     fn liveness_analyze_to_bb(&mut self, bb: &mut BasicBlock) {
         for (i, t) in bb.tacs.iter().enumerate() {
@@ -137,43 +151,4 @@ impl HighOptimizer {
 }
 
 #[cfg(test)]
-mod liveness_tests {
-    use super::*;
-    use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::{lex, manager::Manager};
-
-    #[test]
-    fn test_append_liveness_informations_with_main_func() {
-        let mut optimizer = preprocess("int main(){ return 100 + 200 + 300; }");
-        optimizer.append_liveness_informations();
-
-        let expected_used: Vec<Vec<usize>> = vec![vec![], vec![0], vec![1]];
-        let expected_def: Vec<Vec<usize>> = vec![vec![0], vec![1], vec![]];
-
-        let cfg_inbb = optimizer.entry_func.blocks[0].clone().cfg_inbb;
-        for (i, used_set) in cfg_inbb.used.iter().enumerate() {
-            assert_eq!(used_set.len(), expected_used[i].len());
-        }
-
-        for (i, def_set) in cfg_inbb.def.iter().enumerate() {
-            assert_eq!(def_set.len(), expected_def[i].len());
-        }
-    }
-
-    fn preprocess(input: &str) -> HighOptimizer {
-        let source_file = SrcFile {
-            abs_path: "contents".to_string(),
-            contents: input.to_string(),
-        };
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager.parse();
-        manager.semantics();
-        manager.generate_three_address_code();
-        let entry_func = manager.ir_func;
-        let mut optimizer = HighOptimizer::new(entry_func);
-
-        optimizer.build_cfg();
-        optimizer
-    }
-}
+mod liveness_tests {}

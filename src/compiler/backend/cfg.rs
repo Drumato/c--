@@ -25,11 +25,19 @@ impl ControlFlowGraphInBB {
 
 impl HighOptimizer {
     pub fn build_cfg(&mut self) {
-        let block_number = self.entry_func.blocks.len();
-        for blk_idx in 0..block_number {
-            let cfg_inbb = self.build_cfg_with_bb(self.entry_func.blocks[blk_idx].tacs.clone());
-            self.entry_func.blocks[blk_idx].cfg_inbb = cfg_inbb;
+        let mut functions = self.functions.clone();
+
+        let function_number = functions.len();
+        for func_idx in 0..function_number {
+            let block_number = functions[func_idx].blocks.len();
+            for blk_idx in 0..block_number {
+                let cfg_inbb =
+                    self.build_cfg_with_bb(functions[func_idx].blocks[blk_idx].tacs.clone());
+                functions[func_idx].blocks[blk_idx].cfg_inbb = cfg_inbb;
+            }
         }
+
+        self.functions = functions;
     }
     pub fn build_cfg_with_bb(&mut self, tacs: Vec<ThreeAddressCode>) -> ControlFlowGraphInBB {
         // jump-statement系にエッジを追加するときのために利用
@@ -147,44 +155,4 @@ impl HighOptimizer {
 }
 
 #[cfg(test)]
-mod build_cfg_tests {
-    use super::*;
-    use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::{lex, manager::Manager};
-    #[test]
-    fn test_build_cfg() {
-        let mut optimizer = preprocess("int main(){ return 100 + 200 + 300; }");
-        optimizer.build_cfg();
-
-        let entry_block = optimizer.entry_func.blocks[0].clone();
-
-        // succ_edgeのテスト
-        // 最後のコードからsucc-edgeは生えてない
-        let expected_succ: Vec<usize> = vec![1, 1, 0];
-        for (i, succ_set) in entry_block.cfg_inbb.succ.iter().enumerate() {
-            assert_eq!(succ_set.len(), expected_succ[i]);
-        }
-
-        // prev_edgeのテスト
-        // 最初のコードからprev-edgeは生えてない
-        let expected_prev: Vec<usize> = vec![0, 1, 1];
-        for (i, prev_set) in entry_block.cfg_inbb.prev.iter().enumerate() {
-            assert_eq!(prev_set.len(), expected_prev[i]);
-        }
-    }
-
-    fn preprocess(input: &str) -> HighOptimizer {
-        let source_file = SrcFile {
-            abs_path: "testcase".to_string(),
-            contents: input.to_string(),
-        };
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager.parse();
-        manager.semantics();
-        manager.generate_three_address_code();
-        let ir_func = manager.ir_func;
-        let optimizer = HighOptimizer::new(ir_func);
-        optimizer
-    }
-}
+mod build_cfg_tests {}

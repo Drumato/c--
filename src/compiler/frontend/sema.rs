@@ -5,12 +5,17 @@ use crate::error::{Error, ErrorKind, ErrorMsg};
 
 impl Manager {
     pub fn semantics(&mut self) {
-        let mut statements = self.entry_func.stmts.clone();
-        let statements_number = self.entry_func.stmts.len();
-        for stmt_idx in 0..statements_number {
-            self.walk_statement(&mut statements[stmt_idx]);
+        let mut functions = self.functions.clone();
+        let functions_number = functions.len();
+        for func_idx in 0..functions_number {
+            let mut statements = functions[func_idx].stmts.clone();
+            let statements_number = functions[func_idx].stmts.len();
+            for stmt_idx in 0..statements_number {
+                self.walk_statement(&mut statements[stmt_idx]);
+            }
+            functions[func_idx].stmts = statements;
         }
-        self.entry_func.stmts = statements;
+        self.functions = functions;
     }
     fn walk_statement(&mut self, stmt: &mut Node) {
         match stmt.kind {
@@ -126,46 +131,4 @@ impl Manager {
 
 // ASTノードへの型付けについてテスト
 #[cfg(test)]
-mod walk_tests {
-    use super::*;
-    use crate::compiler::file::SrcFile;
-    use crate::compiler::frontend::lex;
-    use crate::compiler::frontend::node::Function;
-    #[test]
-    fn test_add_types_to_ast_with_main_func() {
-        let mut left = Node::new((1, 21), NodeKind::INTEGER(100));
-        left.ctype = Type::new_integer();
-        let mut right = Node::new((1, 27), NodeKind::INTEGER(200));
-        right.ctype = Type::new_integer();
-        let mut subtraction = Node::new((1, 25), NodeKind::SUB(Box::new(left), Box::new(right)));
-        subtraction.ctype = Type::new_integer();
-        let return_stmt = Node::new_return((1, 14), subtraction);
-        let expected = Function {
-            name: "main".to_string(),
-            stmts: vec![return_stmt],
-            def_position: (1, 1),
-            frame_size: 0,
-        };
-
-        integration_test_semantics("int main() { return 100 - 200; }", expected);
-    }
-
-    // 統合テスト用
-    fn integration_test_semantics(input: &str, expected: Function) {
-        let mut manager = preprocess(input);
-        manager.semantics();
-
-        assert_eq!(manager.entry_func, expected);
-    }
-
-    fn preprocess(input: &str) -> Manager {
-        let source_file = SrcFile {
-            abs_path: "testcase".to_string(),
-            contents: input.to_string(),
-        };
-        let mut manager = Manager::new(source_file);
-        lex::tokenize(&mut manager);
-        manager.parse();
-        manager
-    }
-}
+mod walk_tests {}

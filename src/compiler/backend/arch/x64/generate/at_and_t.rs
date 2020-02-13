@@ -6,11 +6,19 @@ use crate::compiler::ir::arch::x64::{
 
 impl X64Optimizer {
     pub fn generate_assembly_with_at_and_t_syntax(&self) -> String {
-        let mut output = String::new();
-        output += &(format!(".global {}\n", self.entry_func.func_name).as_str());
+        let mut output = self.generate_directive();
 
         // Function本体
-        output += &self.entry_func.to_at_and_t_code();
+        for func in self.functions.iter() {
+            output += &func.to_at_and_t_code();
+        }
+        output
+    }
+    pub fn generate_directive(&self) -> String {
+        let mut output = String::new();
+        for func in self.functions.iter() {
+            output += &(format!(".global {}\n", func.func_name).as_str());
+        }
         output
     }
 }

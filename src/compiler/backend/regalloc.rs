@@ -10,15 +10,18 @@ use std::collections::BTreeMap;
 impl HighOptimizer {
     // 簡易的な実装
     pub fn register_allocation_for_virtual_registers(&mut self, available_registers: usize) {
-        let mut allocated_blocks = Vec::new();
-        let blocks = self.entry_func.blocks.clone();
-        for block in blocks {
-            let allocated_block = self.register_allocation_for_bb(block, available_registers);
+        let functions = self.functions.clone();
 
-            allocated_blocks.push(allocated_block);
+        for (func_idx, func) in functions.iter().enumerate() {
+            let mut allocated_blocks = Vec::new();
+            let blocks = func.blocks.clone();
+            for block in blocks {
+                let allocated_block = self.register_allocation_for_bb(block, available_registers);
+
+                allocated_blocks.push(allocated_block);
+            }
+            self.functions[func_idx].blocks = allocated_blocks;
         }
-
-        self.entry_func.blocks = allocated_blocks;
     }
     pub fn register_allocation_for_bb(
         &mut self,

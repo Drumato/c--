@@ -4,11 +4,12 @@ use crate::compiler::frontend::variable::VarKind;
 
 impl Manager {
     pub fn alloc_frame(&mut self) {
-        // 複数関数を実装した時用に関数自体を渡す.
-
-        let mut func = self.entry_func.clone();
-        self.alloc_frame_for_function(&mut func);
-        self.entry_func = func;
+        let mut functions = self.functions.clone();
+        let functions_number = functions.len();
+        for func_idx in 0..functions_number {
+            self.alloc_frame_for_function(&mut functions[func_idx]);
+        }
+        self.functions = functions;
     }
     #[allow(irrefutable_let_patterns)]
     pub fn alloc_frame_for_function(&mut self, func: &mut Function) {

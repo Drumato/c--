@@ -20,12 +20,6 @@ impl SrcFile {
         }
         true
     }
-    pub fn get_entry_or_default(&self, specified_name: Option<&str>) -> String {
-        if let Some(name) = specified_name {
-            return name.to_string();
-        }
-        String::from("main")
-    }
 }
 
 fn read_c_file(s: &str) -> String {

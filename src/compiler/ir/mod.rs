@@ -5,9 +5,11 @@ use crate::compiler::frontend::manager::Manager;
 
 impl Manager {
     pub fn dump_tacs_to_stderr(&self) {
-        eprintln!("{}'s blocks", self.ir_func.name);
-        for bb in self.ir_func.blocks.iter() {
-            bb.dump_tacs_to_stderr();
+        for func in self.ir_funcs.iter() {
+            eprintln!("{}'s blocks", func.name);
+            for bb in func.blocks.iter() {
+                bb.dump_tacs_to_stderr();
+            }
         }
     }
 }

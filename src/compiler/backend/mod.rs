@@ -14,10 +14,10 @@ use crate::util;
 
 pub fn backend_process(
     matches: &clap::ArgMatches,
-    entry_func: IRFunction,
+    functions: Vec<IRFunction>,
     target: &Target,
 ) -> String {
-    let mut high_opt = high_optimizer::HighOptimizer::new(entry_func);
+    let mut high_opt = high_optimizer::HighOptimizer::new(functions);
 
     // 制御フローグラフ構築
     high_opt.build_cfg();
@@ -33,8 +33,10 @@ pub fn backend_process(
 
     if matches.is_present("d-liveness-info") {
         util::colored_prefix_to_stderr("dump liveness analysis informations");
-        for bb in high_opt.entry_func.blocks.iter() {
-            bb.dump_liveness();
+        for func in high_opt.functions.iter() {
+            for bb in func.blocks.iter() {
+                bb.dump_liveness();
+            }
         }
     }
 

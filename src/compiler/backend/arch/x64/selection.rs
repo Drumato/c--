@@ -6,15 +6,21 @@ use crate::compiler::ir::arch::x64::{
 
 impl X64Optimizer {
     pub fn select_best_instruction(&mut self) {
-        let mut allocated_blocks = Vec::new();
-        let blocks = self.entry_func.blocks.clone();
-        for block in blocks {
-            let allocated_block = self.change_ir_with_bb(block);
+        let mut functions = self.functions.clone();
+        let function_number = functions.len();
+        for func_idx in 0..function_number {
+            let mut selected_blocks = Vec::new();
+            let blocks = functions[func_idx].blocks.clone();
+            for block in blocks {
+                let selected_block = self.change_ir_with_bb(block);
 
-            allocated_blocks.push(allocated_block);
+                selected_blocks.push(selected_block);
+            }
+
+            functions[func_idx].blocks = selected_blocks;
         }
 
-        self.entry_func.blocks = allocated_blocks;
+        self.functions = functions;
     }
 
     fn change_ir_with_bb(&mut self, mut block: X64BasicBlock) -> X64BasicBlock {
