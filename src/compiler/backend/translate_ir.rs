@@ -1,5 +1,5 @@
 use crate::compiler::frontend::manager::Manager;
-use crate::compiler::frontend::node::{Node, NodeKind};
+use crate::compiler::frontend::node::{Function, Node, NodeKind};
 use crate::compiler::frontend::variable::VarKind;
 use crate::compiler::ir::three_address_code;
 use three_address_code::{
@@ -28,17 +28,10 @@ impl Manager {
         for (idx, ast_func) in ast_functions.iter().enumerate() {
             // 単一関数
             let entry_bb = BasicBlock::new("entry".to_string());
-
-            let ir_func = IRFunction::new(ast_func.name.to_string());
-            self.ir_funcs.push(ir_func);
-
-            self.ir_funcs[idx].blocks.push(entry_bb);
-            self.ir_funcs[idx].frame_size = ast_func.frame_size;
+            self.add_new_ir_func(&ast_func, entry_bb);
 
             // 関数内ASTからIRを生成
-            self.cur_bb = 0;
-            self.virt = 0;
-            self.label = 0;
+            self.init_info_for_genir();
             for stmt in ast_func.stmts.iter() {
                 self.gen_stmt(idx, stmt.clone());
             }
@@ -47,14 +40,14 @@ impl Manager {
     fn gen_stmt(&mut self, func_idx: usize, stmt: Node) {
         match stmt.kind.clone() {
             NodeKind::GOTOSTMT(label_name) => {
-                let ir_label = format!(".L{}", label_name);
+                let succ_label = format!(".L{}", label_name);
                 self.add_ir_to_current_bb(
                     func_idx,
-                    ThreeAddressCode::new_goto(ir_label.to_string()),
+                    ThreeAddressCode::new_goto(succ_label.to_string()),
                 );
 
                 // 新しいベーシックブロックに向ける
-                let goto_bb = BasicBlock::new(ir_label);
+                let goto_bb = BasicBlock::new(succ_label);
                 self.ir_funcs[func_idx].blocks.push(goto_bb);
                 self.cur_bb += 1;
             }
@@ -292,6 +285,12 @@ impl Manager {
             _ => Operand::new_invalid(),
         }
     }
+    fn add_new_ir_func(&mut self, ast_func: &Function, bb: BasicBlock) {
+        let mut ir_func = IRFunction::new(ast_func.name.to_string());
+        ir_func.blocks.push(bb);
+        ir_func.frame_size = ast_func.frame_size;
+        self.ir_funcs.push(ir_func);
+    }
     fn add_ir_to_current_bb(&mut self, func_idx: usize, ir: ThreeAddressCode) {
         self.ir_funcs[func_idx].blocks[self.cur_bb].tacs.push(ir);
     }
@@ -307,6 +306,11 @@ impl Manager {
     }
     fn cur_virt_reg(&mut self) -> Operand {
         Operand::new_virtreg(self.virt)
+    }
+    fn init_info_for_genir(&mut self) {
+        self.cur_bb = 0;
+        self.virt = 0;
+        self.label = 0;
     }
 }
 

@@ -1,21 +1,26 @@
 use crate::compiler::frontend::manager::Manager;
-use crate::compiler::frontend::node::{Node, NodeKind};
+use crate::compiler::frontend::node::{Function, Node, NodeKind};
 use crate::compiler::frontend::types::Type;
 use crate::error::{Error, ErrorKind, ErrorMsg};
 
 impl Manager {
     pub fn semantics(&mut self) {
+        // 各関数に対し意味解析を実行
         let mut functions = self.functions.clone();
         let functions_number = functions.len();
         for func_idx in 0..functions_number {
-            let mut statements = functions[func_idx].stmts.clone();
-            let statements_number = functions[func_idx].stmts.len();
-            for stmt_idx in 0..statements_number {
-                self.walk_statement(&mut statements[stmt_idx]);
-            }
-            functions[func_idx].stmts = statements;
+            self.walk_function(&mut functions[func_idx]);
         }
         self.functions = functions;
+    }
+    fn walk_function(&mut self, func: &mut Function) {
+        // 各文に対し意味解析を実行
+        let mut statements = func.stmts.clone();
+        let statements_number = func.stmts.len();
+        for stmt_idx in 0..statements_number {
+            self.walk_statement(&mut statements[stmt_idx]);
+        }
+        func.stmts = statements;
     }
     fn walk_statement(&mut self, stmt: &mut Node) {
         match stmt.kind {

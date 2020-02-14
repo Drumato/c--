@@ -36,7 +36,7 @@ impl Manager {
         let mut func = Function::init(name, current_position);
 
         self.expect(TokenKind::LPAREN);
-        // 引数は無視
+        // 今の所引数は無視
         self.expect(TokenKind::RPAREN);
 
         // 関数のボディ
@@ -218,9 +218,8 @@ impl Manager {
         Node::new_if_else(current_position, cond_expr, any_statement, alter_statement)
     }
 
+    // goto_stmt -> goto + identifier + `;`
     fn parse_goto_stmt(&mut self) -> Node {
-        // goto_stmt -> goto + identifier + `;`
-        // goto文開始位置を保存
         let current_position = self.looking_token_clone().position;
         self.expect(TokenKind::GOTO);
         let label_name = self.expect_ident();
@@ -228,9 +227,8 @@ impl Manager {
 
         Node::new_goto(current_position, label_name)
     }
+    // labeled_stmt -> identifier + `:` + statement
     fn parse_labeled_stmt(&mut self) -> Node {
-        // labeled_stmt -> identifier + `:` + statement
-        // label文開始位置を保存
         let current_position = self.looking_token_clone().position;
         let label_name = self.expect_ident();
         self.expect(TokenKind::COLON);
@@ -238,9 +236,8 @@ impl Manager {
 
         Node::new_labeled(current_position, label_name, any_statement)
     }
+    // return_stmt -> return + expr + `;`
     fn parse_return_stmt(&mut self) -> Node {
-        // return_stmt -> return + expr + `;`
-        // return文開始位置を保存
         let current_position = self.looking_token_clone().position;
 
         self.expect(TokenKind::RETURN);

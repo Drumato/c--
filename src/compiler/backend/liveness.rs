@@ -1,6 +1,8 @@
 use crate::compiler::backend::cfg::ControlFlowGraphInBB;
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::{basicblock::BasicBlock, tac_kind::TacKind};
+use crate::compiler::ir::three_address_code::{
+    basicblock::BasicBlock, function::IRFunction, tac_kind::TacKind,
+};
 
 use std::collections::BTreeSet;
 
@@ -52,14 +54,17 @@ impl HighOptimizer {
         let mut functions = self.functions.clone();
         let functions_number = functions.len();
         for func_idx in 0..functions_number {
-            let mut blocks = functions[func_idx].blocks.clone();
-            let blocks_number = functions[func_idx].blocks.len();
-            for blk_idx in 0..blocks_number {
-                self.liveness_analyze_to_bb(&mut blocks[blk_idx]);
-            }
-            functions[func_idx].blocks = blocks;
+            self.liveness_analyze_to_func(&mut functions[func_idx]);
         }
         self.functions = functions;
+    }
+    fn liveness_analyze_to_func(&mut self, func: &mut IRFunction) {
+        let mut blocks = func.blocks.clone();
+        let blocks_number = func.blocks.len();
+        for blk_idx in 0..blocks_number {
+            self.liveness_analyze_to_bb(&mut blocks[blk_idx]);
+        }
+        func.blocks = blocks;
     }
     fn liveness_analyze_to_bb(&mut self, bb: &mut BasicBlock) {
         for (i, t) in bb.tacs.iter().enumerate() {

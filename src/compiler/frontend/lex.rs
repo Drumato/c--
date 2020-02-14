@@ -116,15 +116,10 @@ impl Lexer {
 
     // 数字を切り取って,整数トークンを返す
     fn scan_number(&mut self) -> Token {
-        // 数字の範囲を切り取る
         let number_length = Self::count_length(&self.contents, |c| c.is_ascii_digit());
-        // 文字列を数値に変換
         let decimal_value = self.contents[..number_length].parse::<i128>().unwrap();
 
-        // 現在のオフセットを退避
         let cur_position = self.current_position();
-
-        // 文字列のオフセットを進める
         self.skip_offset(number_length);
 
         Token::new(cur_position, TokenKind::INTEGER(decimal_value))
@@ -132,10 +127,8 @@ impl Lexer {
 
     // 記号を切り取って,トークンを返す.
     fn scan_symbol(&mut self, kind: TokenKind) -> Token {
-        // 現在のオフセットを退避
         let cur_position = self.current_position();
 
-        // 文字列のオフセットを進める.
         self.skip_offset(1);
 
         Token::new(cur_position, kind)
@@ -151,7 +144,6 @@ impl Lexer {
         Token::new((0, 0), TokenKind::BLANK)
     }
 
-    // 予約語の構築
     fn build_keywords(&mut self) {
         self.keywords
             .insert("return".to_string(), TokenKind::RETURN);

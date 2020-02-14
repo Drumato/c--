@@ -1,6 +1,7 @@
 use crate::compiler::backend::high_optimizer::HighOptimizer;
 use crate::compiler::ir::three_address_code::{
     basicblock::BasicBlock,
+    function::IRFunction,
     tac_kind::{OpeKind, TacKind},
 };
 use crate::error::*;
@@ -8,20 +9,25 @@ use crate::error::*;
 use std::collections::BTreeMap;
 
 impl HighOptimizer {
-    // 簡易的な実装
     pub fn register_allocation_for_virtual_registers(&mut self, available_registers: usize) {
-        let functions = self.functions.clone();
+        // 各関数に対しレジスタ割付を行う
+        let mut functions = self.functions.clone();
+        let functions_number = functions.len();
 
-        for (func_idx, func) in functions.iter().enumerate() {
-            let mut allocated_blocks = Vec::new();
-            let blocks = func.blocks.clone();
-            for block in blocks {
-                let allocated_block = self.register_allocation_for_bb(block, available_registers);
-
-                allocated_blocks.push(allocated_block);
-            }
-            self.functions[func_idx].blocks = allocated_blocks;
+        for func_idx in 0..functions_number {
+            self.register_allocation_for_func(&mut functions[func_idx], available_registers);
         }
+        self.functions = functions;
+    }
+    fn register_allocation_for_func(&mut self, func: &mut IRFunction, avreg: usize) {
+        let mut regalloced_blocks = Vec::new();
+        let blocks = func.blocks.clone();
+        for block in blocks {
+            let regalloced_block = self.register_allocation_for_bb(block, avreg);
+
+            regalloced_blocks.push(regalloced_block);
+        }
+        func.blocks = regalloced_blocks;
     }
     pub fn register_allocation_for_bb(
         &mut self,

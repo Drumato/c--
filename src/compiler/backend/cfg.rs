@@ -1,7 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::compiler::backend::high_optimizer::HighOptimizer;
-use crate::compiler::ir::three_address_code::{tac::ThreeAddressCode, tac_kind::TacKind};
+use crate::compiler::ir::three_address_code::{
+    function::IRFunction, tac::ThreeAddressCode, tac_kind::TacKind,
+};
 
 type RegisterNumber = usize;
 #[allow(dead_code)]
@@ -25,21 +27,23 @@ impl ControlFlowGraphInBB {
 
 impl HighOptimizer {
     pub fn build_cfg(&mut self) {
+        // 各関数に対しCFG構築を行う
         let mut functions = self.functions.clone();
-
         let function_number = functions.len();
         for func_idx in 0..function_number {
-            let block_number = functions[func_idx].blocks.len();
-            for blk_idx in 0..block_number {
-                let cfg_inbb =
-                    self.build_cfg_with_bb(functions[func_idx].blocks[blk_idx].tacs.clone());
-                functions[func_idx].blocks[blk_idx].cfg_inbb = cfg_inbb;
-            }
+            self.build_cfg_with_func(&mut functions[func_idx]);
         }
 
         self.functions = functions;
     }
-    pub fn build_cfg_with_bb(&mut self, tacs: Vec<ThreeAddressCode>) -> ControlFlowGraphInBB {
+    fn build_cfg_with_func(&mut self, func: &mut IRFunction) {
+        let block_number = func.blocks.len();
+        for blk_idx in 0..block_number {
+            let cfg_inbb = self.build_cfg_with_bb(func.blocks[blk_idx].tacs.clone());
+            func.blocks[blk_idx].cfg_inbb = cfg_inbb;
+        }
+    }
+    fn build_cfg_with_bb(&mut self, tacs: Vec<ThreeAddressCode>) -> ControlFlowGraphInBB {
         // jump-statement系にエッジを追加するときのために利用
         let label_map: BTreeMap<String, usize> = self.build_labelmap(&tacs);
 
