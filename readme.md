@@ -25,7 +25,7 @@ all implementations from scratch.
     - [ ] bit-wise XOR
     - [ ] logical AND
     - [ ] logical OR
-  - [] conditional-operator
+  - [ ] conditional-operator
     - `logical-OR-expression "?" expression ":" conditional-expression`
   - assignment operators
     - [x] `=`
@@ -38,7 +38,7 @@ all implementations from scratch.
     - [ ] `&=`
     - [ ] `^=`
     - [ ] `|=`
-  - [] comma operator
+  - [ ] comma operator
 - statements
   - [x] if-else
   - [x] for
