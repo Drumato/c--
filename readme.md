@@ -14,30 +14,30 @@ all implementations from scratch.
     - [x] subtraction
     - [x] multiplication
     - [x] division
-    - [] modulo operation
-    - [] left-shift
-    - [] right-shift
-    - [] `<=`
-    - [] `>=`
-    - [] `==`
-    - [] `!=`
-    - [] bit-wise AND
-    - [] bit-wise XOR
-    - [] logical AND
-    - [] logical OR
+    - [ ] modulo operation
+    - [ ] left-shift
+    - [ ] right-shift
+    - [ ] `<=`
+    - [ ] `>=`
+    - [ ] `==`
+    - [ ] `!=`
+    - [ ] bit-wise AND
+    - [ ] bit-wise XOR
+    - [ ] logical AND
+    - [ ] logical OR
   - [] conditional-operator
     - `logical-OR-expression "?" expression ":" conditional-expression`
   - assignment operators
     - [x] `=`
-    - [] `*=`
-    - [] `/=`
-    - [] `+=`
-    - [] `-=`
-    - [] `<<=`
-    - [] `>>=`
-    - [] `&=`
-    - [] `^=`
-    - [] `|=`
+    - [ ] `*=`
+    - [ ] `/=`
+    - [ ] `+=`
+    - [ ] `-=`
+    - [ ] `<<=`
+    - [ ] `>>=`
+    - [ ] `&=`
+    - [ ] `^=`
+    - [ ] `|=`
   - [] comma operator
 - statements
   - [x] if-else
