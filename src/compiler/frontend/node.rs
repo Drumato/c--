@@ -1,29 +1,46 @@
 use crate::compiler::frontend::token::{Position, Token, TokenKind};
 use crate::compiler::frontend::types::Type;
+use crate::compiler::frontend::variable::Variable;
+
+use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Function {
     pub name: String,
 
     pub def_position: Position,
-    // args
-    // pub args: BTreeMap<String, Node>,
+    pub return_type: Type,
+    pub local_map: BTreeMap<String, Variable>,
+    pub params: BTreeMap<String, Variable>,
     pub stmts: Vec<Node>,
 
     pub frame_size: usize,
 }
 
 impl Function {
-    pub fn init(name: String, pos: Position) -> Self {
+    pub fn init(name: String, pos: Position, dec_type: Type) -> Self {
         Self {
             name: name,
             def_position: pos,
             stmts: Vec::new(),
             frame_size: 0,
+            params: BTreeMap::new(),
+            local_map: BTreeMap::new(),
+            return_type: dec_type,
         }
     }
     pub fn dump_ast(&self) {
-        eprintln!("function {}() {{ ", self.name);
+        let mut params_string = String::new();
+        for (i, (name, param)) in self.params.iter().enumerate() {
+            params_string += &(format!("{} {}", param.ctype.to_string(), name).as_str());
+            if i != self.params.len() - 1 {
+                params_string += ", ";
+            }
+        }
+        if self.params.is_empty() {
+            params_string = "void".to_string();
+        }
+        eprintln!("function {}({}) {{ ", self.name, params_string);
         for st in self.stmts.iter() {
             eprintln!("  {}", st.to_string());
         }
@@ -99,6 +116,9 @@ impl Node {
     pub fn new_return(pos: Position, expr: Node) -> Self {
         Self::new(pos, NodeKind::RETURNSTMT(Box::new(expr)))
     }
+    pub fn new_call(pos: Position, func: Node, args: Vec<Node>) -> Self {
+        Self::new(pos, NodeKind::CALL(Box::new(func), args))
+    }
     pub fn new_binary_node(tok: &Token, left: Node, right: Node) -> Self {
         let node_kind = match tok.kind {
             TokenKind::PLUS => NodeKind::ADD(Box::new(left), Box::new(right)),
@@ -115,6 +135,15 @@ impl Node {
             _ => panic!("not found such an operator"),
         };
         Self::new(tok.position, node_kind)
+    }
+
+    pub fn ident_name(&self) -> String {
+        match &self.kind {
+            NodeKind::IDENTIFIER(name) => name.to_string(),
+            _ => {
+                panic!("not identifier");
+            }
+        }
     }
 
     pub fn to_string(&self) -> String {
@@ -158,6 +187,16 @@ impl Node {
             NodeKind::DECLARATION(name, ty) => format!("{} {};", ty.to_string(), name),
 
             // expression
+            NodeKind::CALL(ident, params) => {
+                let mut params_string = String::new();
+                for (i, param) in params.iter().enumerate() {
+                    params_string += &param.to_string();
+                    if i != params.len() - 1 {
+                        params_string += ", ";
+                    }
+                }
+                format!("{}({})", ident.to_string(), params_string)
+            }
             NodeKind::ASSIGN(lv, rv) => format!("{} = {}", lv.to_string(), rv.to_string()),
             NodeKind::ADD(left, right) => format!("{} + {}", left.to_string(), right.to_string()),
             NodeKind::SUB(left, right) => format!("{} - {}", left.to_string(), right.to_string()),
@@ -174,6 +213,7 @@ impl Node {
 
 type Clause = Box<Node>;
 type Expr = Box<Node>;
+type Args = Vec<Node>;
 type Stmt = Box<Node>;
 type Stmts = Vec<Node>;
 type Label = String;
@@ -198,6 +238,7 @@ pub enum NodeKind {
     SUB(Expr, Expr),
     MUL(Expr, Expr),
     DIV(Expr, Expr),
+    CALL(Expr, Args),
     NEGATIVE(Expr),
     INTEGER(i128),
     IDENTIFIER(String),

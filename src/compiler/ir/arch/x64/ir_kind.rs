@@ -1,4 +1,6 @@
 type LabelName = String;
+type Offset = usize;
+type RegNumber = usize;
 #[derive(Debug, Clone)]
 pub enum X64IRKind {
     // 抽象的なIR
@@ -36,12 +38,18 @@ pub enum X64IRKind {
     RETREG(X64Operand),
     RETIMM(X64Operand),
     RETMEM(X64Operand),
+    RETCALL(X64Operand),
     STOREREG(X64Operand, X64Operand),
     STOREIMM(X64Operand, X64Operand),
     STOREMEM(X64Operand, X64Operand),
     CMPZEROREG(X64Operand),
     CMPZEROIMM(X64Operand),
     CMPZEROMEM(X64Operand),
+
+    // その他
+    GENPARAM(RegNumber, X64Operand),
+    GENPARAMIMM(RegNumber, X64Operand),
+    PUSHPARAM(RegNumber, Offset),
 }
 #[derive(Debug, Clone)]
 pub struct X64Operand {
@@ -81,6 +89,7 @@ impl X64Operand {
     pub fn var_name(&self) -> &String {
         match &self.kind {
             X64OpeKind::AUTOVAR(name, _offset) => &name,
+            X64OpeKind::CALL(name) => &name,
             _ => panic!("can't get variable-name without autovar"),
         }
     }
@@ -95,6 +104,7 @@ impl X64Operand {
 #[derive(Debug, Clone)]
 pub enum X64OpeKind {
     INTLIT(i128),
+    CALL(String),
     AUTOVAR(String, usize),
     REG,
     INVALID,

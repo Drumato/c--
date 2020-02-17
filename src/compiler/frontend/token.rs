@@ -45,6 +45,7 @@ pub enum TokenKind {
     ASSIGN,    // =記号
     BLANK,     // 空白類文字
     NEWLINE,   // 改行
+    COMMA,     // ,記号
     EOF,
 
     // 予約語

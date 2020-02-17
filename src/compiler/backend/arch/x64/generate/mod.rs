@@ -59,8 +59,20 @@ impl Registers {
             14 => Self::R14,
             15 => Self::R15,
             _ => {
-                eprintln!("can't over 16!");
-                Self::RAX
+                panic!("can't over 16!");
+            }
+        }
+    }
+    fn from_arg_number(number: usize) -> Self {
+        match number {
+            0 => Self::RDI,
+            1 => Self::RSI,
+            2 => Self::RDX,
+            3 => Self::RCX,
+            4 => Self::R8,
+            5 => Self::R9,
+            _ => {
+                panic!("can't over 6!");
             }
         }
     }

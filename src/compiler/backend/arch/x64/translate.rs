@@ -37,6 +37,13 @@ impl HighOptimizer {
         // TAC列のイテレーション
         for t in meta_bb.tacs.iter() {
             match t.kind.clone() {
+                tac_kind::TacKind::GENPARAM(reg_num, op) => {
+                    let gen_op = Self::tac_operand_to_x64(op);
+                    low_irs.push(X64IR::new_genparam(reg_num, gen_op));
+                }
+                tac_kind::TacKind::PUSHPARAM(reg_num, offset) => {
+                    low_irs.push(X64IR::new_pushparam(reg_num, offset));
+                }
                 tac_kind::TacKind::LABEL(_label_name) => {
                     // この時点でBasicBlockに分けられているのでラベルは生成する必要はない.
                     // (3番地コードのときはCFG構築などにラベル情報があると便利だったため利用)
@@ -137,7 +144,7 @@ impl HighOptimizer {
                                 }
                             }
                         }
-                        X64OpeKind::INVALID => panic!("got invalid operand"),
+                        _ => panic!("got invalid operand"),
                     }
                 }
             }
@@ -213,6 +220,7 @@ impl HighOptimizer {
                 X64OpeKind::AUTOVAR(name.to_string(), offset)
             }
             tac_kind::OpeKind::REG => X64OpeKind::REG,
+            tac_kind::OpeKind::CALL(name) => X64OpeKind::CALL(name),
             tac_kind::OpeKind::INVALID => X64OpeKind::INVALID,
         }
     }

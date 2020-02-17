@@ -76,6 +76,7 @@ impl Lexer {
             '{' => Some(self.scan_symbol(TokenKind::LBRACE)),
             '}' => Some(self.scan_symbol(TokenKind::RBRACE)),
             '=' => Some(self.scan_symbol(TokenKind::ASSIGN)),
+            ',' => Some(self.scan_symbol(TokenKind::COMMA)),
 
             // アルファベットの場合
             c if c.is_ascii_alphabetic() => Some(self.scan_word()),

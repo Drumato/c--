@@ -24,6 +24,12 @@ impl ThreeAddressCode {
     pub fn new_iff(lv: Operand, label_name: String) -> Self {
         Self::new(TacKind::IFF(lv, label_name))
     }
+    pub fn new_genparam(reg_num: usize, op: Operand) -> Self {
+        Self::new(TacKind::GENPARAM(reg_num, op))
+    }
+    pub fn new_pushparam(reg_num: usize, offset: usize) -> Self {
+        Self::new(TacKind::PUSHPARAM(reg_num, offset))
+    }
     pub fn new_binop_code(
         variable_op: Operand,
         operator: Operator,
@@ -55,6 +61,8 @@ impl ThreeAddressCode {
                 op.to_string(),
                 inner.to_string(),
             ),
+            TacKind::PUSHPARAM(number, offset) => format!("pushparam {}, {}", number, offset),
+            TacKind::GENPARAM(reg_num, op) => format!("genparam {}, {}", reg_num, op.to_string()),
             TacKind::RET(return_op) => format!("return {}", return_op.to_string()),
         }
     }

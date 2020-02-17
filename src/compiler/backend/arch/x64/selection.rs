@@ -1,6 +1,7 @@
 use crate::compiler::backend::arch::x64::optimizer::X64Optimizer;
 use crate::compiler::ir::arch::x64::{
     basicblock::X64BasicBlock,
+    ir::X64IR,
     ir_kind::{X64IRKind, X64OpeKind},
 };
 
@@ -42,10 +43,7 @@ impl X64Optimizer {
                         X64OpeKind::AUTOVAR(_name, _offset) => {
                             ir.kind = X64IRKind::MOVMEMTOREG(dst.clone(), src.clone());
                         }
-                        _ => {
-                            eprintln!("{:?}", ir);
-                            panic!("↑ not implemented in mov selection")
-                        }
+                        _ => self.not_selection_panic("mov", ir),
                     }
                 }
                 // add
@@ -136,6 +134,11 @@ impl X64Optimizer {
                         X64OpeKind::AUTOVAR(_name, _offset) => {
                             ir.kind = X64IRKind::RETMEM(return_op.clone());
                         }
+
+                        // return call
+                        X64OpeKind::CALL(_name) => {
+                            ir.kind = X64IRKind::RETCALL(return_op.clone());
+                        }
                         _ => panic!("not implemented in ret selection"),
                     }
                 }
@@ -182,9 +185,25 @@ impl X64Optimizer {
                         _ => panic!("not implemented in cmpzero selection"),
                     }
                 }
+                // params
+                X64IRKind::GENPARAM(reg_num, gen_op) => {
+                    match &gen_op.kind {
+                        // genparam imm
+                        X64OpeKind::INTLIT(_value) => {
+                            ir.kind = X64IRKind::GENPARAMIMM(reg_num.clone(), gen_op.clone());
+                        }
+                        _ => panic!("not implemented in genparam selection"),
+                    }
+                }
+                X64IRKind::PUSHPARAM(_reg_num, _offset) => {}
                 _ => (),
             }
         }
         block
+    }
+
+    fn not_selection_panic(&mut self, inst: &str, ir: &X64IR) -> ! {
+        eprintln!("{:?}", ir);
+        panic!("not implemented in {} selection", inst);
     }
 }

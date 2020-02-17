@@ -20,7 +20,7 @@ impl X64Optimizer {
         // intel記法のprefix
         output += ".intel_syntax noprefix\n";
         for func in self.functions.iter() {
-            &(format!(".global {}\n", func.func_name).as_str());
+            output += &(format!(".global {}\n", func.func_name).as_str());
         }
         output
     }
@@ -217,6 +217,17 @@ impl X64IR {
                 output += &(format!("  ret").as_str());
                 output
             }
+            X64IRKind::RETCALL(return_op) => {
+                let mut output = String::new();
+                let return_name = return_op.var_name();
+                output += &(format!("call {}\n", return_name).as_str());
+
+                // 関数エピローグ
+                output += &(format!("  mov rsp, rbp\n").as_str());
+                output += &(format!("  pop rbp\n").as_str());
+                output += &(format!("  ret").as_str());
+                output
+            }
             // cmpzero
             X64IRKind::CMPZEROREG(cmp_op) => {
                 let cmp_reg = Registers::from_number_ir(cmp_op.phys);
@@ -229,6 +240,16 @@ impl X64IR {
             }
             X64IRKind::JMP(label_name) => format!("jmp {}", label_name),
             X64IRKind::JZ(label_name) => format!("jz {}", label_name),
+            // genparam
+            X64IRKind::GENPARAMIMM(reg_num, gen_op) => {
+                let dst_reg = Registers::from_arg_number(*reg_num);
+                let gen_value = gen_op.int_value();
+                format!("mov {}, {}", dst_reg.to_string(), gen_value)
+            }
+            X64IRKind::PUSHPARAM(reg_num, offset) => {
+                let src_reg = Registers::from_arg_number(*reg_num);
+                format!("mov QWORD PTR -{}[rbp], {}", offset, src_reg.to_string())
+            }
             _ => {
                 eprintln!("can't emit with invalid ir -> {:?}", self.kind);
                 String::new()

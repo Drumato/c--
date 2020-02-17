@@ -19,7 +19,11 @@ impl Manager {
                 break;
             }
 
-            let func = self.parse_function();
+            self.params.clear();
+            self.var_map.clear();
+            let mut func = self.parse_function();
+            func.local_map = self.var_map.clone();
+            func.params = self.params.clone();
             self.functions.push(func);
         }
     }
@@ -31,13 +35,27 @@ impl Manager {
         let current_position = self.looking_token_clone().position;
 
         let base_type = self.consume_base_type().unwrap();
-        let (name, _dec_type) = self.parse_declarator(base_type);
+        let (name, dec_type) = self.parse_declarator(base_type);
 
-        let mut func = Function::init(name, current_position);
+        let mut func = Function::init(name, current_position, dec_type);
 
         self.expect(TokenKind::LPAREN);
-        // 今の所引数は無視
-        self.expect(TokenKind::RPAREN);
+        // voidは単純に無視すればいい
+        self.consume(TokenKind::VOID);
+
+        // 引数のパース
+        loop {
+            if self.consume(TokenKind::RPAREN) {
+                break;
+            }
+
+            let base_type = self.consume_base_type().unwrap();
+            let (arg_name, dec_type) = self.parse_declarator(base_type);
+            let argument = Variable::init_local(dec_type.clone());
+            self.params.insert(arg_name.to_string(), argument);
+
+            self.consume(TokenKind::COMMA);
+        }
 
         // 関数のボディ
         self.expect(TokenKind::LBRACE);
@@ -316,7 +334,7 @@ impl Manager {
 
         left_node
     }
-    // unary -> primary-expression | ("+" | "-")? unary-expression
+    // unary -> postfix-expression | ("+" | "-")? unary-expression
     fn parse_unary(&mut self) -> Node {
         let cur = self.looking_token_clone();
         match cur.kind {
@@ -324,7 +342,32 @@ impl Manager {
                 self.read_token();
                 Node::new_unary_node(&cur, self.parse_unary())
             }
-            _ => self.parse_primary(),
+            _ => self.parse_postfix(),
+        }
+    }
+    // postfix -> primary-expression | postfix_expression `(` argument-expression-list_opt `)`
+    fn parse_postfix(&mut self) -> Node {
+        let primary_expr = self.parse_primary();
+        let cur = self.looking_token_clone();
+
+        match cur.kind {
+            // 関数呼び出し
+            // TODO: とりあえず引数なし
+            TokenKind::LPAREN => {
+                self.read_token();
+                let mut params: Vec<Node> = Vec::new();
+                loop {
+                    if self.consume(TokenKind::RPAREN) {
+                        break;
+                    }
+
+                    params.push(self.parse_assign());
+                    self.consume(TokenKind::COMMA);
+                }
+                Node::new_call(cur.position, primary_expr, params)
+            }
+            // ただのprimary-expressionとしてパース
+            _ => primary_expr,
         }
     }
     // primary -> identifier | constant | ( expression ) | string-literal | generic_selection

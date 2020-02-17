@@ -1,4 +1,6 @@
 type Label = String;
+type Offset = usize;
+type RegNumber = usize;
 
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum TacKind {
@@ -11,6 +13,8 @@ pub enum TacKind {
 
     // ラベルを必要とするのは,CFG構築などで存在すると便利だから.
     // BasicBlockがこの情報を保持しているので,Low-IRに変換したときに捨てる.
+    GENPARAM(RegNumber, Operand),
+    PUSHPARAM(RegNumber, Offset),
     LABEL(Label),
 }
 
@@ -54,6 +58,9 @@ impl Operand {
     pub fn new_int_literal(val: i128) -> Self {
         Self::new(OpeKind::INTLIT(val))
     }
+    pub fn new_call(name: String) -> Self {
+        Self::new(OpeKind::CALL(name))
+    }
     pub fn new_auto_var(name: String, offset: usize) -> Self {
         Self::new(OpeKind::AUTOVARIABLE(name, offset))
     }
@@ -74,6 +81,7 @@ impl Operand {
     pub fn to_string(&self) -> String {
         match &self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
+            OpeKind::CALL(name) => format!("{}()", name),
             OpeKind::AUTOVARIABLE(name, _offset) => format!("{}", name),
             OpeKind::REG => format!("t{}", self.virt),
             OpeKind::INVALID => "invalid".to_string(),
@@ -82,6 +90,7 @@ impl Operand {
     pub fn to_string_physical(&self) -> String {
         match &self.kind {
             OpeKind::INTLIT(val) => format!("{}", val),
+            OpeKind::CALL(name) => format!("{}()", name),
             OpeKind::AUTOVARIABLE(name, offset) => format!("{}[sp-{}]", name, offset),
             OpeKind::REG => format!("t{}", self.phys),
             OpeKind::INVALID => "invalid".to_string(),
@@ -89,9 +98,9 @@ impl Operand {
     }
 }
 
-type Offset = usize;
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Clone)]
 pub enum OpeKind {
+    CALL(String),
     INTLIT(i128),
     REG,
     AUTOVARIABLE(String, Offset),

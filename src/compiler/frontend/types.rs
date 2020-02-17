@@ -1,6 +1,6 @@
 use crate::compiler::frontend::token::{Token, TokenKind};
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone, Eq, Debug, PartialEq)]
 pub struct Type {
     pub kind: TypeKind,
     pub byte_size: usize, // メモリ上のサイズ
@@ -49,7 +49,7 @@ impl Type {
 }
 
 type Base = Box<Type>;
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone, Eq, Debug, PartialEq)]
 pub enum TypeKind {
     INTEGER,
     VOID,

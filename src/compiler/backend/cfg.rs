@@ -98,6 +98,20 @@ impl HighOptimizer {
                         self.add_prev(&mut cfg_inbb, i, i - 1);
                     }
                 }
+                TacKind::GENPARAM(_, _) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+                }
+                TacKind::PUSHPARAM(_, _) => {
+                    self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
+
+                    if i != 0 && !prev_inst_is_goto {
+                        self.add_prev(&mut cfg_inbb, i, i - 1);
+                    }
+                }
                 TacKind::LABEL(_label_name) => {
                     self.add_succ(&mut cfg_inbb, tacs.len(), i, i + 1);
 

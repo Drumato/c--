@@ -26,15 +26,29 @@ impl Manager {
     pub fn generate_three_address_code(&mut self) {
         let ast_functions = self.functions.clone();
         for (idx, ast_func) in ast_functions.iter().enumerate() {
+            self.var_map = ast_func.local_map.clone();
+            self.params = ast_func.params.clone();
             // 単一関数
             let entry_bb = BasicBlock::new("entry".to_string());
             self.add_new_ir_func(&ast_func, entry_bb);
 
             // 関数内ASTからIRを生成
             self.init_info_for_genir();
+
+            for (i, (name, _param)) in ast_func.params.iter().enumerate() {
+                if let Some(arg_symbol) = self.params.get(name) {
+                    let param_offset = arg_symbol.get_local_offset();
+                    self.add_ir_to_current_bb(
+                        idx,
+                        ThreeAddressCode::new_pushparam(i, param_offset),
+                    );
+                }
+            }
             for stmt in ast_func.stmts.iter() {
                 self.gen_stmt(idx, stmt.clone());
             }
+            self.var_map.clear();
+            self.params.clear();
         }
     }
     fn gen_stmt(&mut self, func_idx: usize, stmt: Node) {
@@ -277,10 +291,23 @@ impl Manager {
                         return Operand::new_auto_var(name.to_string(), offset);
                     }
                 }
+                if let Some(var) = self.params.get(&name) {
+                    if let VarKind::LOCAL(offset) = var.kind {
+                        return Operand::new_auto_var(name.to_string(), offset);
+                    }
+                }
                 eprintln!("not found such an var -> {}", name);
                 Operand::new_invalid()
             }
 
+            NodeKind::CALL(ident, args) => {
+                for (i, param) in args.iter().enumerate() {
+                    let param_op = self.gen_expr(func_idx, param.clone());
+                    let param_code = ThreeAddressCode::new_genparam(i, param_op);
+                    self.add_ir_to_current_bb(func_idx, param_code);
+                }
+                Operand::new_call(ident.ident_name())
+            }
             // NodeKind::INVALID => Operand::new_invalid(),
             _ => Operand::new_invalid(),
         }

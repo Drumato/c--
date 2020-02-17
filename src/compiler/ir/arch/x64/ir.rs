@@ -62,4 +62,14 @@ impl X64IR {
             kind: X64IRKind::JZ(label_name),
         }
     }
+    pub fn new_genparam(reg_num: usize, op: X64Operand) -> Self {
+        Self {
+            kind: X64IRKind::GENPARAM(reg_num, op),
+        }
+    }
+    pub fn new_pushparam(reg_num: usize, offset: usize) -> Self {
+        Self {
+            kind: X64IRKind::PUSHPARAM(reg_num, offset),
+        }
+    }
 }

@@ -9,7 +9,9 @@ impl Manager {
         let mut functions = self.functions.clone();
         let functions_number = functions.len();
         for func_idx in 0..functions_number {
+            self.var_map = functions[func_idx].local_map.clone();
             self.walk_function(&mut functions[func_idx]);
+            self.var_map.clear();
         }
         self.functions = functions;
     }
@@ -70,6 +72,16 @@ impl Manager {
     }
     fn walk_expression(&mut self, n: &mut Node) -> Type {
         match n.kind {
+            // TODO: 後で全探索じゃない方法に書き換える
+            // 関数列をマップで持たせれば解決する.
+            NodeKind::CALL(ref mut ident, ref mut _args) => {
+                for func in self.functions.iter() {
+                    if func.name == ident.ident_name() {
+                        return func.return_type.clone();
+                    }
+                }
+                Type::new_unknown()
+            }
             NodeKind::INTEGER(_val) => {
                 n.ctype = Type::new_integer();
                 n.ctype.clone()

@@ -70,6 +70,8 @@ fn build_expected() -> Result<BTreeMap<String, i32>, Box<dyn std::error::Error>>
             "for.c" => 10,
             "while.c" => 0,
             "do_while.c" => 2,
+            "without_params.c" => 30,
+            "with_params.c" => 3,
             _ => {
                 eprintln!("not found such a test case -> {}", final_name);
                 0

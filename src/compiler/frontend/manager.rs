@@ -16,6 +16,7 @@ pub struct Manager {
     // パース処理用
     pub cur_token: usize,
     pub next_token: usize,
+    pub params: BTreeMap<String, variable::Variable>,
     pub var_map: BTreeMap<String, variable::Variable>,
 
     // 3番地コード列
@@ -36,6 +37,7 @@ impl Manager {
             functions: Vec::new(),
             cur_token: 0,
             next_token: 1,
+            params: BTreeMap::new(),
             var_map: BTreeMap::new(),
             ir_funcs: Vec::new(),
             cur_bb: 0,
