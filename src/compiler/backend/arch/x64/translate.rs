@@ -102,9 +102,14 @@ impl HighOptimizer {
                             low_irs.push(load_ir);
                         }
                         X64OpeKind::AUTOVAR(_name, _offset) => {
+                            Self::add_binary_ir_matching_opcode(
+                                &mut low_irs,
+                                opcode,
+                                left.clone(),
+                                right,
+                            );
                             let load_ir = X64IR::new_mov(dst, left.clone());
                             low_irs.push(load_ir);
-                            Self::add_binary_ir_matching_opcode(&mut low_irs, opcode, left, right);
                         }
                         // 左が整数値
                         X64OpeKind::INTLIT(_) => {

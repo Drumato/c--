@@ -26,7 +26,20 @@ impl X64Assembler {
 
         // modr/m (MI)
         let rm_field = Self::modrm_rm_field(inst.dst_regnumber);
-        codes.push(MODRM_REGISTER_REGISTER | rm_field);
+
+        // オフセットが設定されている -> アドレッシング方法が異なる
+        if inst.store_offset != 0 {
+            codes.push(MODRM_REGISTER_DISPLACEMENT8 | rm_field);
+        } else {
+            codes.push(MODRM_REGISTER_REGISTER | rm_field);
+        }
+
+        // displacement
+        // もしoffsetが設定されていれば加える
+        // TODO: 今はマイナスに決め打ち
+        if inst.store_offset != 0 {
+            codes.push((-inst.store_offset) as u8);
+        }
 
         // immediate-value
         for b in (inst.immediate_value as u32).to_le_bytes().to_vec().iter() {
@@ -60,7 +73,9 @@ impl X64Instruction {
     ) -> X64InstName {
         match op_size {
             OperandSize::QUADWORD => {
-                if dst.is_register() && src.is_immediate() {
+                if dst.is_register() && src.is_immediate()
+                    || dst.is_addressing() && src.is_immediate()
+                {
                     // add r/m64, imm32
                     return X64InstName::ADDRM64IMM32;
                 }

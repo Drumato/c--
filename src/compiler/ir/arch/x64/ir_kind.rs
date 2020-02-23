@@ -23,11 +23,13 @@ pub enum X64IRKind {
     // 2つオペランドを持つ系
     ADDIMMTOREG(X64Operand, X64Operand),
     ADDREGTOREG(X64Operand, X64Operand),
+    ADDIMMTOVAR(X64Operand, X64Operand),
     MOVIMMTOREG(X64Operand, X64Operand),
     MOVREGTOREG(X64Operand, X64Operand),
     MOVMEMTOREG(X64Operand, X64Operand),
     SUBIMMTOREG(X64Operand, X64Operand),
     SUBREGTOREG(X64Operand, X64Operand),
+    SUBIMMTOVAR(X64Operand, X64Operand),
     MULIMMTOREG(X64Operand, X64Operand),
     MULREGTOREG(X64Operand, X64Operand),
     DIVIMMTOREG(X64Operand, X64Operand),

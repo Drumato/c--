@@ -73,6 +73,16 @@ impl X64IR {
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 format!("add {}, {}", dst_reg.to_string(), immediate.int_value())
             }
+            X64IRKind::ADDIMMTOVAR(dst, immediate) => {
+                let dst_name = dst.var_name();
+                let dst_off = dst.var_offset();
+                format!(
+                    "add QWORD PTR -{}[rbp], {} # {}",
+                    dst_off,
+                    immediate.int_value(),
+                    dst_name,
+                )
+            }
 
             // mov
             X64IRKind::MOVREGTOREG(dst, src) => {
@@ -106,6 +116,16 @@ impl X64IR {
             X64IRKind::SUBIMMTOREG(dst, immediate) => {
                 let dst_reg = Registers::from_number_ir(dst.phys);
                 format!("sub {}, {}", dst_reg.to_string(), immediate.int_value())
+            }
+            X64IRKind::SUBIMMTOVAR(dst, immediate) => {
+                let dst_name = dst.var_name();
+                let dst_off = dst.var_offset();
+                format!(
+                    "sub QWORD PTR -{}[rbp], {} # {}",
+                    dst_off,
+                    immediate.int_value(),
+                    dst_name,
+                )
             }
 
             // mul

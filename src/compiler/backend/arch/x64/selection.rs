@@ -48,33 +48,53 @@ impl X64Optimizer {
                 }
                 // add
                 X64IRKind::ADD(dst, src) => {
-                    match &src.kind {
-                        // add reg, reg
-                        X64OpeKind::REG => {
-                            ir.kind = X64IRKind::ADDREGTOREG(dst.clone(), src.clone());
-                        }
+                    match &dst.kind {
+                        X64OpeKind::REG => match &src.kind {
+                            // add reg, reg
+                            X64OpeKind::REG => {
+                                ir.kind = X64IRKind::ADDREGTOREG(dst.clone(), src.clone());
+                            }
 
-                        // add reg, imm
-                        X64OpeKind::INTLIT(_value) => {
-                            ir.kind = X64IRKind::ADDIMMTOREG(dst.clone(), src.clone());
-                        }
-                        _ => panic!("not implemented in add selection"),
+                            // add reg, imm
+                            X64OpeKind::INTLIT(_value) => {
+                                ir.kind = X64IRKind::ADDIMMTOREG(dst.clone(), src.clone());
+                            }
+                            _ => self.not_selection_panic("add", ir),
+                        },
+                        X64OpeKind::AUTOVAR(_name, _offset) => match &src.kind {
+                            // add var, imm
+                            X64OpeKind::INTLIT(_value) => {
+                                ir.kind = X64IRKind::ADDIMMTOVAR(dst.clone(), src.clone());
+                            }
+                            _ => self.not_selection_panic("add", ir),
+                        },
+                        _ => {}
                     }
                 }
 
                 // sub
                 X64IRKind::SUB(dst, src) => {
-                    match &src.kind {
-                        // sub reg, reg
-                        X64OpeKind::REG => {
-                            ir.kind = X64IRKind::SUBREGTOREG(dst.clone(), src.clone());
-                        }
+                    match &dst.kind {
+                        X64OpeKind::REG => match &src.kind {
+                            // sub reg, reg
+                            X64OpeKind::REG => {
+                                ir.kind = X64IRKind::SUBREGTOREG(dst.clone(), src.clone());
+                            }
 
-                        // sub reg, imm
-                        X64OpeKind::INTLIT(_value) => {
-                            ir.kind = X64IRKind::SUBIMMTOREG(dst.clone(), src.clone());
-                        }
-                        _ => panic!("not implemented in sub selection"),
+                            // add sub, imm
+                            X64OpeKind::INTLIT(_value) => {
+                                ir.kind = X64IRKind::SUBIMMTOREG(dst.clone(), src.clone());
+                            }
+                            _ => self.not_selection_panic("sub", ir),
+                        },
+                        X64OpeKind::AUTOVAR(_name, _offset) => match &src.kind {
+                            // sub var, imm
+                            X64OpeKind::INTLIT(_value) => {
+                                ir.kind = X64IRKind::SUBIMMTOVAR(dst.clone(), src.clone());
+                            }
+                            _ => self.not_selection_panic("sub", ir),
+                        },
+                        _ => {}
                     }
                 }
                 // mul
